@@ -49,6 +49,11 @@ import { MatInputModule } from '@angular/material/input';
       }
     </mat-form-field>
   `,
+  styles: `
+    :host {
+      display: block;
+    }
+  `,
 })
 export class PasswordField {
   private static seq = 0;

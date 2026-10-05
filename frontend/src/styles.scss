@@ -393,6 +393,28 @@ main:focus-visible {
   font-weight: 700;
 }
 
+// Card de vidro das telas de acesso (auth-layout): campos translúcidos
+.auth-glass {
+  .mat-mdc-text-field-wrapper {
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 12px;
+    transition: background-color 0.15s ease;
+  }
+
+  .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper,
+  .mat-mdc-text-field-wrapper:hover {
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  // Autopreenchimento do Chrome pinta o input de azul sólido; mantém o fundo do campo
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--sh-text);
+    transition: background-color 600000s 0s;
+  }
+}
+
 // Ícones (fonte self-hosted via @fontsource; a classe vem do stylesheet do Google, não do pacote)
 .material-icons {
   font-family: 'Material Icons';
