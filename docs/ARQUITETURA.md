@@ -115,7 +115,8 @@ Migrações Flyway em `backend/src/main/resources/db/migration`:
 | V3 | Parâmetros (aba Parâmetros + prazos do Edital/Política) |
 | V4 | 92 municípios do RJ (IBGE) com flag da Região Metropolitana |
 | V5 | Feriados 2026–2027 (nacionais, RJ, Mesquita) |
-| V10+ | Fase 1 — fornecedores e habilitação |
+| V10 | Fase 1 — requerimento (Anexo II), linhas, territórios, documentos e andamento |
+| V11+ | Fase 1 — certidões, recursos, cadastro público |
 | V20+ | Fase 2 — editais, propostas, julgamento (+ tabelas da Fase 3 já modeladas) |
 
 ## Testes

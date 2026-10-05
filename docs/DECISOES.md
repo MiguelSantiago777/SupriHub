@@ -101,6 +101,37 @@ escopo das Fases 1–2; fica para depois, se pedido.
 inválido. A **máscara** pública segue o formato do exemplo (`12.345.***/****-90`), mas os
 dados de teste usam CNPJs válidos.
 
+**D-022 — Requerimento eletrônico e declarações** · Fase 1 · vigente
+O Anexo II vira formulário em 7 etapas, com rascunho salvo a qualquer momento. As
+declarações dos Anexos III e V são aceitas eletronicamente: uma caixa de confirmação
+registra data e hora em `declarations_accepted_at`. Marcar "negócio liderado por mulher"
+vale como o Anexo IV. Os documentos do item 4.1 são enviados um por tipo (reenviar
+substitui), em PDF, JPG ou PNG de até `upload_max_size_mb`. O tipo do arquivo é conferido
+pelo conteúdo, não pela extensão.
+
+**D-023 — "Requerimento completo" e prazo de análise** · Fase 1 · vigente
+Edital 4.3: o prazo de 10 dias úteis corre do requerimento **completo**. Por isso o envio
+só é aceito sem pendências (`ApplicationCompleteness`), entre elas: CPF/CNPJ válidos, PF
+maior de 18 anos (D-019), PF só em linhas que aceitam PF, documentos obrigatórios do tipo e
+declarações aceitas. Opcionais no envio: "se aplicável", "quando exigível" e
+"recomendado"; a Comissão pede por ajuste quando a atividade exigir. O protocolo
+(`CR-AAAA-NNNNN`) é atribuído no primeiro envio e mantido nos reenvios.
+
+**D-024 — Ajuste, inabilitação e reenvio** · Fase 1 · vigente
+O pedido de ajuste (Edital 4.3) devolve o requerimento ao fornecedor com prazo de
+`diligence_business_days`. Ao reenviar, o prazo de análise é recalculado. A inabilitação
+exige motivo. O inabilitado pode corrigir e reenviar, porque o credenciamento é permanente.
+O **recurso** (Anexo X, Edital 5.2) ainda não tem tela: o e-mail informa o direito e o
+prazo de 3 dias úteis. A prorrogação fiscal de pequenos negócios (5 + 5 d.u., Edital 4.4)
+é feita como novo pedido de ajuste.
+
+**D-025 — Quem analisa** · Fase 1 · vigente
+A fila e as decisões ficam com a Comissão de Credenciamento e com o ADMIN
+(`hasAnyRole('COMMISSION','ADMIN')`). Cada envio avisa por e-mail todos os membros ativos
+da Comissão. A habilitação vale por `accreditation_validity_months` (24). A lista pública
+de credenciados, a reconferência semestral de certidões e a atualização de dados do
+habilitado (Edital 6.3) ficam para as próximas entregas da Fase 1.
+
 ## 3. Pontos em aberto do prompt (§12) — padrões adotados
 
 **D-030 — Visibilidade dos editais** · Fase 2 · padrão

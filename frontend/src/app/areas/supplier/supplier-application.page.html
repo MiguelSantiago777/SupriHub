@@ -1,0 +1,718 @@
+<header class="page-header">
+  <div class="container head">
+    <div>
+      <span class="eyebrow">Área do fornecedor</span>
+      <h1>Olá, {{ firstName() }}!</h1>
+      <p>Seu requerimento de credenciamento no Contrata + NATA.</p>
+    </div>
+    @if (app(); as a) {
+      <div class="head-status">
+        <span class="badge big" [class]="badge[a.status]">{{ a.statusLabel }}</span>
+        @if (a.protocol) {
+          <span class="muted"
+            >Protocolo <strong>{{ a.protocol }}</strong></span
+          >
+        }
+      </div>
+    }
+  </div>
+</header>
+
+<div class="container page">
+  @if (loadError()) {
+    <p class="alert alert-error" role="alert">{{ loadError() }}</p>
+  } @else if (!app()) {
+    <div class="loading" role="status">
+      <mat-spinner diameter="40" />
+      <span>Carregando seu requerimento…</span>
+    </div>
+  } @else {
+    @let a = app()!;
+
+    <!-- Situação -------------------------------------------------------- -->
+    @switch (a.status) {
+      @case ('SUBMITTED') {
+        <section class="status-card info" role="status">
+          <span class="icon-tile"><mat-icon aria-hidden="true">hourglass_top</mat-icon></span>
+          <div>
+            <h2>
+              {{ justSubmitted() ? 'Requerimento enviado!' : 'Seu requerimento está em análise' }}
+            </h2>
+            <p>
+              A Comissão de Credenciamento vai conferir seus dados e documentos até
+              <strong>{{ fmtDate(a.analysisDueDate) }}</strong> (10 dias úteis). Você recebe o
+              resultado por e-mail. Enquanto isso, o requerimento fica bloqueado para edição.
+            </p>
+          </div>
+        </section>
+      }
+      @case ('ADJUSTMENT_REQUESTED') {
+        <section class="status-card warning" role="alert">
+          <span class="icon-tile amber"><mat-icon aria-hidden="true">edit_note</mat-icon></span>
+          <div>
+            <h2>A Comissão pediu um ajuste</h2>
+            <blockquote>{{ a.adjustmentMessage }}</blockquote>
+            <p>
+              Faça a correção abaixo e clique em <strong>Reenviar para análise</strong> até
+              <strong>{{ fmtDate(a.adjustmentDueDate) }}</strong> (5 dias úteis).
+            </p>
+          </div>
+        </section>
+      }
+      @case ('APPROVED') {
+        <section class="status-card success" role="status">
+          <span class="icon-tile green"
+            ><mat-icon aria-hidden="true">workspace_premium</mat-icon></span
+          >
+          <div>
+            <h2>Você está credenciado!</h2>
+            <p>
+              Seu credenciamento vale até <strong>{{ fmtDate(a.accreditationValidUntil) }}</strong
+              >. Você vai receber as oportunidades das linhas e territórios escolhidos. Mantenha
+              telefone, e-mail, conta e certidões em dia.
+            </p>
+          </div>
+        </section>
+      }
+      @case ('REJECTED') {
+        <section class="status-card error" role="alert">
+          <span class="icon-tile error"><mat-icon aria-hidden="true">report</mat-icon></span>
+          <div>
+            <h2>Seu requerimento não foi aprovado</h2>
+            <blockquote>{{ a.decisionReason }}</blockquote>
+            <p>
+              Você pode corrigir os dados ou documentos e enviar de novo. Se não concordar, pode
+              recorrer em até 3 dias úteis (Edital, item 5.2).
+            </p>
+          </div>
+        </section>
+      }
+      @default {
+        <section class="status-card intro">
+          <span class="icon-tile"><mat-icon aria-hidden="true">assignment</mat-icon></span>
+          <div>
+            <h2>Preencha e envie seu requerimento</h2>
+            <p>
+              São 7 etapas. Você pode <strong>salvar e continuar depois</strong> quantas vezes
+              quiser. Tenha em mãos os documentos em PDF ou foto (JPG/PNG), de até
+              {{ maxUploadMb }} MB cada.
+            </p>
+          </div>
+        </section>
+      }
+    }
+
+    @if (!a.editable) {
+      <app-application-view [app]="a" (openDocument)="openDocument($event)" />
+    } @else {
+      <div class="layout">
+        <!-- Navegação por etapas -------------------------------------- -->
+        <nav class="steps" aria-label="Etapas do requerimento">
+          <ol>
+            @for (s of sections; track s.id; let i = $index) {
+              @let pend = sectionIssues().get(s.id)?.length ?? 0;
+              <li>
+                <button type="button" (click)="goTo(s.id)" [class.done]="pend === 0">
+                  <span class="step-dot" aria-hidden="true">
+                    @if (pend === 0) {
+                      <mat-icon>check</mat-icon>
+                    } @else {
+                      {{ i + 1 }}
+                    }
+                  </span>
+                  <span class="step-label">
+                    {{ s.title }}
+                    <small>{{
+                      pend === 0 ? 'Completo' : pend + ' pendente' + (pend > 1 ? 's' : '')
+                    }}</small>
+                  </span>
+                </button>
+              </li>
+            }
+          </ol>
+        </nav>
+
+        <form class="sections" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <!-- 1. Tipo ------------------------------------------------------- -->
+          <section class="card sec" id="sec-tipo" tabindex="-1" aria-labelledby="t-tipo">
+            <h2 id="t-tipo"><span class="num">1</span> Tipo de negócio</h2>
+            <mat-radio-group
+              formControlName="supplierType"
+              class="type-grid"
+              aria-labelledby="t-tipo"
+            >
+              @for (t of supplierTypes; track t.value) {
+                <mat-radio-button
+                  [value]="t.value"
+                  class="type-card"
+                  [class.checked]="type() === t.value"
+                >
+                  <strong>{{ t.label }}</strong>
+                  <small>{{ t.hint }}</small>
+                </mat-radio-button>
+              }
+            </mat-radio-group>
+            @if (issueFor('supplierType'); as e) {
+              <p class="field-error" role="alert">{{ e }}</p>
+            }
+          </section>
+
+          <!-- 2. Identificação ------------------------------------------- -->
+          <section class="card sec" id="sec-identificacao" tabindex="-1" aria-labelledby="t-ident">
+            <h2 id="t-ident"><span class="num">2</span> Identificação e contato</h2>
+            <div class="row">
+              <mat-form-field class="span-2">
+                <mat-label>{{ isIndividual() ? 'Nome completo' : 'Razão social' }}</mat-label>
+                <input matInput formControlName="legalName" autocomplete="organization" />
+                @if (err('legalName'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              @if (!isIndividual()) {
+                <mat-form-field>
+                  <mat-label>Nome fantasia (opcional)</mat-label>
+                  <input matInput formControlName="tradeName" />
+                </mat-form-field>
+              }
+              <mat-form-field>
+                <mat-label>{{ isIndividual() ? 'CPF' : 'CNPJ' }}</mat-label>
+                <input
+                  matInput
+                  formControlName="documentNumber"
+                  inputmode="numeric"
+                  [placeholder]="isIndividual() ? '000.000.000-00' : '00.000.000/0000-00'"
+                  maxlength="18"
+                  (blur)="mask('documentNumber')"
+                />
+                @if (err('documentNumber'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              @if (isIndividual()) {
+                <mat-form-field>
+                  <mat-label>Data de nascimento</mat-label>
+                  <input matInput type="date" formControlName="birthDate" />
+                  <mat-hint>É preciso ter 18 anos ou mais.</mat-hint>
+                  @if (err('birthDate'); as e) {
+                    <mat-error>{{ e }}</mat-error>
+                  }
+                </mat-form-field>
+              }
+            </div>
+
+            <h3>Endereço {{ isIndividual() ? '' : 'da sede' }}</h3>
+            <div class="row">
+              <mat-form-field>
+                <mat-label>CEP</mat-label>
+                <input
+                  matInput
+                  formControlName="cep"
+                  inputmode="numeric"
+                  placeholder="00000-000"
+                  maxlength="9"
+                  autocomplete="postal-code"
+                  (blur)="mask('cep')"
+                />
+                @if (err('cep'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field class="span-2">
+                <mat-label>Rua, avenida…</mat-label>
+                <input matInput formControlName="street" autocomplete="address-line1" />
+                @if (err('street'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Número</mat-label>
+                <input matInput formControlName="addressNumber" />
+                @if (err('addressNumber'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Complemento (opcional)</mat-label>
+                <input matInput formControlName="addressComplement" autocomplete="address-line2" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Bairro</mat-label>
+                <input matInput formControlName="district" />
+                @if (err('district'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Município (RJ)</mat-label>
+                <mat-select formControlName="municipalityId">
+                  @for (m of municipalities(); track m.id) {
+                    <mat-option [value]="m.id">{{ m.name }}</mat-option>
+                  }
+                </mat-select>
+                @if (err('municipalityId'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <h3>Contato</h3>
+            <div class="row">
+              <mat-form-field>
+                <mat-label>Telefone com WhatsApp</mat-label>
+                <input
+                  matInput
+                  formControlName="phone"
+                  inputmode="tel"
+                  placeholder="(21) 99999-9999"
+                  maxlength="15"
+                  autocomplete="tel-national"
+                  (blur)="mask('phone')"
+                />
+                @if (err('phone'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>E-mail de contato</mat-label>
+                <input matInput type="email" formControlName="contactEmail" autocomplete="email" />
+                @if (err('contactEmail'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Site, Instagram ou portfólio (opcional)</mat-label>
+                <input matInput formControlName="website" />
+              </mat-form-field>
+            </div>
+
+            @if (!isIndividual()) {
+              <h3>Titular ou representante legal</h3>
+              <div class="row">
+                <mat-form-field class="span-2">
+                  <mat-label>Nome completo</mat-label>
+                  <input matInput formControlName="representativeName" autocomplete="name" />
+                  @if (err('representativeName'); as e) {
+                    <mat-error>{{ e }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>CPF</mat-label>
+                  <input
+                    matInput
+                    formControlName="representativeCpf"
+                    inputmode="numeric"
+                    placeholder="000.000.000-00"
+                    maxlength="14"
+                    (blur)="mask('representativeCpf')"
+                  />
+                  @if (err('representativeCpf'); as e) {
+                    <mat-error>{{ e }}</mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Cargo ou função (opcional)</mat-label>
+                  <input
+                    matInput
+                    formControlName="representativeRole"
+                    placeholder="Ex.: Sócia, Titular"
+                  />
+                </mat-form-field>
+              </div>
+            }
+          </section>
+
+          <!-- 3. Linhas --------------------------------------------------- -->
+          <section class="card sec" id="sec-linhas" tabindex="-1" aria-labelledby="t-linhas">
+            <h2 id="t-linhas"><span class="num">3</span> Linhas de fornecimento e territórios</h2>
+            <p class="muted">
+              Marque tudo o que você fornece. Na dúvida, veja o
+              <a routerLink="/catalogo" target="_blank">catálogo completo</a>.
+              @if (isIndividual()) {
+                Pessoa física só pode se credenciar nas linhas marcadas como "aceita PF".
+              }
+            </p>
+            <fieldset class="lines" aria-describedby="lines-error">
+              <legend class="visually-hidden">Linhas de fornecimento</legend>
+              @for (l of lines(); track l.code) {
+                @let checked = selectedLines().includes(l.code);
+                <div class="line" [class.checked]="checked" [class.blocked]="lineBlocked(l)">
+                  <mat-checkbox
+                    [checked]="checked"
+                    [disabled]="form.disabled || (lineBlocked(l) && !checked)"
+                    (change)="toggleLine(l.code, $event.checked)"
+                  >
+                    <span class="line-text">
+                      <strong>{{ l.code }} · {{ l.shortName }}</strong>
+                      <small>{{ l.scope }}</small>
+                      @if (l.allowsIndividual) {
+                        <span class="badge badge-success pf">aceita PF</span>
+                      } @else if (isIndividual()) {
+                        <span class="badge badge-neutral pf">não aceita PF</span>
+                      }
+                    </span>
+                  </mat-checkbox>
+                </div>
+              }
+            </fieldset>
+            @if (issueFor('lineCodes'); as e) {
+              <p class="field-error" id="lines-error" role="alert">{{ e }}</p>
+            }
+
+            <mat-form-field class="full">
+              <mat-label>O que você oferece nessas linhas?</mat-label>
+              <textarea
+                matInput
+                formControlName="linesDescription"
+                rows="4"
+                maxlength="3000"
+                placeholder="Ex.: kits lanche para até 200 pessoas; equipe de 3 pessoas; entrego em Mesquita e Nova Iguaçu."
+              ></textarea>
+              <mat-hint>Conte produtos, serviços, quantidades, equipe e equipamentos.</mat-hint>
+              @if (err('linesDescription'); as e) {
+                <mat-error>{{ e }}</mat-error>
+              }
+            </mat-form-field>
+
+            <h3>Onde você atende</h3>
+            <fieldset class="territories">
+              <legend class="visually-hidden">Territórios de atendimento</legend>
+              @for (t of territoryOptions; track t.value) {
+                <mat-checkbox
+                  [checked]="selectedTerritories().includes(t.value)"
+                  [disabled]="form.disabled"
+                  (change)="toggleTerritory(t.value, $event.checked)"
+                >
+                  <strong>{{ t.label }}</strong> <span class="muted">— {{ t.hint }}</span>
+                </mat-checkbox>
+              }
+            </fieldset>
+            @if (issueFor('territories'); as e) {
+              <p class="field-error" role="alert">{{ e }}</p>
+            }
+            <mat-form-field class="full">
+              <mat-label>Municípios em que atende (opcional)</mat-label>
+              <input
+                matInput
+                formControlName="territoriesNote"
+                placeholder="Ex.: Mesquita, Nilópolis e Nova Iguaçu"
+              />
+            </mat-form-field>
+          </section>
+
+          <!-- 4. Pagamento ---------------------------------------------------- -->
+          <section class="card sec" id="sec-pagamento" tabindex="-1" aria-labelledby="t-pag">
+            <h2 id="t-pag"><span class="num">4</span> Dados para pagamento</h2>
+            <p class="muted">
+              A conta precisa estar no nome {{ isIndividual() ? 'do seu CPF' : 'do CNPJ' }}. O
+              pagamento é feito por Pix ou transferência.
+            </p>
+            <div class="row">
+              <mat-form-field>
+                <mat-label>Banco</mat-label>
+                <input matInput formControlName="bankName" placeholder="Ex.: Caixa, Nubank" />
+                @if (err('bankName'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Agência</mat-label>
+                <input matInput formControlName="bankBranch" inputmode="numeric" />
+                @if (err('bankBranch'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Conta com dígito</mat-label>
+                <input matInput formControlName="bankAccount" />
+                @if (err('bankAccount'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Tipo de conta</mat-label>
+                <mat-select formControlName="bankAccountType">
+                  @for (t of accountTypes; track t.value) {
+                    <mat-option [value]="t.value">{{ t.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Chave Pix (opcional)</mat-label>
+                <input matInput formControlName="pixKey" />
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Nome do titular da conta</mat-label>
+                <input matInput formControlName="accountHolder" />
+                @if (err('accountHolder'); as e) {
+                  <mat-error>{{ e }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </section>
+
+          <!-- 5. Equidade ------------------------------------------------- -->
+          <section class="card sec" id="sec-equidade" tabindex="-1" aria-labelledby="t-eq">
+            <h2 id="t-eq">
+              <span class="num">5</span> Equidade
+              <span class="badge badge-neutral">facultativo</span>
+            </h2>
+            <p class="muted">
+              Estas respostas são opcionais e servem só para o tratamento favorecido no desempate
+              (Edital 8.4). Nunca são publicadas.
+            </p>
+            <mat-checkbox formControlName="womanLed">
+              Este é um negócio liderado por mulher
+              <span class="muted">(vale como a Declaração do Anexo IV)</span>
+            </mat-checkbox>
+            <div class="row eq">
+              <mat-form-field>
+                <mat-label>A titular/administradora se autodeclara</mat-label>
+                <mat-select formControlName="race">
+                  <mat-option [value]="null">—</mat-option>
+                  @for (r of races; track r.value) {
+                    <mat-option [value]="r.value">{{ r.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <mat-checkbox formControlName="cadUnico">Está inscrita no CadÚnico</mat-checkbox>
+            @if (cadUnico()) {
+              <div class="row eq">
+                <mat-form-field>
+                  <mat-label>NIS</mat-label>
+                  <input matInput formControlName="nis" inputmode="numeric" maxlength="14" />
+                  @if (err('nis'); as e) {
+                    <mat-error>{{ e }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            }
+          </section>
+
+          <!-- 6. Documentos ------------------------------------------------- -->
+          <section class="card sec" id="sec-documentos" tabindex="-1" aria-labelledby="t-docs">
+            <h2 id="t-docs"><span class="num">6</span> Documentos</h2>
+            @if (!a.supplierType) {
+              <p class="alert alert-info">
+                Escolha o tipo de negócio na etapa 1 para ver a lista de documentos.
+              </p>
+            } @else {
+              <p class="muted">
+                PDF, JPG ou PNG de até {{ maxUploadMb }} MB. Pode ser foto legível do documento.
+                Enviados:
+                <strong>{{ requiredDone().done }} de {{ requiredDone().total }}</strong>
+                obrigatórios.
+              </p>
+              <div class="progress" aria-hidden="true">
+                <span
+                  [style.width.%]="
+                    requiredDone().total ? (requiredDone().done * 100) / requiredDone().total : 0
+                  "
+                ></span>
+              </div>
+              <ul class="doc-list">
+                @for (item of checklist(); track item.type) {
+                  @let missing = showIssues() && !item.document && item.requirement === 'REQUIRED';
+                  <li [class.ok]="item.document" [class.missing]="missing">
+                    <span class="doc-icon" aria-hidden="true">
+                      <mat-icon>{{ item.document ? 'check_circle' : 'upload_file' }}</mat-icon>
+                    </span>
+                    <div class="doc-text">
+                      <span>
+                        {{ item.label }}
+                        @if (item.requirement === 'REQUIRED') {
+                          <span class="badge badge-info">obrigatório</span>
+                        } @else {
+                          <span class="badge badge-neutral">opcional</span>
+                        }
+                      </span>
+                      @if (item.document) {
+                        <small class="muted"
+                          >{{ item.document.filename }} · {{ size(item.document.sizeBytes) }}</small
+                        >
+                      } @else if (missing) {
+                        <small class="field-error">Falta enviar este documento.</small>
+                      }
+                    </div>
+                    <div class="doc-actions">
+                      @if (uploading() === item.type) {
+                        <mat-spinner diameter="28" aria-label="Enviando" />
+                      } @else {
+                        @if (item.document) {
+                          <button
+                            mat-icon-button
+                            type="button"
+                            (click)="openDocument(item.document.id)"
+                            [attr.aria-label]="'Abrir ' + item.label"
+                          >
+                            <mat-icon>visibility</mat-icon>
+                          </button>
+                          <button
+                            mat-icon-button
+                            type="button"
+                            (click)="removeDocument(item)"
+                            [attr.aria-label]="'Remover ' + item.label"
+                          >
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        }
+                        <label class="upload-btn" [class.secondary]="item.document">
+                          <input
+                            type="file"
+                            [accept]="accept"
+                            (change)="upload(item, $event)"
+                            class="visually-hidden"
+                          />
+                          <mat-icon aria-hidden="true">{{
+                            item.document ? 'sync' : 'upload'
+                          }}</mat-icon>
+                          {{ item.document ? 'Trocar' : 'Enviar' }}
+                        </label>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <!-- 7. Declarações e envio --------------------------------------- -->
+          <section class="card sec" id="sec-envio" tabindex="-1" aria-labelledby="t-envio">
+            <h2 id="t-envio"><span class="num">7</span> Declarações e envio</h2>
+            <div class="declarations">
+              <p>
+                Ao marcar a caixa abaixo, você assina eletronicamente a
+                <strong>Declaração Unificada</strong>
+                (Anexo III) e declara, sob as penas da lei, que:
+              </p>
+              <ul>
+                <li>
+                  <strong>Enquadramento:</strong> o negócio é do tipo escolhido na etapa 1 e você
+                  avisará se deixar de ser;
+                </li>
+                <li>
+                  <strong>Sem impedimentos:</strong> não está impedido de contratar com a
+                  Administração Pública, não consta do CEIS, CNEP ou CEPIM e não foi condenado nos
+                  últimos 5 anos por trabalho infantil ou análogo ao de escravo;
+                </li>
+                <li>
+                  <strong>Trabalho de menores:</strong> não emprega menores de 18 anos em trabalho
+                  noturno, perigoso ou insalubre, nem menores de 16 (salvo aprendiz a partir de 14);
+                </li>
+                <li>
+                  <strong>Sem vínculo</strong> com dirigentes, empregados ou colaboradores do
+                  Instituto NATA nem com agentes públicos que atuem nas parcerias (inclusive
+                  parentes até 3º grau);
+                </li>
+                <li>
+                  <strong>Capacidade e regularidade:</strong> pode executar o que oferece e manterá
+                  documentos, licenças e autorizações em dia;
+                </li>
+                <li>
+                  <strong>Integridade:</strong> não oferecerá vantagem indevida a ninguém (Lei nº
+                  12.846/2013);
+                </li>
+                <li>
+                  <strong>Proteção de dados:</strong> tratará dados de participantes só para
+                  executar o serviço, com sigilo (LGPD);
+                </li>
+                <li>
+                  <strong>Preços:</strong> suas propostas incluirão todos os custos, tributos e
+                  encargos;
+                </li>
+                <li>
+                  <strong>Veracidade:</strong> as informações e os documentos enviados são
+                  verdadeiros.
+                </li>
+              </ul>
+              <p>
+                Também aceita o <strong>Termo de Ciência, Concordância e Adesão</strong> (Anexo V),
+                com as regras do Edital e da Política de Credenciamento.
+              </p>
+              <p class="muted small">
+                Leia os textos completos em
+                <a routerLink="/edital" target="_blank">Edital e anexos</a>.
+              </p>
+            </div>
+            <mat-checkbox formControlName="declarationsAccepted" class="accept">
+              <strong
+                >Li e aceito as declarações e o Termo de Ciência, Concordância e Adesão</strong
+              >
+            </mat-checkbox>
+            @if (issueFor('declarationsAccepted'); as e) {
+              <p class="field-error" role="alert">{{ e }}</p>
+            }
+
+            @if (showIssues() && issues().length) {
+              <div class="alert alert-warning pending" id="pendencias" tabindex="-1" role="alert">
+                <p>
+                  <strong>Faltam {{ issues().length }} item(ns) para enviar:</strong>
+                </p>
+                <ul>
+                  @for (i of issues(); track i.field + i.message) {
+                    <li>
+                      <button type="button" class="link" (click)="goTo(sectionFor(i.field))">
+                        {{ i.message }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </section>
+
+          <!-- Barra de ações ---------------------------------------------------- -->
+          <div class="action-bar">
+            <div class="action-info" aria-live="polite">
+              @if (actionError()) {
+                <span class="field-error">{{ actionError() }}</span>
+              } @else if (dirty()) {
+                <span><mat-icon aria-hidden="true">edit</mat-icon> Alterações não salvas</span>
+              } @else if (issues().length) {
+                <span class="muted">{{ issues().length }} pendência(s)</span>
+              } @else {
+                <span class="ready"
+                  ><mat-icon aria-hidden="true">check_circle</mat-icon> Pronto para enviar</span
+                >
+              }
+            </div>
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="save()"
+              [disabled]="saving() || submitting()"
+            >
+              {{ saving() ? 'Salvando…' : 'Salvar rascunho' }}
+            </button>
+            <button mat-flat-button type="submit" [disabled]="submitting() || saving()">
+              {{
+                submitting()
+                  ? 'Enviando…'
+                  : a.status === 'DRAFT'
+                    ? 'Enviar para análise'
+                    : 'Reenviar para análise'
+              }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      @if (a.history.length > 1) {
+        <details class="card history">
+          <summary>Ver andamento do requerimento</summary>
+          <ol>
+            @for (h of a.history; track $index) {
+              <li>
+                <span class="badge" [class]="badge[h.status]">{{ h.statusLabel }}</span>
+                {{ h.actor }}
+                @if (h.message) {
+                  — <span class="muted">{{ h.message }}</span>
+                }
+              </li>
+            }
+          </ol>
+        </details>
+      }
+    }
+  }
+</div>

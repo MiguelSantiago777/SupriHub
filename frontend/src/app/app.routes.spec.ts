@@ -46,7 +46,7 @@ describe('Rotas da aplicação', () => {
 
   it('usuário logado que abre /entrar vai para a sua área', async () => {
     login(['COMMISSION']);
-    expect(await navigate('/entrar')).toBe('/comissao');
+    expect(await navigate('/entrar')).toBe('/comissao/requerimentos');
   });
 
   it('visitante abre /entrar normalmente e é barrado nas áreas internas', async () => {

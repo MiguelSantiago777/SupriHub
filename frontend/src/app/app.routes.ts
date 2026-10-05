@@ -35,16 +35,16 @@ export const routes: Routes = [
   },
   {
     path: 'fornecedor',
-    title: 'Área do fornecedor',
+    title: 'Meu requerimento',
     canMatch: [roleGuard('SUPPLIER')],
-    loadComponent: () => import('./areas/supplier-home.page').then((m) => m.SupplierHomePage),
+    loadComponent: () =>
+      import('./areas/supplier/supplier-application.page').then((m) => m.SupplierApplicationPage),
   },
   {
     path: 'comissao',
-    title: 'Comissão de Credenciamento',
-    canMatch: [roleGuard('COMMISSION')],
-    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
-    data: { area: 'COMMISSION' },
+    canMatch: [roleGuard('COMMISSION', 'ADMIN')],
+    loadChildren: () =>
+      import('./areas/commission/commission.routes').then((m) => m.COMMISSION_ROUTES),
   },
   {
     path: 'gestor',

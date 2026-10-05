@@ -5,8 +5,10 @@ Sistema de credenciamento de fornecedores e editais do **Contrata + NATA — Ins
 prioridade a MEIs, pequenos negócios, cooperativas, autônomos e negócios liderados por
 mulheres.
 
-> Estado atual: **Fase 0** (esqueleto, autenticação, catálogo, parâmetros, calendário,
-> auditoria, mensageria). As Fases 1 (fornecedores) e 2 (editais e julgamento) vêm a seguir.
+> Estado atual: **Fase 0** concluída (esqueleto, autenticação, catálogo, parâmetros,
+> calendário, auditoria, mensageria). **Fase 1** em andamento: requerimento de
+> credenciamento pelo fornecedor e análise pela Comissão (habilitar, pedir ajuste,
+> inabilitar). A Fase 2 (editais e julgamento) vem a seguir.
 
 ## Rodar tudo com Docker
 
@@ -35,7 +37,9 @@ No perfil `dev` são criados automaticamente:
 | Demais perfis | `supplier@`, `commission@`, `demand-manager@`, `finance@`, `internal-control@`, `board@`, `admin@` + `suprihub.local` | `Senha@123` |
 
 Para testar o autocadastro: em http://localhost:4200, clique em "Quero me credenciar" e
-abra o link de confirmação no MailHog.
+abra o link de confirmação no MailHog. Depois, preencha e envie o requerimento em
+"Minha área". Para analisar, entre como `commission@suprihub.local` (ou como ADMIN) e
+abra **Requerimentos**.
 
 ## Desenvolvimento local (sem Docker para app)
 

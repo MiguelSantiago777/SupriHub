@@ -16,6 +16,15 @@ import { RouterLink } from '@angular/router';
     <div class="container">
       <ul class="tiles">
         <li>
+          <a routerLink="/comissao/requerimentos" class="card card-hover tile">
+            <span class="icon-tile green"><mat-icon aria-hidden="true">how_to_reg</mat-icon></span>
+            <span>
+              <strong>Requerimentos de credenciamento</strong><br />
+              Fila de análise: habilitar, pedir ajuste ou inabilitar fornecedores.
+            </span>
+          </a>
+        </li>
+        <li>
           <a routerLink="parametros" class="card card-hover tile">
             <span class="icon-tile"><mat-icon aria-hidden="true">tune</mat-icon></span>
             <span>
@@ -65,7 +74,6 @@ import { RouterLink } from '@angular/router';
       border-color: var(--sh-primary);
     }
     mat-icon {
-      color: var(--sh-primary);
       flex: 0 0 auto;
     }
   `,
