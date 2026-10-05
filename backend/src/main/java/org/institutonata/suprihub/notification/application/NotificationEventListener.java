@@ -1,10 +1,14 @@
 package org.institutonata.suprihub.notification.application;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.institutonata.suprihub.auth.application.VerificationTokenService;
+import org.institutonata.suprihub.auth.domain.AppRole;
 import org.institutonata.suprihub.auth.domain.AppUser;
 import org.institutonata.suprihub.auth.domain.AuthEvents;
 import org.institutonata.suprihub.auth.domain.VerificationToken;
@@ -15,9 +19,13 @@ import org.institutonata.suprihub.messaging.infra.RabbitTopology;
 import org.institutonata.suprihub.notification.application.NotificationService.Recipient;
 import org.institutonata.suprihub.notification.domain.MessageChannel.ChannelType;
 import org.institutonata.suprihub.shared.config.SupriHubProperties;
+import org.institutonata.suprihub.supplier.domain.SupplierApplication;
+import org.institutonata.suprihub.supplier.domain.SupplierEvents;
+import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,19 +38,23 @@ public class NotificationEventListener {
 
     static final String CONSUMER = "notifications";
     private static final Logger log = LoggerFactory.getLogger(NotificationEventListener.class);
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final IdempotentConsumer idempotency;
     private final NotificationService notifications;
     private final AppUserRepository users;
     private final VerificationTokenService tokens;
+    private final SupplierApplicationRepository applications;
     private final String frontendUrl;
 
     public NotificationEventListener(IdempotentConsumer idempotency, NotificationService notifications,
-            AppUserRepository users, VerificationTokenService tokens, SupriHubProperties props) {
+            AppUserRepository users, VerificationTokenService tokens, SupplierApplicationRepository applications,
+            SupriHubProperties props) {
         this.idempotency = idempotency;
         this.notifications = notifications;
         this.users = users;
         this.tokens = tokens;
+        this.applications = applications;
         this.frontendUrl = props.frontendUrl();
     }
 
@@ -76,8 +88,49 @@ public class NotificationEventListener {
                 email(user, "user-invited", "Seu acesso ao SupriHub", event,
                         Map.of("link", frontendUrl + "/nova-senha?token=" + token));
             });
+            case SupplierEvents.APPLICATION_SUBMITTED -> withApplication(event, (user, app) -> {
+                email(user, "application-submitted", "Recebemos seu requerimento " + app.getProtocol(), event,
+                        Map.of("protocol", app.getProtocol(), "dueDate", date(app.getAnalysisDueDate()),
+                                "link", frontendUrl + "/fornecedor"));
+                notifyCommission(event, app);
+            });
+            case SupplierEvents.ADJUSTMENT_REQUESTED -> withApplication(event, (user, app) ->
+                    email(user, "application-adjustment", "Ajuste no seu requerimento " + app.getProtocol(), event,
+                            Map.of("protocol", app.getProtocol(), "message", app.getAdjustmentMessage(),
+                                    "dueDate", date(app.getAdjustmentDueDate()),
+                                    "link", frontendUrl + "/fornecedor")));
+            case SupplierEvents.APPLICATION_APPROVED -> withApplication(event, (user, app) ->
+                    email(user, "application-approved", "Você está credenciado no Contrata + NATA", event,
+                            Map.of("protocol", app.getProtocol(), "validUntil", date(app.getAccreditationValidUntil()),
+                                    "link", frontendUrl + "/fornecedor")));
+            case SupplierEvents.APPLICATION_REJECTED -> withApplication(event, (user, app) ->
+                    email(user, "application-rejected", "Resultado do seu requerimento " + app.getProtocol(), event,
+                            Map.of("protocol", app.getProtocol(), "reason", app.getDecisionReason(),
+                                    "link", frontendUrl + "/fornecedor")));
             default -> log.debug("Evento {} sem notificação associada", event.type());
         }
+    }
+
+    private void withApplication(EventEnvelope event, BiConsumer<AppUser, SupplierApplication> action) {
+        Long applicationId = event.payloadLong("applicationId");
+        applications.findById(applicationId).ifPresentOrElse(app -> withUser(event, user -> action.accept(user, app)),
+                () -> log.info("Requerimento #{} inexistente — notificação {} ignorada", applicationId, event.type()));
+    }
+
+    /** Avisa cada membro ativo da Comissão de que há requerimento novo na fila. */
+    private void notifyCommission(EventEnvelope event, SupplierApplication app) {
+        Map<String, Object> vars = Map.of("protocol", app.getProtocol(),
+                "supplierName", app.getLegalName() == null ? "" : app.getLegalName(),
+                "dueDate", date(app.getAnalysisDueDate()),
+                "link", frontendUrl + "/comissao/requerimentos/" + app.getId());
+        users.searchByRole(AppRole.COMMISSION, "", Pageable.unpaged()).stream()
+                .filter(AppUser::isEnabled)
+                .forEach(member -> email(member, "application-received-commission",
+                        "Novo requerimento na fila: " + app.getProtocol(), event, vars));
+    }
+
+    private static String date(LocalDate d) {
+        return d == null ? "" : d.format(DATE);
     }
 
     private void withUser(EventEnvelope event, Consumer<AppUser> action) {

@@ -39,6 +39,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         pd.setType(URI.create(TYPE_BASE + ex.getCode().toLowerCase().replace('_', '-')));
         pd.setTitle(titleFor(ex.getStatus()));
         pd.setProperty("code", ex.getCode());
+        if (!ex.getErrors().isEmpty()) {
+            pd.setProperty("errors", ex.getErrors());
+        }
         return pd;
     }
 
