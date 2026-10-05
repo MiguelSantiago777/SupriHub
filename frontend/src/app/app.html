@@ -1,0 +1,72 @@
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+<header>
+  <mat-toolbar class="topbar">
+    <a routerLink="/" class="brand" aria-label="SupriHub — página inicial">
+      <span class="brand-name">SupriHub</span>
+      <span class="brand-sub">Contrata + NATA</span>
+    </a>
+
+    <span class="spacer"></span>
+
+    <button
+      mat-icon-button
+      class="menu-toggle"
+      type="button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="menu-principal"
+      aria-label="Abrir menu"
+    >
+      <mat-icon aria-hidden="true">{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
+    </button>
+
+    <nav id="menu-principal" class="main-nav" [class.open]="menuOpen()" aria-label="Menu principal">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        >Início</a
+      >
+      <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
+      <a routerLink="/edital" routerLinkActive="active">Edital e anexos</a>
+
+      @if (auth.user(); as user) {
+        <a [routerLink]="auth.homeRoute()" routerLinkActive="active">Minha área</a>
+        <button mat-button class="user-btn" type="button" [matMenuTriggerFor]="userMenu">
+          <mat-icon aria-hidden="true">account_circle</mat-icon>
+          {{ user.fullName.split(' ')[0] }}
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <div class="user-info" role="presentation">
+            <strong>{{ user.fullName }}</strong>
+            <span>{{ roleLabels() }}</span>
+          </div>
+          <button mat-menu-item type="button" (click)="auth.logout()">
+            <mat-icon aria-hidden="true">logout</mat-icon>
+            Sair
+          </button>
+        </mat-menu>
+      } @else {
+        <a routerLink="/entrar" routerLinkActive="active">Entrar</a>
+        <a routerLink="/criar-conta" class="cta">Quero me credenciar</a>
+      }
+    </nav>
+  </mat-toolbar>
+</header>
+
+<main id="conteudo" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <img src="img/instituto-nata.png" alt="Instituto NATA" width="180" height="88" />
+    <div>
+      <p><strong>Contrata + NATA — Instituto NATA</strong></p>
+      <p>Novas Atitudes Transformam o Amanhã · Mesquita/RJ</p>
+      <p class="small">
+        Credenciamento gratuito e permanente. Seus dados são tratados conforme a LGPD (Lei nº
+        13.709/2018).
+      </p>
+      <p class="small">© {{ year }} Instituto NATA</p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,144 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 64px;
+  padding: 0.25rem 1rem;
+  position: relative;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  text-decoration: none;
+  line-height: 1.1;
+  padding: 0.25rem 0;
+}
+
+.brand-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.brand-sub {
+  font-size: 0.8rem;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.menu-toggle {
+  color: #fff;
+}
+
+.main-nav {
+  display: none;
+  flex-basis: 100%;
+  flex-direction: column;
+  padding: 0.5rem 0 0.75rem;
+
+  &.open {
+    display: flex;
+  }
+
+  a,
+  .user-btn {
+    color: #fff;
+    font-size: 1rem;
+    padding: 0.75rem 0.5rem;
+    text-decoration: none;
+    border-radius: 6px;
+    justify-content: flex-start;
+  }
+
+  a.active {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+  }
+
+  a:hover,
+  .user-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .cta {
+    background: #fff;
+    color: var(--sh-primary);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .cta:hover {
+    background: #e6f1f6;
+  }
+}
+
+@media (min-width: 900px) {
+  .menu-toggle {
+    display: none;
+  }
+
+  .main-nav {
+    display: flex;
+    flex-basis: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0;
+
+    .cta {
+      margin-left: 0.5rem;
+      padding: 0.6rem 1rem;
+    }
+  }
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #ddd;
+
+  span {
+    font-size: 0.85rem;
+    color: var(--sh-text-muted);
+  }
+}
+
+main {
+  flex: 1 0 auto;
+  outline: none;
+}
+
+.site-footer {
+  background: #fff;
+  border-top: 1px solid #d0d7dc;
+  margin-top: 2rem;
+
+  p {
+    margin: 0.15rem 0;
+  }
+
+  .small {
+    font-size: 0.85rem;
+    color: var(--sh-text-muted);
+  }
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+
+  img {
+    height: auto;
+  }
+}

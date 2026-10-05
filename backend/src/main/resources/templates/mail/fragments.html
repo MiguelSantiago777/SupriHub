@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${subject}">SupriHub</title>
+</head>
+<body>
+<div th:fragment="header" style="background:#0b4f6c;color:#ffffff;padding:20px 24px;font-family:Arial,Helvetica,sans-serif;">
+    <div style="font-size:22px;font-weight:bold;">SupriHub</div>
+    <div style="font-size:14px;">Contrata + NATA — Instituto NATA</div>
+</div>
+
+<a th:fragment="button(href, label)" th:href="${href}" th:text="${label}"
+   style="display:inline-block;background:#0b4f6c;color:#ffffff;padding:14px 24px;border-radius:6px;
+          font-size:18px;font-weight:bold;text-decoration:none;font-family:Arial,Helvetica,sans-serif;">Abrir</a>
+
+<div th:fragment="footer" style="padding:20px 24px;font-size:13px;color:#333333;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #dddddd;">
+    <p style="margin:0 0 8px 0;">Esta é uma mensagem automática do SupriHub. Por favor, não responda.</p>
+    <p style="margin:0;">Instituto NATA — Novas Atitudes Transformam o Amanhã · Mesquita/RJ</p>
+</div>
+</body>
+</html>

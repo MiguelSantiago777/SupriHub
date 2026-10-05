@@ -1,0 +1,276 @@
+@use '@angular/material' as mat;
+
+// ---------------------------------------------------------------------------
+// SupriHub — tema acessível (WCAG AA). Público inclui microempreendedores com
+// pouca familiaridade digital: fonte legível (Atkinson Hyperlegible, projetada
+// para baixa visão), base 18px, alto contraste, foco sempre visível.
+// ---------------------------------------------------------------------------
+
+html {
+  color-scheme: light;
+  font-size: 112.5%; // 18px
+  @include mat.theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$cyan-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: (
+        plain-family: "'Atkinson Hyperlegible', 'Segoe UI', Roboto, Arial, sans-serif",
+        brand-family: "'Atkinson Hyperlegible', 'Segoe UI', Roboto, Arial, sans-serif",
+      ),
+      density: 0,
+    )
+  );
+
+  // Cores próprias com contraste ≥ 4,5:1 sobre branco.
+  --sh-primary: #0b4f6c; // 8,9:1
+  --sh-primary-contrast: #ffffff;
+  --sh-accent: #9a3412; // 7,1:1
+  --sh-text: #1a1a1a;
+  --sh-text-muted: #4a4a4a; // 8,9:1
+  --sh-surface: #ffffff;
+  --sh-surface-alt: #f2f6f8;
+  --sh-border: #8a8a8a;
+  --sh-success: #166534;
+  --sh-warning-bg: #fff4d6;
+  --sh-error: #b3261e;
+  --sh-focus: #ffbf47;
+  --sh-radius: 10px;
+
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--sh-primary),
+      filled-label-text-color: var(--sh-primary-contrast),
+      filled-container-height: 52px,
+      outlined-container-height: 52px,
+      text-container-height: 48px,
+      filled-label-text-size: 1rem,
+      outlined-label-text-size: 1rem,
+    )
+  );
+  @include mat.toolbar-overrides(
+    (
+      container-background-color: var(--sh-primary),
+      container-text-color: var(--sh-primary-contrast),
+    )
+  );
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--sh-surface-alt);
+  color: var(--sh-text);
+  font-family: 'Atkinson Hyperlegible', 'Segoe UI', Roboto, Arial, sans-serif;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  color: var(--sh-text);
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0 0 0.75rem;
+}
+
+h2 {
+  font-size: 1.35rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+a {
+  color: var(--sh-primary);
+  text-underline-offset: 3px;
+}
+
+// Foco sempre visível e forte (WCAG 2.4.7 / 2.4.11)
+:focus-visible {
+  outline: 3px solid var(--sh-focus) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px var(--sh-text) !important;
+  border-radius: 4px;
+}
+
+// Link "pular para o conteúdo"
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 1000;
+  padding: 0.75rem 1rem;
+  background: var(--sh-text);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 6px;
+
+  &:focus {
+    top: 0.5rem;
+  }
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+// Layout utilitário mobile-first
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    padding: 1.5rem 2rem;
+  }
+}
+
+.narrow {
+  max-width: 560px;
+}
+
+.card {
+  background: var(--sh-surface);
+  border: 1px solid #d0d7dc;
+  border-radius: var(--sh-radius);
+  padding: 1.25rem;
+
+  @media (min-width: 768px) {
+    padding: 1.75rem;
+  }
+}
+
+.stack > * + * {
+  margin-top: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  > * {
+    flex: 1 1 auto;
+  }
+}
+
+.muted {
+  color: var(--sh-text-muted);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 2px solid currentColor;
+}
+
+.badge-success {
+  color: var(--sh-success);
+}
+
+.badge-info {
+  color: var(--sh-primary);
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: var(--sh-radius);
+  border-left: 6px solid;
+
+  &.alert-info {
+    background: #e6f1f6;
+    border-color: var(--sh-primary);
+  }
+
+  &.alert-success {
+    background: #e8f5ec;
+    border-color: var(--sh-success);
+  }
+
+  &.alert-error {
+    background: #fdecea;
+    border-color: var(--sh-error);
+  }
+
+  &.alert-warning {
+    background: var(--sh-warning-bg);
+    border-color: #8a5a00;
+  }
+}
+
+// Campos de formulário maiores e legíveis
+.mat-mdc-form-field {
+  width: 100%;
+  font-size: 1rem;
+}
+
+.mat-mdc-form-field-error {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Ícones (fonte self-hosted via @fontsource; a classe vem do stylesheet do Google, não do pacote)
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'liga';
+}
+
+// O <main> recebe foco programático a cada navegação; não precisa de contorno.
+main:focus,
+main:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+// Cabeçalhos do acordeão com altura automática (nomes longos quebram linha no celular)
+.mat-expansion-panel-header.mat-expansion-panel-header {
+  height: auto !important;
+  min-height: 56px;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.mat-expansion-panel-header-title {
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  align-items: center;
+}

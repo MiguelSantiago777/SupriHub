@@ -1,0 +1,21 @@
+# Segredos
+.env
+
+# Backend
+backend/target/
+backend/data/
+*.iml
+.idea/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Ferramentas locais
+.gstack/

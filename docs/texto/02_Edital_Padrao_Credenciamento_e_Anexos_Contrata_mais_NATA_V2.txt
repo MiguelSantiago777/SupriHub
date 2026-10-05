@@ -1,0 +1,340 @@
+ANEXO I
+Catálogo de Linhas de Fornecimento
+A coluna "PF" indica as linhas em que se admite profissional autônomo pessoa física.
+Cód. | Linha de fornecimento | Escopo (exemplos) | CNAE de referência | PF
+L01 | Alimentação — lanches, coffee break e kits | Lanches individuais, kits lanche, coffee break, água e sucos para encontros e eventos; refeições prontas e embaladas | 5620-1/04; 5620-1/02; 1091-1/02; 4729-6/99 | Não
+L02 | Alimentação — bufê e churrasqueiro em eventos | Serviços de bufê, churrasqueiro, cozinheiro e garçom para eventos; confeitaria, doces e salgados | 5620-1/02; 5612-1/00 | Sim
+L03 | Sonorização, iluminação e apresentações musicais | Locação e operação de som e iluminação; DJ; músicos, bandas e grupos para bailes e festivais 60+ | 7739-0/03; 9001-9/02; 9001-9/06 | Sim
+L04 | Estruturas para eventos | Palco, tendas, tablado, grades, praticáveis, backdrop, gerador, banheiros químicos, climatização | 7739-0/99; 4399-1/99; 7729-2/99 | Não
+L05 | Locação de mobiliário e equipamentos | Cadeiras, mesas, toalhas, tatames, colchonetes, equipamentos esportivos e de ginástica, projetores, telões | 7729-2/02; 7729-2/99 | Não
+L06 | Organização, cerimonial e apoio a eventos | Cerimonialista, mestre de cerimônias, recepcionistas, apoio logístico, montagem e desmontagem | 8230-0/01; 8299-7/99; 9001-9/99 | Sim
+L07 | Recreação, oficinas e atrações artísticas | Oficineiros de arte, dança, teatro, música, memória, artesanato; recreadores; contadores de histórias; humoristas; grupos culturais e de cultura popular | 9001-9/01; 9329-8/99; 8592-9/99 | Sim
+L08 | Atividade física, esporte e bem-estar | Instrutores de ginástica funcional, dança sênior, yoga, caminhada orientada, árbitros e apoio a jogos | 9313-1/00; 9319-1/99; 8592-9/99 | Sim
+L09 | Fotografia, filmagem e produção audiovisual | Cobertura fotográfica e em vídeo, edição, drone, transmissão ao vivo, registro para prestação de contas | 7420-0/01; 5911-1/99; 5912-0/99 | Sim
+L10 | Comunicação visual e impressão | Banners, faixas, placas, adesivos, crachás, folders, cartazes, certificados, materiais gráficos e reprografia | 3299-0/03; 1813-0/01; 1813-0/99; 8219-9/01 | Não
+L11 | Confecção, uniformes e personalização | Camisetas, coletes, bonés, uniformes, bolsas e mochilas, bordado e serigrafia; costureiras | 1412-6/01; 1412-6/02; 1340-5/99; 1351-1/00 | Sim
+L12 | Artesanato, economia criativa e brindes | Kits de artesanato, materiais e insumos de produção artesanal, lembranças e brindes produzidos por artesãs e artesãos | 3299-0/99; 2330-3/99; 1629-3/01; 1359-6/00 | Sim
+L13 | Materiais pedagógicos, esportivos e de consumo | Papelaria, materiais didáticos, jogos, bolas, cones, materiais de higiene e limpeza, EPIs, descartáveis | 4761-0/03; 4763-6/02; 4789-0/05; 4649-4/08 | Não
+L14 | Transporte de pessoas e cargas | Fretamento de ônibus, micro-ônibus, vans e utilitários para passeios, jogos e eventos; carreto e frete | 4929-9/01; 4929-9/02; 4930-2/01; 4930-2/02 | Não
+L15 | Manutenção e pequenos reparos | Eletricista, encanador, pintor, pedreiro, marceneiro, serralheiro, chaveiro, vidraceiro, instalador de ar-condicionado, jardineiro | 4321-5/00; 4322-3/01; 4330-4/04; 4330-4/05; 4329-1/99; 8130-3/00 | Sim
+L16 | Limpeza, higienização e resíduos pós-evento | Limpeza pós-evento, higienização de tatames e equipamentos, lavanderia, coleta de entulho | 8121-4/00; 8129-0/00; 9601-7/03; 3811-4/00 | Não
+L17 | Saúde e segurança em eventos | Brigadista, socorrista, ambulância e UTI móvel, aferição de pressão e glicemia por profissional habilitado, segurança desarmada | 8621-6/02; 8660-7/00; 8011-1/01; 8020-0/01 | Sim
+L18 | Tecnologia da informação e comunicação | Instalação e manutenção de computadores e redes; suporte técnico; criação de sites simples, formulários e identidade visual; gestão de redes sociais | 9511-8/00; 6209-1/00; 6201-5/01; 7311-4/00 | Sim
+L19 | Decoração e ambientação | Decoração temática, balões, flores, cenografia, sinalização e ambientação de espaços | 9001-9/99; 4789-0/02; 7420-0/04 | Sim
+L20 | Serviços de beleza, cuidados pessoais e caracterização | Cabeleireiros, manicures, maquiadores e caracterização para bailes, desfiles e festivais 60+ | 9602-5/01; 9602-5/02 | Sim
+
+ANEXO II
+Requerimento de Credenciamento e Ficha Cadastral
+1. Identificação
+Tipo de interessado:   ☐ MEI    ☐ Microempresa    ☐ Empresa de pequeno porte    ☐ Cooperativa    ☐ Pessoa física autônoma    ☐ Outro porte: ____________
+Razão social / Nome completo | 
+Nome fantasia / Nome artístico ou social (se houver) | 
+CNPJ / CPF | 
+Inscrição municipal (se houver) | 
+CNAE principal e secundários compatíveis | 
+Endereço completo (logradouro, nº, complemento, bairro) | 
+Município / UF / CEP | 
+Telefone (WhatsApp) | 
+E-mail | 
+Site / redes sociais / portfólio (opcional) | 
+Nome do titular, administrador ou representante legal | 
+CPF e documento de identidade do representante | 
+Cargo / função do representante | 
+
+2. Linhas de fornecimento pretendidas (marque quantas desejar)
+ | Cód. | Linha |  | Cód. | Linha
+☐ | L01 | Alimentação — lanches e kits | ☐ | L11 | Confecção e uniformes
+☐ | L02 | Bufê e churrasqueiro | ☐ | L12 | Artesanato e economia criativa
+☐ | L03 | Sonorização e música | ☐ | L13 | Materiais pedagógicos e de consumo
+☐ | L04 | Estruturas para eventos | ☐ | L14 | Transporte
+☐ | L05 | Locação de mobiliário e equipamentos | ☐ | L15 | Manutenção e pequenos reparos
+☐ | L06 | Cerimonial e apoio a eventos | ☐ | L16 | Limpeza e resíduos
+☐ | L07 | Recreação, oficinas e atrações | ☐ | L17 | Saúde e segurança em eventos
+☐ | L08 | Atividade física e bem-estar | ☐ | L18 | Tecnologia da informação
+☐ | L09 | Fotografia e audiovisual | ☐ | L19 | Decoração e ambientação
+☐ | L10 | Comunicação visual e impressão | ☐ | L20 | Beleza e caracterização
+
+Descreva brevemente os produtos ou serviços que oferece em cada linha marcada e sua capacidade de atendimento (quantidades, equipe, equipamentos):
+________________
+4. Dados para pagamento (conta de titularidade do interessado)
+Banco | 
+Agência | 
+Conta (corrente/poupança/pagamento) | 
+Chave Pix | 
+Titular da conta (deve coincidir com o CNPJ/CPF do interessado) | 
+
+5. Informações para os critérios de equidade e desenvolvimento local (facultativas)
+☐ Declaro que este é um negócio liderado por mulher (preencher o Anexo IV).
+☐ A titular/administradora autodeclara-se:  ☐ preta   ☐ parda   ☐ indígena   ☐ branca   ☐ amarela   ☐ prefiro não informar
+☐ A titular/administradora está inscrita no CadÚnico (NIS: ____________________).
+☐ Autorizo a divulgação, na lista pública de credenciados, da indicação de "negócio liderado por mulher".
+☐ Autorizo o recebimento de oportunidades e comunicações por WhatsApp no telefone informado.
+As informações deste item são usadas apenas para aplicar os critérios de desempate e produzir estatísticas agregadas, nos termos do art. 28 da Política de Credenciamento. Nenhum dado de raça/cor ou de inscrição no CadÚnico será publicado de forma individualizada.
+6. Documentos anexados
+☐  CCMEI / contrato social ou estatuto / ata
+☐  Comprovante de CNPJ
+☐  Declaração de enquadramento ME/EPP
+☐  Identidade e CPF do representante
+☐  Comprovante de endereço
+☐  Certidão RFB/PGFN
+☐  CRF/FGTS
+☐  CNDT
+☐  Certidão municipal
+☐  Alvará / licença (se aplicável)
+☐  NIT/PIS (pessoa física)
+☐  Portfólio / atestados
+☐  Comprovante bancário
+☐  Anexo III — Declaração Unificada
+☐  Anexo IV — Negócio liderado por mulher (opcional)
+☐  Anexo V — Termo de Adesão
+____________________________, _ de ________________ de 20__.
+______________________________________
+Assinatura do(a) interessado(a) ou representante legal
+Nome: ____________________________  CPF: __________________
+Uso exclusivo da Comissão de Credenciamento
+Nº do requerimento | 
+Data de recebimento | 
+Documentação completa? (S/N) — pendências | 
+Consulta CEIS/CNEP/CEPIM (data e resultado) | 
+Resultado: ☐ Habilitado ☐ Inabilitado — motivação | 
+Linhas/territórios credenciados | 
+Validade do credenciamento | 
+Responsável pela análise / data | 
+
+ANEXO III
+Declaração Unificada
+Eu, ____________________________________________, CPF nº ______________, na qualidade de ☐ titular ☐ representante legal ☐ pessoa física de __________________________________________, CNPJ/CPF nº ________________, para fins de credenciamento no Contrata + NATA (Edital nº 001/2026), DECLARO, sob as penas da lei, que:
+Enquadramento: o interessado enquadra-se como ☐ MEI ☐ Microempresa ☐ Empresa de pequeno porte ☐ Cooperativa de pequeno porte ☐ Pessoa física autônoma, nos termos da Lei Complementar nº 123/2006 e da legislação aplicável, não incorrendo em nenhuma das vedações do art. 3º, § 4º, daquela Lei, e comunicará imediatamente ao Instituto eventual desenquadramento;
+Ausência de impedimentos: não está impedido de licitar ou contratar com a Administração Pública, não foi declarado inidôneo, não consta do CEIS, do CNEP ou do CEPIM, e não foi condenado, nos últimos cinco anos, por exploração de trabalho infantil, trabalho análogo ao de escravo ou contratação de adolescentes em casos vedados;
+Trabalho de menores: cumpre o disposto no art. 7º, XXXIII, da Constituição Federal, não empregando menores de 18 anos em trabalho noturno, perigoso ou insalubre, nem menores de 16 anos, salvo na condição de aprendiz a partir de 14 anos;
+Inexistência de vínculo com o Instituto: nem o interessado, nem seus sócios, administradores ou cooperados dirigentes são dirigentes, conselheiros, empregados ou colaboradores do Instituto NATA, nem cônjuges, companheiros ou parentes destes até o terceiro grau, em linha reta, colateral ou por afinidade;
+Inexistência de vínculo com agentes públicos: nem o interessado, nem seus sócios, administradores ou cooperados dirigentes são agentes públicos que atuem na celebração, gestão, fiscalização ou monitoramento das parcerias do Instituto NATA, nem cônjuges, companheiros ou parentes destes até o terceiro grau; e que não é servidor ou empregado público que receberá pagamento com recursos de parceria em desacordo com o art. 45, II, da Lei nº 13.019/2014;
+Capacidade e regularidade: possui capacidade técnica, operacional e legal para executar os objetos das linhas em que requer credenciamento; mantém a documentação de habilitação em dia e a apresentará, atualizada, sempre que solicitado; e obterá as licenças e autorizações exigidas para cada atividade;
+Integridade: não oferecerá, prometerá ou dará vantagem indevida a dirigente, empregado, colaborador ou parceiro do Instituto, nem a agente público, e comunicará ao Controle Interno qualquer solicitação nesse sentido, observando a Lei nº 12.846/2013;
+Proteção de dados: tratará os dados pessoais de participantes dos projetos a que tiver acesso exclusivamente para a execução do objeto contratado, com sigilo e segurança, na forma da Lei nº 13.709/2018;
+Preços: suas propostas incluirão todos os custos diretos e indiretos, tributos, encargos e a integralidade dos direitos trabalhistas de seus empregados, quando houver, não cabendo acréscimo posterior;
+Veracidade: as informações e os documentos apresentados são verdadeiros e autênticos, ciente de que a falsidade sujeita o declarante às sanções do Edital e às responsabilidades civil e penal.
+____________________________, _ de ________________ de 20__.
+______________________________________
+Assinatura
+Nome: ____________________________  CPF: __________________
+ANEXO IV
+Declaração de Negócio Liderado por Mulher
+Para fins de aplicação dos mecanismos de tratamento favorecido ao empreendedorismo feminino previstos no item 8 do Edital nº 001/2026 e no art. 14 da Política de Credenciamento, alinhados à Estratégia Nacional de Empreendedorismo Feminino – Elas Empreendem (Decreto nº 11.994/2024) e à Lei Estadual nº 9.303/2021, DECLARO, sob as penas da lei, que o negócio ____________________________________________, CNPJ/CPF nº ________________, é liderado por mulher, por enquadrar-se na seguinte hipótese:
+☐ Microempreendedora individual cuja titular é mulher;
+☐ Sociedade em que mulheres detêm, no mínimo, 50% (cinquenta por cento) do capital social e exercem a administração (indicar nome(s), CPF e percentual): ________________________________________________;
+☐ Cooperativa cuja diretoria é composta majoritariamente por mulheres (indicar composição): ________________________________;
+☐ Profissional autônoma pessoa física.
+Declaro que a condição acima está comprovada pelos documentos constitutivos anexados ao requerimento e que comunicarei ao Instituto qualquer alteração societária ou de administração que a modifique, ciente de que a declaração falsa implica descredenciamento, impedimento de novo credenciamento por até 3 anos e responsabilização civil e penal.
+Informações facultativas para os critérios de equidade (art. 14, IV, da Política):  ☐ a titular/administradora autodeclara-se negra (preta ou parda)   ☐ a titular/administradora está inscrita no CadÚnico   ☐ prefiro não informar
+____________________________, _ de ________________ de 20__.
+______________________________________
+Assinatura da titular / administradora / representante
+Nome: ____________________________  CPF: __________________
+ANEXO V
+Termo de Ciência, Concordância e Adesão
+Pelo presente instrumento, ____________________________________________, CNPJ/CPF nº ________________, por seu(sua) titular ou representante legal, declara estar ciente e concordar integralmente com todas as disposições do Edital de Credenciamento nº 001/2026 – Contrata + NATA, de seus anexos e da Política de Credenciamento e Contratação de Fornecedores do Instituto NATA, e adere ao cadastro de fornecedores, assumindo os seguintes compromissos:
+manter atualizados seus dados cadastrais, de contato e bancários, e as condições de habilitação, durante toda a vigência do credenciamento;
+acompanhar as oportunidades divulgadas por e-mail, WhatsApp e sítio eletrônico, respondendo nos prazos fixados, e comunicar com antecedência a impossibilidade de atendimento;
+apresentar propostas que contemplem todos os custos necessários à execução, sem acréscimos posteriores, e mantê-las pelo prazo de validade;
+executar os objetos contratados com qualidade, pontualidade, segurança, acessibilidade e respeito aos participantes dos projetos, em especial às pessoas idosas, crianças e adolescentes;
+emitir nota fiscal ou recibo idôneo, com os dados exigidos, e receber exclusivamente em conta de sua titularidade;
+reconhecer que o credenciamento não gera vínculo empregatício, exclusividade, expectativa de volume mínimo ou direito à contratação;
+submeter-se ao regime de infrações e sanções do Anexo XII, assegurados o contraditório e a ampla defesa;
+permitir a verificação, pelo Instituto e pelos órgãos parceiros e de controle, dos documentos relativos às contratações realizadas.
+____________________________, _ de ________________ de 20__.
+______________________________________
+Assinatura do(a) titular / representante legal
+Nome: ____________________________  CPF: __________________
+ANEXO VI
+Documento de Formalização de Demanda e Oportunidade
+1. Identificação
+Nº do DFD / ano | 
+Projeto / parceria (nº do termo e órgão parceiro) | 
+Rubrica do plano de aplicação e saldo disponível | 
+Gestor da demanda (nome, função, contato) | 
+Data | 
+
+2. Objeto
+Linha de fornecimento (código e nome) | 
+Descrição detalhada do serviço ou item (especificações, qualidade, quantidade, unidade) | 
+Local(is) de execução ou entrega | 
+Data(s) e horário(s); prazo de execução | 
+Requisitos de sustentabilidade, acessibilidade, segurança e saúde aplicáveis | 
+Necessidade de vistoria prévia? (S/N) | 
+
+3. Justificativa e planejamento
+Justificativa da necessidade (vínculo com meta/etapa do plano de trabalho) | 
+Previsão no plano de trabalho? (S/N) — se não, justificativa | 
+Demandas semelhantes previstas no exercício para o mesmo objeto (para evitar fracionamento) | 
+
+4. Estimativa de valor e faixa
+Valor estimado (R$) | 
+Fonte da estimativa (Banco de Preços / contratações anteriores / Painel de Preços / pesquisa de mercado — anexar) | 
+Faixa: ☐ 1 (rodízio/sorteio) ☐ 2 (cotação ≥ 3) ☐ 3 (chamada) ☐ Urgência (justificar) | 
+Exigência específica do parceiro/financiador (nº mínimo de cotações etc.) | 
+Forma e prazo de pagamento; sinal (se admitido) | 
+Critério de julgamento (menor preço / técnica e preço — detalhar) | 
+
+5. Texto da oportunidade (publicado aos credenciados)
+OPORTUNIDADE Nº ______/______ — Linha ______ / O que precisamos: ______________________________________________________________ / Quantidade / unidade: ________________   **Onde:** ________________________________ / Quando: __//__, das h às h   **Prazo de execução/entrega:** ____________ / Requisitos: _____________________________________________________________________ / Pagamento: ☐ Pix ☐ transferência, em até __ dias após o recebimento; sinal: ☐ não ☐ __% / Envie sua proposta até: __//__ às __h, por: ☐ formulário ☐ e-mail ☐ WhatsApp / Dúvidas: contratamais@______.org.br  |  (21) _-___ / Esta oportunidade é dirigida: ☐ exclusivamente a pequenos negócios ☐ exclusivamente a negócios liderados por mulheres ☐ a todos os credenciados da linha. Território: ☐ T1 ☐ T2 ☐ T3.
+
+6. Registro da seleção (Comissão / Financeiro)
+Atesto de previsão no plano de aplicação e saldo (Financeiro — nome/data) | 
+Modo aplicado e credenciados convocados (lista) | 
+Propostas recebidas (nº) / mapa comparativo anexo | 
+Aplicação de empate ficto / preferência local / desempate por equidade (descrever) | 
+Fornecedor selecionado, valor e justificativa | 
+Nº da Ordem de Fornecimento/Serviço | 
+Assinaturas: gestor da demanda / membro da Comissão / Financeiro | 
+
+ANEXO VII
+Modelo de Proposta
+Oportunidade nº / Linha | 
+Fornecedor (razão social ou nome) / CNPJ ou CPF | 
+Contato (telefone/WhatsApp, e-mail) | 
+Porte: ☐ MEI ☐ ME ☐ EPP ☐ Cooperativa ☐ PF ☐ Outro | 
+Negócio liderado por mulher (Anexo IV entregue)? ☐ Sim ☐ Não | 
+Território da sede: ☐ T1 ☐ T2 ☐ T3 | 
+Item | Descrição | Unid. | Qtd. | Valor unitário (R$) | Valor total (R$)
+1 | 
+2 | 
+3 | 
+ | TOTAL | 
+Prazo de execução / entrega | 
+Validade da proposta (mínimo 30 dias) | 
+Condições especiais (sinal, montagem, equipe, equipamentos) | 
+Observações | 
+
+Declaro que o valor proposto inclui todos os custos diretos e indiretos, tributos, encargos, materiais, equipamentos, deslocamento e EPIs necessários à execução integral do objeto; que mantenho as condições de habilitação; e que aceito as condições da oportunidade, do Edital nº 001/2026 e da Política de Credenciamento.
+____________________________, _ de ________________ de 20__.
+______________________________________
+Assinatura do(a) fornecedor(a)
+ANEXO VIII
+Ordem de Fornecimento ou de Serviço (OF/OS)
+OF/OS nº / ano | 
+DFD-NATA nº / Oportunidade nº | 
+Projeto / parceria / rubrica | 
+Contratante: Instituto NATA — CNPJ | 
+Contratado(a): nome/razão social — CNPJ/CPF — endereço — contato | 
+Dados bancários do contratado (titularidade própria) | 
+
+Cláusula 1ª — Objeto
+Fornecimento/serviço: ____________________________________________________________, conforme a proposta de //__, que integra esta Ordem, nas quantidades, especificações, local e prazos: __________________________________________.
+Cláusula 2ª — Preço e pagamento
+Valor total: R$ ____________ (____________________________). Pagamento por transferência eletrônica/Pix para a conta indicada, em até  dias após o recebimento definitivo e a apresentação da nota fiscal ou recibo (RPA), com as retenções legais. Sinal: ☐ não ☐ R$ ________ (máximo 30%).
+Cláusula 3ª — Prazo e local
+Execução/entrega em __//__, das h às h, em ____________________________________. Vigência desta Ordem: até o recebimento definitivo e o pagamento.
+Cláusula 4ª — Obrigações do contratado
+executar o objeto com seus próprios meios, pessoal, materiais e equipamentos, sem subordinação, pessoalidade ou habitualidade que caracterizem vínculo empregatício com o Instituto;
+responder por encargos trabalhistas, previdenciários, fiscais e comerciais, e por danos causados ao Instituto, aos participantes e a terceiros;
+cumprir as normas de segurança, saúde, acessibilidade e sustentabilidade aplicáveis, identificar sua equipe e zelar pelo bom trato aos participantes, em especial pessoas idosas, crianças e adolescentes;
+tratar os dados pessoais a que tiver acesso exclusivamente para a execução do objeto, com sigilo (Lei nº 13.709/2018);
+abster-se de qualquer prática vedada pela Lei nº 12.846/2013;
+manter as condições de habilitação até o pagamento.
+Cláusula 5ª — Obrigações do Instituto
+Fornecer as informações e o acesso necessários à execução; receber o objeto e formalizar o Termo de Recebimento e Avaliação; efetuar o pagamento no prazo; comunicar ocorrências.
+Cláusula 6ª — Alterações, rescisão e sanções
+Alterações somente por escrito, de comum acordo, limitadas a 25% do valor. A Ordem poderá ser rescindida por inexecução, atraso injustificado, perda de habilitação ou fato superveniente, sem prejuízo das sanções do Anexo XII do Edital. Multa por inexecução: ____% (2% a 10%) sobre o valor da Ordem, quando aplicável.
+Cláusula 7ª — Disposições gerais
+Aplicam-se o Edital nº 001/2026, seus anexos e a Política de Credenciamento. Fica eleito o foro da Comarca de Mesquita/RJ.
+____________________________, _ de ________________ de 20__.
+______________________________________
+Gestor(a) da demanda — Instituto NATA
+______________________________________
+Contratado(a)
+Testemunhas: 1) ______________________  2) ______________________
+ANEXO IX
+Termo de Recebimento e Avaliação de Desempenho
+OF/OS nº | 
+Fornecedor | 
+Objeto | 
+Data da execução/entrega | 
+Local | 
+Gestor da demanda | 
+
+Recebimento:  ☐ Definitivo — objeto executado em conformidade com a Ordem.   ☐ Com ressalvas — correções em __ dias: ____________________________.   ☐ **Recusado** — motivo: ______________________________________.
+Critério | Nota (1 a 5) | Observações
+Cumprimento do prazo e horários | 
+Qualidade e conformidade com a especificação | 
+Documentação (nota fiscal/recibo correto e tempestivo) | 
+Atendimento, comunicação e postura com os participantes | 
+Segurança, acessibilidade e sustentabilidade | 
+Média | 
+
+Legenda: 5 — excelente; 4 — bom; 3 — regular; 2 — insuficiente; 1 — inaceitável. Médias inferiores a 3 em duas contratações no período de 12 meses ensejam processo para suspensão do cadastro.
+Evidências anexadas: ☐ fotos ☐ lista de presença ☐ relatório ☐ nota fiscal/recibo ☐ outros: ______________
+____________________________, _ de ________________ de 20__.
+______________________________________
+Gestor(a) da demanda
+______________________________________
+Ciência do(a) fornecedor(a)
+ANEXO X
+Formulário de Recurso
+Nº do requerimento / oportunidade | 
+Recorrente (nome/razão social, CNPJ/CPF) | 
+Contato | 
+Etapa recorrida: ☐ habilitação ☐ seleção/julgamento ☐ sanção | 
+Data da decisão recorrida / data de ciência | 
+
+Razões do recurso (descreva de forma objetiva os fatos e indique os itens do Edital ou da Política que fundamentam o pedido; anexe documentos):
+________________
+__________________________________________________________________________________________________
+Pedido: ______________________________________________________________________________________
+____________________________, _ de ________________ de 20__.
+______________________________________
+Assinatura do(a) recorrente
+Decisão (uso da Comissão / Diretoria)
+Recebido em | 
+Decisão da Comissão (reconsidera? S/N) — motivação — data | 
+Decisão da Diretoria — motivação — data | 
+Comunicação ao recorrente (data/meio) | 
+
+ANEXO XI
+Mapa de Riscos
+Estruturado a partir dos mapas de riscos dos credenciamentos do Contrata+Brasil e adaptado ao contexto de uma OSC executora de parcerias MROSC. Probabilidade (P) e impacto (I): 1 baixo, 2 médio, 3 alto.
+Risco | P | I | Prevenção | Contingência | Responsável
+Baixa adesão de fornecedores do território, especialmente mulheres e MEIs | 2 | 3 | Plano de mobilização; oficinas de credenciamento; formulário simples; apoio para emissão de certidões | Ampliar território (T2/T3); admitir não credenciados com habilitação prévia; nova rodada de mobilização | Comissão
+Fracionamento de despesa para enquadrar em faixa inferior | 2 | 3 | Campo do DFD sobre demandas semelhantes no exercício; revisão pela Comissão | Reclassificar a faixa; refazer a seleção; registrar justificativa | Comissão / Financeiro
+Conflito de interesses ou direcionamento a fornecedor ligado a dirigente, empregado ou agente público | 1 | 3 | Declarações (Anexo III); registro de impedimentos; sorteio/rodízio registrados; segregação de funções | Anular a seleção; instaurar apuração; comunicar ao parceiro | Controle Interno
+Declaração falsa de porte, liderança feminina ou território | 2 | Conferência dos atos constitutivos; consulta ao CNPJ; amostragem | Descredenciamento; impedimento por até 3 anos; comunicação às autoridades | Comissão
+Fornecedor sem regularidade fiscal na data do pagamento | 3 | 2 | Consulta automática às certidões; alerta na planilha; prazo de regularização para pequenos negócios | Reter pagamento até regularização; inativação temporária | Financeiro
+Inexecução ou atraso às vésperas de evento com público idoso | 2 | 3 | Confirmação 48h antes; fornecedor reserva na Faixa 1; cláusula de multa | Contratação de urgência de credenciado (art. 13, § 3º); registro e apuração | Gestor da demanda
+Glosa na prestação de contas por documentação incompleta | 2 | 3 | Checklist do dossiê (Anexo XIII); conferência antes do pagamento | Diligência para complementação; justificativa formal ao parceiro | Financeiro
+Caracterização de vínculo empregatício com pessoa física | 1 | 3 | Limitar PF a serviços eventuais; RPA com retenções; evitar habitualidade e subordinação | Reenquadrar a contratação; orientação jurídica | Financeiro / Jurídico
+Vazamento de dados pessoais de credenciados ou participantes | 1 | 3 | Acesso restrito à planilha; cláusula de sigilo; minimização de dados | Comunicação aos titulares e à ANPD, se cabível; revisão de controles | Controle Interno
+Preço acima do mercado na Faixa 1 (rodízio) | 2 | Banco de Preços atualizado; conferência obrigatória; teto por item | Negociar ou passar ao próximo do rodízio; abrir cotação | Comissão
+
+ANEXO XII
+Tabela de Infrações e Sanções
+Infração | Sanção de referência | Agravantes / atenuantes
+Recusa injustificada de duas oportunidades consecutivas na Faixa 1 | Deslocamento ao final do rodízio; advertência na reincidência | Comunicação prévia da indisponibilidade afasta a infração
+Não manter a proposta ou recusar a formalização da Ordem quando selecionado | Advertência; suspensão de 3 a 6 meses na reincidência | Fato superveniente justificado
+Atraso injustificado na execução ou entrega | Advertência; multa de 2% a 5% quando prevista | Prejuízo a evento com público; reincidência
+Inexecução parcial | Multa de 5% a 10% quando prevista; suspensão de 6 a 12 meses | Aproveitamento parcial do objeto; reparação espontânea
+Inexecução total | Multa de 10% quando prevista; suspensão de 12 a 24 meses | Dano grave ao projeto ou aos participantes
+Documentação falsa ou usufruto indevido de tratamento favorecido | Descredenciamento; impedimento de novo credenciamento por até 3 anos; comunicação às autoridades | —
+Fraude, conluio, comportamento inidôneo, ato lesivo (Lei nº 12.846/2013) | Descredenciamento; impedimento por 3 anos; comunicação ao parceiro e às autoridades | —
+Violação de dados pessoais ou descumprimento de normas de segurança e acessibilidade | Advertência a suspensão de até 12 meses, conforme a gravidade | Dano a participante; reincidência
+Duas avaliações com média inferior a 3 em 12 meses | Suspensão de 6 meses, com plano de melhoria | Melhoria demonstrada nas contratações seguintes
+
+Procedimento: notificação escrita com descrição dos fatos → defesa em 5 dias úteis → decisão motivada da Comissão em 10 dias úteis → recurso à Diretoria em 5 dias úteis → decisão final em 10 dias úteis. Reincidência: nova infração no prazo de 5 anos. As sanções serão registradas na Planilha de Gestão.
+ANEXO XIII
+Checklist do Dossiê da Contratação
+Um dossiê por contratação, numerado por projeto (ex.: 2026-PROJ-014). Conferir antes do pagamento e arquivar por 10 anos após a prestação de contas (art. 68 da Lei nº 13.019/2014).
+Nº | Documento | Faixa 1 | Faixa 2 | Faixa 3 | OK
+1 | DFD-NATA com atesto financeiro de previsão e saldo | ✔ | ☐
+2 | Estimativa de valor com fonte (Banco de Preços / cotações / Painel de Preços) | ✔ | ☐
+3 | Registro do rodízio ou ata do sorteio (lista de credenciados convocados) | ✔ | — | ☐
+4 | Texto da oportunidade e comprovante de envio aos credenciados | aceite | ✔ | ☐
+5 | Publicação da chamada no sítio eletrônico (print com data) | — | ✔ | ☐
+6 | Propostas recebidas (mínimo 3 válidas na Faixa 2) | aceite | ✔ | ☐
+7 | Mapa comparativo com aplicação de empate ficto, preferência local e desempate | — | ✔ | ☐
+8 | Ata de julgamento / parecer da Comissão / aprovação da Diretoria (Faixa 3) | — | ✔ | ☐
+9 | Habilitação atualizada: certidões, CCMEI/contrato social, consulta CEIS/CNEP/CEPIM | ✔ | ☐
+10 | Ordem de Fornecimento/Serviço assinada ou aceite eletrônico registrado | ✔ | ☐
+11 | Nota fiscal ou RPA com data, valor, descrição, CNPJ do Instituto e CNPJ/CPF do fornecedor | ✔ | ☐
+12 | Comprovante de transferência/Pix identificando o beneficiário (conta do fornecedor) | ✔ | ☐
+13 | Termo de Recebimento e Avaliação com evidências (fotos, listas, relatórios) | ✔ | ☐
+14 | Justificativa de urgência ou de ampliação de território, quando houver | se houver | ☐
+15 | Registro na Planilha de Gestão (contratação, avaliação, indicadores) | ✔ | ☐

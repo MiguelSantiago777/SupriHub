@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{mail/fragments :: head}"></head>
+<body style="margin:0;background:#f4f4f4;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;">
+    <div th:replace="~{mail/fragments :: header}"></div>
+    <div style="padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.6;color:#1a1a1a;">
+        <p>Olá, <strong th:text="${name}">Maria</strong>!</p>
+        <p>Alguém tentou criar uma nova conta no SupriHub usando este e-mail, mas você <strong>já tem cadastro</strong>.</p>
+        <p>Para entrar, use o botão abaixo:</p>
+        <p style="text-align:center;margin:28px 0;">
+            <a th:replace="~{mail/fragments :: button(${loginLink}, 'Entrar no SupriHub')}"></a>
+        </p>
+        <p style="font-size:15px;">Esqueceu a senha? <a th:href="${resetLink}">Clique aqui para criar uma nova</a>.</p>
+        <p style="font-size:15px;">Se não foi você, pode ignorar esta mensagem. Sua conta continua segura.</p>
+    </div>
+    <div th:replace="~{mail/fragments :: footer}"></div>
+</div>
+</body>
+</html>

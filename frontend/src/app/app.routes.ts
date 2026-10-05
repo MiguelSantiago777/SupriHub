@@ -1,0 +1,92 @@
+import { Routes } from '@angular/router';
+import { guestGuard, roleGuard } from './core/auth/guards';
+
+/** URLs em português; cada área é carregada sob demanda (lazy loading). */
+export const routes: Routes = [
+  {
+    path: '',
+    title: 'Início',
+    loadComponent: () => import('./public/home.page').then((m) => m.HomePage),
+  },
+  {
+    path: 'catalogo',
+    title: 'Catálogo de linhas de fornecimento',
+    loadComponent: () => import('./public/catalog.page').then((m) => m.CatalogPage),
+  },
+  {
+    path: 'edital',
+    title: 'Edital e anexos',
+    loadComponent: () => import('./public/documents.page').then((m) => m.DocumentsPage),
+  },
+  {
+    path: '',
+    canMatch: [guestGuard],
+    loadChildren: () => import('./auth/auth.routes').then((m) => m.AUTH_ROUTES),
+  },
+  {
+    path: 'confirmar-email',
+    title: 'Confirmar e-mail',
+    loadComponent: () => import('./auth/confirm-email.page').then((m) => m.ConfirmEmailPage),
+  },
+  {
+    path: 'nova-senha',
+    title: 'Criar nova senha',
+    loadComponent: () => import('./auth/reset-password.page').then((m) => m.ResetPasswordPage),
+  },
+  {
+    path: 'fornecedor',
+    title: 'Área do fornecedor',
+    canMatch: [roleGuard('SUPPLIER')],
+    loadComponent: () => import('./areas/supplier-home.page').then((m) => m.SupplierHomePage),
+  },
+  {
+    path: 'comissao',
+    title: 'Comissão de Credenciamento',
+    canMatch: [roleGuard('COMMISSION')],
+    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
+    data: { area: 'COMMISSION' },
+  },
+  {
+    path: 'gestor',
+    title: 'Gestor da demanda',
+    canMatch: [roleGuard('DEMAND_MANAGER')],
+    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
+    data: { area: 'DEMAND_MANAGER' },
+  },
+  {
+    path: 'financeiro',
+    title: 'Financeiro',
+    canMatch: [roleGuard('FINANCE')],
+    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
+    data: { area: 'FINANCE' },
+  },
+  {
+    path: 'controle',
+    title: 'Controle Interno',
+    canMatch: [roleGuard('INTERNAL_CONTROL')],
+    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
+    data: { area: 'INTERNAL_CONTROL' },
+  },
+  {
+    path: 'diretoria',
+    title: 'Diretoria',
+    canMatch: [roleGuard('BOARD')],
+    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
+    data: { area: 'BOARD' },
+  },
+  {
+    path: 'admin',
+    canMatch: [roleGuard('ADMIN')],
+    loadChildren: () => import('./areas/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
+  {
+    path: 'acesso-negado',
+    title: 'Acesso negado',
+    loadComponent: () => import('./public/status.page').then((m) => m.ForbiddenPage),
+  },
+  {
+    path: '**',
+    title: 'Página não encontrada',
+    loadComponent: () => import('./public/status.page').then((m) => m.NotFoundPage),
+  },
+];

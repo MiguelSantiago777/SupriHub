@@ -1,0 +1,18 @@
+# Produção: todos os segredos vêm de variáveis de ambiente (ver .env.example).
+spring:
+  mail:
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:true}
+
+springdoc:
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:false}
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:false}
+
+suprihub:
+  jwt:
+    secure-cookie: true
+  bootstrap:
+    demo-users: false

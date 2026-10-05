@@ -1,0 +1,206 @@
+INSTITUTO NATA – Novas Atitudes Transformam o Amanhã
+CONTRATA + NATA
+Política de Credenciamento e Contratação de Fornecedores
+Regulamento interno para habilitação prévia, composição de cadastro de parceiros aptos e contratação descentralizada de serviços não continuados, materiais e insumos — com prioridade ao empreendedorismo feminino, às MEs, EPPs e MEIs e ao desenvolvimento local
+Versão 1.0 — minuta para aprovação da Diretoria
+Setembro de 2026
+Mesquita – Rio de Janeiro
+Sumário
+Apresentação
+O Instituto NATA executa, em parceria com órgãos públicos municipais e estaduais, programas voltados sobretudo à população idosa (60+) e à juventude, sob o regime da Lei nº 13.019/2014 (Marco Regulatório das Organizações da Sociedade Civil – MROSC). A execução desses projetos exige, todos os meses, a contratação de dezenas de pequenos serviços e fornecimentos — alimentação para encontros, sonorização e estruturas para eventos, transporte de participantes, oficineiros, impressos, uniformes, materiais pedagógicos e esportivos, pequenos reparos — que precisam ser adquiridos com rapidez, preço justo, documentação completa e rastreabilidade para a prestação de contas.
+O Governo Federal criou, em 2025, o Contrata+Brasil (IN SEGES/MGI nº 52/2025), plataforma em que órgãos públicos publicam pequenas demandas e microempreendedores individuais previamente credenciados apresentam propostas. O modelo é simples e eficiente, mas a plataforma não está aberta às organizações da sociedade civil como compradoras: o acesso de entidades privadas sem fins lucrativos depende de termo de acesso ao Compras.gov.br e da percepção de recursos por convênio ou instrumento congênere, hipótese que hoje não alcança, na prática, a rotina de execução de parcerias MROSC.
+Esta Política transpõe a lógica do Contrata+Brasil para o dia a dia de uma OSC. Ela institui o Contrata + NATA: um credenciamento permanente, aberto e gratuito, por meio do qual o Instituto forma e mantém um cadastro de fornecedores previamente habilitados — com prioridade a microempreendedores individuais, microempresas, empresas de pequeno porte, cooperativas e profissionais autônomos do território — e passa a contratar, de forma descentralizada e documentada, por rodízio, sorteio ou cotação entre os credenciados, conforme faixas de valor objetivas.
+A Política dá cumprimento a três compromissos institucionais: compliance com o MROSC e com as regras de cada parceiro público, desenvolvimento local, ao dirigir os recursos das parcerias para os pequenos negócios de Mesquita, da Baixada Fluminense e da Região Metropolitana do Rio de Janeiro, e equidade de gênero, ao adotar mecanismos concretos de fortalecimento dos negócios liderados por mulheres, em sintonia com a Estratégia Nacional de Empreendedorismo Feminino – Elas Empreendem (Decreto nº 11.994/2024) e com a Lei Estadual nº 9.303/2021.
+Como este documento se organiza / Política (este documento) — regras permanentes, aprovadas pela Diretoria: princípios, escopo, governança, fluxo, faixas de valor, tratamento favorecido, habilitação, sanções e transparência. / Edital-padrão de Credenciamento e Anexos — instrumento público que abre o cadastro e reúne os formulários: requerimento, declarações, termo de adesão, documento de formalização de demanda, proposta, ordem de fornecimento, termo de recebimento, recurso, mapa de riscos e tabela de sanções. / Manual Operacional — passo a passo para a equipe e para o fornecedor, prazos, fluxograma, perguntas frequentes e plano de mobilização territorial. / Planilha de Gestão do Cadastro — controle de credenciados, habilitação, rodízio, cotações, banco de preços e indicadores de inclusão.
+
+Capítulo I — Disposições preliminares
+Objeto e finalidade
+Art. 1º Esta Política institui o Programa de Credenciamento de Fornecedores do Instituto NATA — Contrata + NATA — e disciplina os mecanismos, metodologias, formulários e documentos a serem adotados pela organização para a habilitação prévia e a composição de cadastro de parceiros aptos a propor, estruturar, fornecer ou executar, de forma descentralizada, serviços não continuados, sem dedicação exclusiva de mão de obra, bem como o fornecimento de materiais e insumos necessários à execução de seus projetos, programas e atividades institucionais.
+§ 1º O credenciamento é permanente, gratuito, aberto a qualquer interessado que atenda aos requisitos desta Política e do Edital-padrão, e não gera para o Instituto obrigação de contratar, nem para o credenciado direito subjetivo à contratação.
+§ 2º A Política aplica-se a todas as contratações custeadas com recursos de parcerias celebradas sob a Lei nº 13.019/2014 (termos de fomento, termos de colaboração e acordos de cooperação), com recursos de convênios, contratos de patrocínio, doações, leis de incentivo e recursos próprios, ressalvadas as regras mais restritivas fixadas pelo instrumento de parceria ou pelo financiador, que prevalecerão.
+§ 3º São finalidades do Contrata + NATA:
+I – garantir que as compras e contratações da organização observem os princípios da legalidade, impessoalidade, moralidade, publicidade, eficiência, economicidade, isonomia e julgamento objetivo, na forma exigida das OSCs parceiras do poder público;
+II – reduzir o tempo entre a demanda e o atendimento, mediante cadastro previamente habilitado e procedimentos padronizados;
+III – assegurar rastreabilidade documental completa de cada contratação, de modo a sustentar a prestação de contas prevista nos arts. 63 a 72 da Lei nº 13.019/2014;
+IV – fortalecer o empreendedorismo feminino e os pequenos negócios do território — microempreendedores individuais (MEI), microempresas (ME), empresas de pequeno porte (EPP), cooperativas e profissionais autônomos —, dirigindo a eles, prioritariamente, os recursos aplicados pelo Instituto;
+V – promover o desenvolvimento econômico local e sustentável dos municípios em que o Instituto tem sede e executa seus projetos.
+Fundamentos legais e alinhamento a políticas públicas
+Art. 2º O Contrata + NATA fundamenta-se nas seguintes normas e diretrizes, que integram esta Política para fins de interpretação e aplicação:
+Norma / diretriz | O que se aplica ao Contrata + NATA
+Constituição Federal, arts. 3º, I e IV; 7º, XXXIII; 170, IX | Objetivos de redução das desigualdades e promoção do bem de todos sem discriminação; proibição do trabalho infantil; tratamento favorecido às empresas de pequeno porte.
+Lei nº 13.019/2014 (MROSC), especialmente arts. 2º, 5º, 22, 33 a 35, 39, 42, 45, 46, 51 a 53, 63 a 72 | Princípios das parcerias; plano de trabalho e plano de aplicação; requisitos e vedações aplicáveis à OSC e a seus dirigentes; vedação de pagamento de servidor público e de despesas alheias ao objeto; movimentação em conta específica com identificação do beneficiário; prestação de contas.
+Decreto nº 8.726/2016, arts. 26, 27, 36, 37 e 38 | Compras e contratações pela OSC segundo métodos usualmente utilizados pelo setor privado; responsabilidade exclusiva da OSC pela gestão; verificação de compatibilidade entre valor previsto e valor efetivo; comprovação por notas, comprovantes fiscais ou recibos com CNPJ/CPF do fornecedor; pagamentos por transferência eletrônica identificando o beneficiário.
+Regulamentos municipais e estaduais das parcerias (p. ex., Decreto Municipal do Rio de Janeiro nº 42.696/2016) e normas do financiador | Exigências específicas de cotação prévia, número mínimo de propostas, forma de comprovação e prazos de prestação de contas — sempre prevalecem quando mais rigorosas.
+Lei nº 14.133/2021, arts. 6º, XLIII; 75; 79; 95, § 2º; 155 a 163; Decreto nº 11.878/2024; IN SEGES/MGI nº 52/2025 e nº 460/2025 (Contrata+Brasil) | Adotados como parâmetro de boas práticas, por analogia e sem vincular a OSC ao regime licitatório: conceito e hipóteses de credenciamento; faixas de valor de referência; fluxo de oportunidade, proposta, seleção, habilitação e monitoramento; dosimetria de sanções.
+Lei Complementar nº 123/2006, arts. 3º, 18-A, 42 a 49, e Decreto nº 8.538/2015 | Definições de ME, EPP e MEI; tratamento diferenciado e simplificado: regularização fiscal tardia, empate ficto, contratações exclusivas e prioridade a fornecedores locais e regionais (margem de até 10%).
+Decreto nº 11.994/2024 — Estratégia Nacional de Empreendedorismo Feminino (Elas Empreendem); Portaria MEMP nº 261/2026 (NEEF) | Eixos de acesso a mercados e inclusão produtiva, tecnologia e inovação, crédito e educação empreendedora; diretriz de equidade étnico-racial e interseccionalidade; prioridade a mulheres inscritas no CadÚnico.
+Lei Estadual RJ nº 9.303/2021 — Política Estadual de Estímulo ao Empreendedorismo Feminino | Diretrizes de capacitação, acesso a crédito e mercados e cooperação entre poder público, setor produtivo e sociedade civil no Estado do Rio de Janeiro.
+Lei nº 12.846/2013 (Anticorrupção); Lei nº 13.709/2018 (LGPD); Lei nº 9.613/1998 | Integridade nas relações com fornecedores; proteção dos dados pessoais dos credenciados; prevenção à lavagem de dinheiro na identificação do beneficiário final dos pagamentos.
+Objetivos de Desenvolvimento Sustentável — ODS 5, 8, 10 e 12 | Igualdade de gênero; trabalho decente e crescimento econômico; redução das desigualdades; consumo e produção responsáveis.
+
+Nota técnica: a OSC não é órgão público e não está sujeita à Lei nº 14.133/2021. O Decreto nº 8.726/2016 (art. 36) manda que as compras com recursos de parceria adotem os métodos usuais do setor privado. Esta Política usa a Lei de Licitações e o Contrata+Brasil como referência de organização, faixas de valor e boas práticas — o que reforça, perante os órgãos de controle, a impessoalidade e a economicidade das contratações —, sem converter o credenciamento em licitação.
+Definições
+Art. 3º Para os fins desta Política, considera-se:
+I – credenciamento: procedimento permanente pelo qual o Instituto convoca, por edital, interessados em fornecer bens ou prestar serviços para que, preenchidos os requisitos, integrem o cadastro de fornecedores aptos a serem convocados;
+II – credenciado: pessoa jurídica ou física que atendeu aos requisitos do Edital-padrão e foi incluída no cadastro, em uma ou mais linhas de fornecimento e territórios;
+III – linha de fornecimento: categoria de serviço, material ou insumo, descrita no Catálogo (Anexo I do Edital-padrão), à qual o credenciado se vincula;
+IV – serviço não continuado: aquele com escopo, prazo e resultado definidos, contratado por demanda, que se encerra com a entrega do objeto e não cria expectativa de continuidade;
+V – sem dedicação exclusiva de mão de obra: modalidade em que o fornecedor executa o serviço com seus próprios meios, sem que trabalhadores sejam colocados à disposição do Instituto em suas dependências de forma contínua, sem subordinação, pessoalidade ou habitualidade;
+VI – oportunidade: demanda específica publicada aos credenciados de uma linha e território, a partir do Documento de Formalização de Demanda (DFD-NATA);
+VII – ordem de fornecimento ou de serviço (OF/OS): instrumento contratual simplificado que formaliza a contratação de uma oportunidade;
+VIII – Comissão de Credenciamento: colegiado responsável pela análise de habilitação, gestão do cadastro, condução das seleções e instrução de processos sancionadores;
+IX – gestor da demanda: coordenador de projeto ou responsável administrativo que formaliza a necessidade e atesta o recebimento;
+X – pequeno negócio: MEI, ME, EPP, nos termos da LC nº 123/2006, cooperativa de pequeno porte e profissional autônomo;
+XI – negócio liderado por mulher: MEI cuja titular é mulher; sociedade em que mulheres detêm, no mínimo, 50% do capital social e exercem a administração; cooperativa com maioria de mulheres na direção; ou profissional autônoma;
+XII – território prioritário: em ordem de prioridade, (a) o Município de Mesquita e o município ou bairro em que o projeto é executado; (b) os demais municípios da Região Metropolitana do Rio de Janeiro; (c) os demais municípios do Estado do Rio de Janeiro;
+XIII – faixa de valor: intervalo de valor estimado da contratação que define o modo de seleção, com limites indexados aos valores da Lei nº 14.133/2021 atualizados anualmente por decreto federal.
+Princípios
+Art. 4º Todas as etapas do Contrata + NATA observarão os princípios da legalidade, impessoalidade, moralidade, publicidade, eficiência, economicidade, isonomia, razoabilidade, proporcionalidade, transparência, julgamento objetivo, sustentabilidade, integridade, desenvolvimento local e equidade de gênero, vedadas exigências que restrinjam a competitividade sem justificativa técnica.
+Capítulo II — Escopo
+Art. 5º Estão abrangidos pelo Contrata + NATA o fornecimento de materiais e insumos e a prestação de serviços não continuados, sem dedicação exclusiva de mão de obra, organizados nas linhas de fornecimento do Catálogo, entre as quais:
+I – alimentação: lanches, coffee break, refeições prontas, kits alimentares e serviços de bufê para encontros e eventos;
+II – eventos e estruturas: sonorização, iluminação, palco, tendas, cadeiras, mesas, gerador, banheiros químicos, decoração, cerimonial, brigadista e ambulância;
+III – locação de equipamentos, mobiliário e materiais de uso temporário;
+IV – transporte: fretamento de ônibus, vans e utilitários para deslocamento de participantes e cargas;
+V – comunicação visual, impressão e reprografia: banners, faixas, folders, camisetas personalizadas, brindes;
+VI – fotografia, filmagem, edição e produção audiovisual;
+VII – oficinas, aulas, apresentações artísticas, culturais e esportivas prestadas por profissionais autônomos, artistas e mestres de cultura popular;
+VIII – materiais pedagógicos, esportivos, de artesanato e de economia criativa; uniformes e confecção;
+IX – manutenção e pequenos reparos em bens móveis e imóveis, jardinagem, limpeza pós-evento;
+X – tecnologia da informação: pequenos serviços de instalação, suporte, manutenção de equipamentos e desenvolvimento simples;
+XI – outros serviços e fornecimentos de natureza semelhante, incluídos no Catálogo pela Comissão de Credenciamento.
+Art. 6º Não se aplicam a esta Política, devendo seguir os procedimentos próprios:
+I – a contratação de pessoal da equipe dos projetos, por vínculo empregatício ou contrato de prestação de serviço pessoal continuado, regida pelo plano de trabalho e pela política de pessoal do Instituto;
+II – serviços continuados com dedicação exclusiva de mão de obra, como limpeza, vigilância e portaria permanentes;
+III – obras e serviços de engenharia que exijam responsável técnico e projeto;
+IV – a aquisição de bens permanentes de valor individual superior à Faixa 1, que exigirá cotação formal com, no mínimo, três propostas, podendo recair sobre credenciados;
+V – despesas de pequeno valor pagas por meio de fundo de caixa, nos limites do regulamento financeiro e do instrumento de parceria.
+Parágrafo único. A contratação de credenciado para a mesma linha de fornecimento não poderá ser fracionada com o propósito de enquadrá-la em faixa de valor inferior; o valor estimado considerará a soma das demandas previsíveis para o mesmo objeto, no mesmo projeto, no exercício.
+Capítulo III — Governança
+Estrutura de responsabilidades
+Art. 7º A operação do Contrata + NATA cabe às seguintes instâncias:
+Instância | Composição | Atribuições principais
+Diretoria Executiva | Dirigentes estatutários | Aprova e revisa esta Política e o Edital-padrão; designa a Comissão; decide recursos em última instância; aplica descredenciamento; aprova metas anuais de inclusão.
+Comissão de Credenciamento | Três membros titulares e um suplente, designados por portaria da Diretoria, entre empregados e colaboradores sem vínculo com fornecedores | Analisa habilitação; mantém o cadastro; publica listas; conduz sorteios, rodízios e cotações; responde a esclarecimentos e impugnações; instrui processos sancionadores; produz o relatório semestral.
+Gestor da demanda | Coordenador de projeto ou responsável administrativo | Elabora o DFD-NATA; acompanha a execução; atesta o recebimento; avalia o desempenho do fornecedor.
+Setor Financeiro | Responsável financeiro e contábil | Confere a compatibilidade com o plano de aplicação; verifica regularidade fiscal na data do pagamento; realiza pagamentos por transferência identificada; arquiva o dossiê.
+Controle Interno / Compliance | Responsável de compliance designado | Verifica conflitos de interesse; revisa por amostragem os dossiês; consulta cadastros de sanções; recebe denúncias.
+
+Art. 8º É vedado aos membros da Comissão, aos gestores de demanda e aos dirigentes do Instituto participar de decisão em que tenham interesse direto ou indireto, ou que envolva fornecedor com o qual mantenham vínculo técnico, comercial, econômico, financeiro, trabalhista ou civil, ou de quem sejam cônjuge, companheiro ou parente em linha reta, colateral ou por afinidade até o terceiro grau. O impedimento deverá ser declarado por escrito e registrado no dossiê, com a substituição do impedido.
+Integridade e prevenção de conflitos
+Art. 9º Não poderão ser credenciados nem contratados:
+I – dirigentes, conselheiros, empregados e colaboradores do Instituto, seus cônjuges, companheiros e parentes até o terceiro grau, bem como pessoas jurídicas de que participem como sócios, administradores ou titulares;
+II – agentes públicos do órgão ou entidade parceira que atuem na gestão, fiscalização ou monitoramento da parceria, e seus parentes nas mesmas condições, em observância ao art. 27 do Decreto nº 8.726/2016 e às normas dos regulamentos locais;
+III – servidores ou empregados públicos, para pagamento com recursos da parceria, salvo hipóteses previstas em lei específica e na lei de diretrizes orçamentárias (art. 45, II, da Lei nº 13.019/2014);
+IV – pessoas físicas ou jurídicas sancionadas com impedimento de licitar e contratar ou declaração de inidoneidade, constantes do CEIS, CNEP ou CEPIM, enquanto perdurar a sanção;
+V – pessoas jurídicas ou físicas condenadas, nos cinco anos anteriores, por exploração de trabalho infantil, por submissão de trabalhadores a condições análogas às de escravo ou por contratação de adolescentes em casos vedados pela legislação trabalhista;
+VI – interessados cuja atividade seja incompatível com a linha de fornecimento pretendida ou que não atendam às condições do Edital-padrão.
+Capítulo IV — Fluxo do credenciamento
+Art. 10. O credenciamento observará as seguintes fases, detalhadas no Edital-padrão e no Manual Operacional:
+Fase | O que acontece | Prazo de referência
+1. Divulgação | Publicação permanente do Edital-padrão e do Catálogo no sítio eletrônico do Instituto, nas redes sociais e em murais das unidades; campanhas territoriais de mobilização. | Contínuo
+2. Requerimento | Interessado preenche o Requerimento de Credenciamento (Anexo II), as declarações (Anexos III e IV) e o Termo de Adesão (Anexo V), com a documentação de habilitação. | A qualquer tempo
+3. Análise documental | Comissão confere os documentos e consulta certidões e cadastros de sanções em sítios oficiais. | Até 10 dias úteis
+4. Diligência e saneamento | Pedido de complementação ou correção de documentos; ME, EPP e MEI têm prazo ampliado para regularidade fiscal. | 5 dias úteis (fiscal: 5 dias úteis prorrogáveis por igual período)
+5. Resultado | Decisão motivada de habilitação ou inabilitação, comunicada ao interessado e registrada no cadastro. | Imediato após a análise
+6. Recurso | Interessado inabilitado pode recorrer à Comissão, que reconsidera ou encaminha à Diretoria. | 3 dias úteis para recorrer; 5 dias úteis para decidir
+7. Inclusão no cadastro | Credenciado é incluído na lista pública por linha e território, com validade de 24 meses, renovável mediante atualização documental. | 24 meses
+8. Manutenção | Atualização cadastral e verificação semestral de regularidade; inativação temporária em caso de pendência. | Semestral
+
+Art. 11. A lista de credenciados, com razão social ou nome, CNPJ ou CPF parcialmente ocultado, linhas de fornecimento, porte, indicação de negócio liderado por mulher e território, ficará permanentemente disponível no sítio eletrônico do Instituto e será atualizada a cada inclusão, alteração ou exclusão.
+Capítulo V — Fluxo de contratação por demanda
+Formalização da demanda
+Art. 12. Toda contratação inicia-se com o Documento de Formalização de Demanda – DFD-NATA (Anexo VI), elaborado pelo gestor da demanda e contendo, no mínimo: projeto e rubrica do plano de aplicação; descrição do serviço ou item; quantidade, unidade e local; prazo de execução; valor estimado e sua fonte; forma e prazo de pagamento; critérios de sustentabilidade e acessibilidade aplicáveis; e indicação da faixa de valor e do modo de seleção.
+§ 1º O Setor Financeiro atestará, no DFD-NATA, a existência de previsão no plano de aplicação e de saldo na conta específica da parceria antes da publicação da oportunidade.
+§ 2º O valor estimado será obtido no Banco de Preços do Instituto (histórico de contratações, cotações anteriores, Painel de Preços do Governo Federal e pesquisas de mercado), registrando-se a fonte.
+Faixas de valor e modos de seleção
+Art. 13. O modo de seleção entre credenciados será definido pelo valor estimado da contratação, segundo as faixas abaixo, cujos limites correspondem aos valores da Lei nº 14.133/2021 atualizados pelo Decreto nº 12.807/2025 para o exercício de 2026 e serão reajustados automaticamente sempre que novo decreto federal os atualizar:
+Faixa | Limite de referência (2026) | Modo de seleção | Registro mínimo no dossiê
+Faixa 1 — Contratação direta simplificada | Até R$ 13.098,41 (art. 95, § 2º, Lei nº 14.133/2021) | Rodízio entre os credenciados da linha e do território prioritário, na ordem do cadastro, ou sorteio eletrônico quando não houver ordem estabelecida; preço conferido contra o Banco de Preços. | DFD-NATA; registro do rodízio/sorteio; verificação de preço; OF/OS; NF/recibo; comprovante de pagamento; termo de recebimento.
+Faixa 2 — Cotação entre credenciados | De R$ 13.098,42 até R$ 65.492,11 (art. 75, II, Lei nº 14.133/2021) | Cotação enviada a todos os credenciados da linha e do território, com no mínimo três propostas válidas; julgamento pelo menor preço, aplicados o empate ficto e a preferência local; prazo mínimo de 3 dias úteis para propostas. | Itens da Faixa 1 mais: convite/oportunidade; propostas recebidas; mapa comparativo; ata de julgamento.
+Faixa 3 — Chamada ampla | Acima de R$ 65.492,11 | Chamada publicada no sítio eletrônico por, no mínimo, 5 dias úteis, aberta a credenciados e a novos interessados que se credenciem até a data-limite; julgamento por menor preço ou por técnica e preço, com critérios objetivos definidos no DFD-NATA. | Itens da Faixa 2 mais: publicação da chamada; critérios de julgamento; parecer da Comissão; aprovação da Diretoria.
+
+§ 1º Quando o instrumento de parceria, o regulamento do financiador ou a legislação local exigir número mínimo de cotações ou procedimento diverso, essa exigência prevalecerá, em qualquer faixa.
+§ 2º Não havendo credenciados suficientes na linha e no território prioritário, a seleção será ampliada, sucessivamente, aos territórios seguintes e, persistindo a insuficiência, a fornecedores não credenciados, que deverão apresentar a documentação de habilitação antes da contratação e serão convidados a se credenciar.
+§ 3º Em situações de urgência devidamente justificadas — como risco à segurança dos participantes, cancelamento de fornecedor às vésperas de evento ou fato imprevisível — o gestor poderá contratar diretamente credenciado da linha, com registro da justificativa no DFD-NATA e ciência da Comissão em até dois dias úteis.
+§ 4º O credenciado que receber ordem de fornecimento na Faixa 1 passará ao final da ordem de rodízio da linha; a recusa injustificada de duas oportunidades consecutivas implicará também o deslocamento ao final da ordem.
+Tratamento favorecido a pequenos negócios, a negócios liderados por mulheres e ao território
+Art. 14. Em todas as seleções serão aplicados, nesta ordem, os seguintes mecanismos, inspirados nos arts. 44, 45, 47 e 48 da Lei Complementar nº 123/2006 e no art. 18 da IN SEGES/MGI nº 52/2025:
+I – exclusividade: quando houver, na linha e no território, ao menos três credenciados enquadrados como pequenos negócios, a oportunidade das Faixas 1 e 2 será dirigida exclusivamente a eles;
+II – empate ficto: propostas de pequenos negócios até 10% superiores à melhor proposta serão consideradas empatadas, assegurando-se ao pequeno negócio melhor classificado o direito de cobrir a melhor oferta;
+III – preferência local e regional: credenciados sediados no território prioritário de nível superior terão prioridade quando suas propostas forem até 10% superiores às de fornecedores de níveis inferiores;
+IV – desempate por equidade: persistindo o empate, será preferido, sucessivamente, o negócio liderado por mulher, o negócio liderado por mulher negra ou inscrita no CadÚnico, o MEI, o credenciado com melhor avaliação de desempenho e, por fim, o sorteio;
+V – chamadas afirmativas: a Diretoria poderá, por decisão motivada e a partir de metas anuais, destinar linhas de fornecimento ou oportunidades específicas a negócios liderados por mulheres, sempre que houver ao menos três credenciadas aptas.
+Art. 15. O Instituto fixará, anualmente, metas de inclusão, com os seguintes patamares mínimos de referência: ao menos 70% do valor contratado por meio do Contrata + NATA com pequenos negócios; ao menos 30% com negócios liderados por mulheres; ao menos 50% com fornecedores do território prioritário de nível 1. As metas serão acompanhadas na Planilha de Gestão e reportadas no relatório semestral.
+Art. 16. Além das preferências, o Instituto desenvolverá ações de fomento: orientação para formalização como MEI e emissão de certidões; oficinas sobre elaboração de propostas e emissão de nota fiscal; articulação com o Sebrae/RJ, a Sala do Empreendedor de Mesquita, a Secretaria de Estado da Mulher, associações de moradores e coletivos de mulheres empreendedoras; divulgação das oportunidades por WhatsApp e mural; e feedback ao fornecedor não selecionado.
+Formalização, execução e recebimento
+Art. 17. Selecionado o fornecedor, o Setor Financeiro verificará sua regularidade fiscal, trabalhista e cadastral e a ausência de sanções; em seguida será emitida a Ordem de Fornecimento ou de Serviço (Anexo VIII), assinada pelo gestor da demanda e pelo fornecedor, contendo objeto, quantidades, preço, prazo, local, condições de pagamento, obrigações, penalidades e cláusulas de proteção de dados e anticorrupção.
+§ 1º Na Faixa 1, a ordem poderá ser substituída por aceite eletrônico da proposta pelo fornecedor, desde que registrada na Planilha de Gestão e arquivada com a proposta.
+§ 2º O fornecedor deverá manter as condições de habilitação durante toda a execução e comunicar imediatamente qualquer alteração de enquadramento, endereço, contato ou dados bancários.
+Art. 18. Concluída a entrega ou o serviço, o gestor da demanda emitirá o Termo de Recebimento e Avaliação (Anexo IX), atestando a conformidade com a ordem e atribuindo nota de desempenho quanto a prazo, qualidade, conformidade documental e atendimento.
+Parágrafo único. Recebido com ressalvas, o fornecedor terá prazo para corrigir; recusado o objeto, aplica-se o Capítulo VII.
+Preço, pagamento e comprovação
+Art. 19. O pagamento será efetuado exclusivamente por transferência eletrônica — inclusive Pix — da conta específica da parceria para conta bancária de titularidade do fornecedor, identificando o beneficiário final, em até 30 dias contados do recebimento definitivo, salvo prazo diverso previsto na ordem, sendo vedado o pagamento em espécie ou a terceiros.
+§ 1º O pagamento será precedido da apresentação de nota fiscal ou, no caso de pessoa física, de recibo de pagamento a autônomo (RPA) com as retenções legais, contendo data, valor, descrição, CNPJ do Instituto e CNPJ ou CPF do fornecedor, na forma do art. 37 do Decreto nº 8.726/2016.
+§ 2º Antes de cada pagamento o Setor Financeiro verificará novamente a regularidade fiscal e trabalhista, assegurado ao pequeno negócio o prazo de cinco dias úteis, prorrogável por igual período, para regularização.
+§ 3º Se o valor efetivo da contratação ultrapassar o previsto no plano de trabalho, a Comissão registrará a compatibilidade com os novos preços de mercado antes da formalização, conforme o § 1º do art. 36 do Decreto nº 8.726/2016.
+Dossiê da contratação e prestação de contas
+Art. 20. Cada contratação terá dossiê próprio, físico ou eletrônico, numerado sequencialmente por projeto, contendo, no mínimo: DFD-NATA; registro do modo de seleção (rodízio, sorteio, cotação ou chamada) e propostas; mapa comparativo e ata de julgamento, quando houver; comprovação de habilitação e consultas a cadastros de sanções; ordem de fornecimento ou aceite; nota fiscal ou recibo; comprovante de pagamento; termo de recebimento e avaliação; e eventuais justificativas de urgência ou de dispensa de rodízio.
+Parágrafo único. O dossiê será mantido pelo prazo de dez anos contados do dia útil subsequente ao da prestação de contas, nos termos do art. 68 da Lei nº 13.019/2014, e alimentará os relatórios de execução do objeto e de execução financeira.
+Capítulo VI — Requisitos de habilitação
+Art. 21. A habilitação compreende a habilitação jurídica, a regularidade fiscal, social e trabalhista, a qualificação técnica mínima e as declarações, conforme o tipo de interessado:
+Documento | MEI | ME / EPP | Cooperativa | Pessoa física autônoma
+Certificado da Condição de MEI (CCMEI) | ✔ | —
+Ato constitutivo (contrato social/estatuto) e última alteração; ata de eleição da diretoria | — | ✔ | —
+Comprovante de inscrição no CNPJ | ✔ | —
+Declaração de enquadramento como ME/EPP (ou certidão simplificada da Junta Comercial) | — | ✔ | se aplicável | —
+Documento de identidade e CPF do titular, administrador ou pessoa física; comprovante de residência | ✔
+Certidão negativa (ou positiva com efeito de negativa) de débitos federais e dívida ativa da União | ✔ | ✔ (CPF)
+Certificado de Regularidade do FGTS | ✔ | —
+Certidão Negativa de Débitos Trabalhistas (CNDT) | ✔
+Certidão de regularidade municipal (ISS) do domicílio, quando exigível | ✔ | se inscrito
+Inscrição municipal / alvará ou licença sanitária, quando a atividade exigir (alimentação, transporte) | se aplicável
+NIT/PIS/PASEP e comprovante de inscrição como contribuinte individual do INSS | — | ✔
+Portfólio, currículo, atestados ou declarações de serviços anteriores (qualificação técnica mínima) | recomendado | ✔
+Comprovante de conta bancária de titularidade do interessado | ✔
+Requerimento, Declaração Unificada, Declaração de Negócio Liderado por Mulher (opcional) e Termo de Adesão | ✔
+
+§ 1º A Comissão verificará a autenticidade das certidões nos sítios eletrônicos oficiais, o que constitui meio legal de prova, e poderá sanar erros ou falhas que não alterem a substância dos documentos.
+§ 2º As certidões vencidas durante a vigência do credenciamento serão renovadas pelo Instituto por consulta direta aos sítios oficiais sempre que possível; não sendo possível, o credenciado será notificado para apresentá-las em cinco dias úteis, sob pena de inativação temporária.
+§ 3º A contratação de pessoa física autônoma limita-se a serviços de natureza eventual, artística, cultural, educacional ou técnica especializada, sem subordinação, habitualidade ou pessoalidade que caracterizem vínculo empregatício, e observará as retenções de INSS, IRRF e ISS aplicáveis ao RPA.
+Art. 22. O credenciamento terá validade de 24 meses, renovável por iguais períodos mediante atualização dos documentos e das declarações. A inativação temporária ocorrerá por desatualização cadastral, perda de regularidade ou instauração de processo sancionador, e cessará com a regularização.
+Art. 23. O descredenciamento ocorrerá a pedido do credenciado; por perda das condições de habilitação não regularizada em 30 dias; por descumprimento injustificado de ordem de fornecimento; por sanção superveniente de impedimento ou inidoneidade; ou por decisão em processo sancionador. O pedido de descredenciamento não exime o fornecedor das obrigações assumidas.
+Capítulo VII — Infrações, sanções e processo
+Art. 24. Constituem infrações do credenciado ou contratado, apuradas com observância do contraditório e da ampla defesa:
+I – dar causa à inexecução parcial ou total do objeto;
+II – ensejar o retardamento injustificado da execução ou entrega;
+III – não manter a proposta ou recusar-se, sem justificativa, a formalizar a contratação quando selecionado;
+IV – deixar de apresentar documentação exigida ou apresentar documento ou declaração falsa, inclusive quanto ao porte, à liderança feminina ou ao território;
+V – usufruir indevidamente de tratamento favorecido;
+VI – fraudar a seleção ou a execução, agir em conluio ou comportar-se de modo inidôneo;
+VII – praticar ato lesivo previsto no art. 5º da Lei nº 12.846/2013, oferecer vantagem a dirigente, empregado ou colaborador do Instituto ou a agente público;
+VIII – violar dados pessoais de participantes dos projetos ou descumprir as obrigações de proteção de dados;
+IX – descumprir normas de segurança, saúde, acessibilidade e sustentabilidade previstas na ordem de fornecimento.
+Art. 25. São sanções aplicáveis, isolada ou cumulativamente, conforme a gravidade, a reincidência e o dano: advertência escrita; multa de 2% a 10% do valor da ordem, quando nela prevista; suspensão do cadastro por até 24 meses; e descredenciamento, com impedimento de novo credenciamento por até 3 anos. As sanções serão registradas na Planilha de Gestão e, nas hipóteses de fraude e ato lesivo, comunicadas ao órgão parceiro e às autoridades competentes.
+Art. 26. O processo sancionador será instaurado pela Comissão, com notificação escrita ao fornecedor para defesa em cinco dias úteis; decisão motivada da Comissão em dez dias úteis; recurso à Diretoria em cinco dias úteis; e decisão final em dez dias úteis. Havendo risco iminente, a Comissão poderá inativar temporariamente o credenciado antes da defesa, comunicando-o imediatamente.
+Capítulo VIII — Transparência, dados pessoais e monitoramento
+Art. 27. O Instituto publicará em seu sítio eletrônico: esta Política; o Edital-padrão e seus anexos; o Catálogo de linhas de fornecimento; a lista de credenciados; as chamadas da Faixa 3 e seus resultados; e o relatório semestral do Contrata + NATA, com indicadores de número de credenciados por linha, porte, gênero de liderança e território; valor contratado por faixa e por projeto; percentuais alcançados frente às metas de inclusão; tempo médio entre o DFD-NATA e a ordem; avaliação média dos fornecedores; e sanções aplicadas.
+Art. 28. Os dados pessoais coletados no credenciamento serão tratados com base na execução de procedimentos preliminares e de contrato e no cumprimento de obrigações legais e regulatórias de prestação de contas (art. 7º, II e V, da Lei nº 13.709/2018), limitados ao necessário, protegidos por controles de acesso, e conservados pelo prazo de guarda dos dossiês. A autodeclaração de raça/cor e de inscrição no CadÚnico é facultativa, usada exclusivamente para os critérios de equidade e para estatísticas agregadas, e não será publicada de forma individualizada.
+Art. 29. Denúncias sobre irregularidades no Contrata + NATA poderão ser apresentadas ao Controle Interno pelo canal indicado no sítio eletrônico, assegurado o sigilo do denunciante.
+Capítulo IX — Disposições finais
+Art. 30. Esta Política será revisada anualmente pela Comissão, com proposta à Diretoria, considerando a atualização dos limites de valor pela União, as alterações nos regulamentos dos parceiros, os resultados dos indicadores e as contribuições dos credenciados.
+Art. 31. Os casos omissos serão decididos pela Diretoria, ouvida a Comissão, com base nos princípios do art. 4º e, subsidiariamente, na Lei nº 13.019/2014, no Decreto nº 8.726/2016, na Lei nº 14.133/2021 e na Lei Complementar nº 123/2006.
+Art. 32. Esta Política entra em vigor na data de sua aprovação pela Diretoria, aplicando-se às contratações iniciadas a partir de então, e será registrada em ata e anexada aos processos de prestação de contas quando solicitado pelo parceiro público.
+Aprovada pela Diretoria Executiva do Instituto NATA em __//____, conforme Ata nº ______.
+_____________________________________
+Presidente
+_____________________________________
+Diretor(a) Administrativo-Financeiro(a)
+Apêndice — Plano de implantação em 90 dias
+Etapa | Ações | Responsável | Prazo
+1. Aprovação | Aprovar a Política em reunião de Diretoria; designar a Comissão por portaria; definir metas anuais de inclusão. | Diretoria | Dias 1–10
+2. Publicação | Publicar Política, Edital-padrão, Catálogo e formulários no sítio eletrônico; criar formulário online de requerimento; criar e-mail e WhatsApp do Contrata + NATA. | Comissão + Comunicação | Dias 10–25
+3. Mobilização | Reuniões com Sala do Empreendedor de Mesquita, Sebrae/RJ, coletivos de mulheres empreendedoras, associações de moradores e feiras locais; oficina "Como se credenciar". | Comissão + Coordenações | Dias 20–60
+4. Primeira rodada | Receber e analisar requerimentos; publicar primeira lista de credenciados; alimentar o Banco de Preços. | Comissão + Financeiro | Dias 30–70
+5. Operação assistida | Executar as primeiras contratações pelo novo fluxo; ajustar formulários; treinar gestores de demanda. | Comissão + Gestores | Dias 60–90
+6. Primeiro relatório | Consolidar indicadores; apresentar à Diretoria; revisar a Política se necessário. | Comissão | Dia 90 e semestralmente

@@ -1,0 +1,105 @@
+import { Component, inject, input, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../core/auth/auth.service';
+import { toProblem } from '../core/http/problem';
+import { PasswordField } from './password-field';
+
+@Component({
+  selector: 'app-login-page',
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    PasswordField,
+  ],
+  template: `
+    <div class="container narrow">
+      <div class="card">
+        <h1>Entrar</h1>
+        @if (expirada()) {
+          <p class="alert alert-info" role="status">
+            Sua sessão expirou. Entre novamente para continuar.
+          </p>
+        }
+        @if (error()) {
+          <div class="alert alert-error" role="alert">
+            <p>{{ error() }}</p>
+            @if (notVerified()) {
+              <p><a routerLink="/reenviar-confirmacao">Reenviar o e-mail de confirmação</a></p>
+            }
+          </div>
+        }
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="stack">
+          <mat-form-field>
+            <mat-label>E-mail</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              inputmode="email"
+            />
+            @if (form.controls.email.hasError('required')) {
+              <mat-error>Informe seu e-mail.</mat-error>
+            } @else if (form.controls.email.hasError('email')) {
+              <mat-error>E-mail inválido.</mat-error>
+            }
+          </mat-form-field>
+          <app-password-field [control]="form.controls.password" />
+          <div class="form-actions">
+            <button mat-flat-button type="submit" [disabled]="loading()">
+              {{ loading() ? 'Entrando…' : 'Entrar' }}
+            </button>
+          </div>
+        </form>
+        <p><a routerLink="/esqueci-senha">Esqueci minha senha</a></p>
+        <p>Ainda não tem conta? <a routerLink="/criar-conta">Quero me credenciar</a></p>
+      </div>
+    </div>
+  `,
+})
+export class LoginPage {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly voltar = input<string>();
+  readonly expirada = input<string>();
+
+  protected readonly form = inject(FormBuilder).nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+  });
+  protected readonly loading = signal(false);
+  protected readonly error = signal('');
+  protected readonly notVerified = signal(false);
+
+  protected submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    this.loading.set(true);
+    this.error.set('');
+    const { email, password } = this.form.getRawValue();
+    this.auth.login(email, password).subscribe({
+      next: () => {
+        const target = this.voltar();
+        void this.router.navigateByUrl(
+          target && target.startsWith('/') ? target : this.auth.homeRoute(),
+        );
+      },
+      error: (e: unknown) => {
+        const problem = toProblem(e);
+        this.notVerified.set(problem.code === 'EMAIL_NOT_VERIFIED');
+        this.error.set(problem.detail ?? 'Não foi possível entrar.');
+        this.loading.set(false);
+      },
+    });
+  }
+}

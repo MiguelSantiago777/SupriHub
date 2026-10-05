@@ -1,0 +1,113 @@
+INSTITUTO NATA – Novas Atitudes Transformam o Amanhã
+CONTRATA + NATA
+Manual Operacional do Contrata + NATA
+Passo a passo para a equipe e para os fornecedores: credenciamento, oportunidades, seleção, contratação, recebimento, pagamento, dossiê e indicadores — com plano de mobilização territorial e perguntas frequentes
+Versão 1.0
+Setembro de 2026
+Mesquita – Rio de Janeiro
+Sumário
+1. Para que serve este manual
+A Política de Credenciamento define as regras; o Edital-padrão abre o cadastro e traz os formulários; este manual explica como fazer, na rotina, cada etapa do Contrata + NATA. Ele foi escrito para dois públicos: a equipe do Instituto (Comissão de Credenciamento, gestores de demanda, Financeiro e Controle Interno) e os fornecedores que querem se credenciar. A Planilha de Gestão do Cadastro é a ferramenta de controle que acompanha todas as etapas.
+O Contrata + NATA em uma frase / Quem quer fornecer para o Instituto se credencia uma vez, com documentos simples; quando um projeto precisa de algo, a demanda vira uma oportunidade enviada aos credenciados daquela linha e daquele território; a seleção é feita por rodízio, sorteio ou cotação, conforme o valor; a contratação sai por uma ordem de fornecimento; o serviço é recebido, avaliado e pago por Pix ou transferência para a conta do fornecedor; e tudo fica arquivado em um dossiê pronto para a prestação de contas.
+
+2. Papéis e responsabilidades
+Quem | Faz o quê | Ferramentas
+Comissão de Credenciamento (3 titulares + 1 suplente) | Recebe e analisa requerimentos; consulta certidões e cadastros de sanções; publica a lista; conduz rodízios, sorteios e cotações; responde esclarecimentos e recursos; instrui sanções; produz o relatório semestral. | Planilha de Gestão (abas Cadastro, Habilitação, Rodízio, Cotações, Sanções); e-mail e WhatsApp do programa; sítio eletrônico.
+Gestor da demanda (coordenador de projeto) | Preenche o DFD-NATA; acompanha a execução; emite o Termo de Recebimento e Avaliação; envia evidências ao dossiê. | Anexos VI e IX do Edital; Planilha (aba Contratações).
+Setor Financeiro | Atesta previsão e saldo; confere habilitação na contratação e no pagamento; paga por transferência identificada; monta e guarda o dossiê. | Anexo XIII (checklist); Planilha (abas Contratações, Banco de Preços); conta específica da parceria.
+Controle Interno / Compliance | Verifica conflitos de interesse; revisa dossiês por amostragem (mínimo 10% ao semestre); recebe denúncias; acompanha as metas de inclusão. | Planilha (aba Indicadores); canal de denúncias.
+Diretoria | Aprova a Política e o Edital; designa a Comissão; fixa metas anuais; decide recursos e descredenciamentos; aprova chamadas da Faixa 3. | Atas; portaria de designação.
+
+3. Fluxo do credenciamento — passo a passo
+Passo | Ação | Quem | Prazo | Registro
+1 | Interessado acessa a página do Contrata + NATA, lê o Edital e o Catálogo, preenche o formulário online (ou o Anexo II em papel) e anexa os documentos. | Fornecedor | A qualquer tempo | Formulário recebido (nº automático)
+2 | Comissão registra o requerimento na aba Cadastro (status "Em análise") e confere o checklist da aba Habilitação. | Comissão | Até 2 dias úteis | Planilha
+3 | Comissão valida as certidões nos sítios oficiais (RFB/PGFN, Caixa/FGTS, TST/CNDT, prefeitura) e consulta CEIS, CNEP e CEPIM no Portal da Transparência; salva os prints no dossiê do credenciado. | Comissão | Dentro dos 10 dias úteis | Prints datados
+4 | Faltando documento ou havendo restrição, envia pedido de ajuste por e-mail/WhatsApp (5 dias úteis; regularidade fiscal de pequenos negócios: 5 + 5 dias úteis). | Comissão | 5 dias úteis | Mensagem enviada
+5 | Decide (habilitado/inabilitado), com motivação; atualiza a Planilha; comunica o resultado; publica a lista atualizada no site. | Comissão | Até 10 dias úteis do requerimento completo | Planilha + lista pública
+6 | Inabilitado pode recorrer (Anexo X) em 3 dias úteis; Comissão reconsidera em 3 dias úteis ou encaminha à Diretoria (5 dias úteis). | Fornecedor / Comissão / Diretoria | 3 + 3 + 5 dias úteis | Formulário e decisão no dossiê
+7 | Credenciado recebe boas-vindas com orientações (como responder oportunidades, emitir NF, atualizar dados) e entra no grupo de avisos da(s) linha(s). | Comissão | Na habilitação | Mensagem-padrão
+8 | A cada 6 meses a Comissão reconfere certidões; vencidas e não regularizadas, o credenciado fica "Inativo temporário" até regularizar. Aos 24 meses, renovação com atualização documental. | Comissão | Semestral / 24 meses | Planilha (validade)
+
+4. Fluxo da contratação — passo a passo
+4.1 Antes de tudo: enquadrar a faixa
+O gestor estima o valor no Banco de Preços (aba própria da Planilha: preço médio das últimas contratações do mesmo item, cotações anteriores e consultas ao Painel de Preços do Governo Federal) e a Planilha indica a faixa automaticamente. Pense no exercício inteiro: se o mesmo projeto vai precisar do mesmo item várias vezes, some as demandas previsíveis para definir a faixa — isso evita o fracionamento, que é a crítica mais frequente dos órgãos de controle.
+Faixa (2026) | Como selecionar | Tempo típico
+1 — até R$ 13.098,41 | Rodízio: a Planilha aponta o próximo credenciado da linha/território; envia-se a oportunidade e ele aceita em até 2 dias úteis. Sem aceite, passa ao seguinte. Confere-se o preço proposto contra o Banco de Preços (teto: média + 10%). | 2 a 4 dias úteis
+2 — de R$ 13.098,42 a R$ 65.492,11 | Cotação: a oportunidade vai a todos os credenciados da linha/território (mínimo 3 dias úteis para propostas). Precisa de 3 propostas válidas. A aba Cotações aplica empate ficto, preferência local e desempate por equidade e aponta o vencedor. | 5 a 8 dias úteis
+3 — acima de R$ 65.492,11 | Chamada: publicação no site por 5 dias úteis, aberta a credenciados e a quem se credenciar até a data-limite; parecer da Comissão e aprovação da Diretoria. | 10 a 15 dias úteis
+
+Os valores das faixas são os do Decreto nº 12.807/2025 (art. 95, § 2º, e art. 75, II, da Lei nº 14.133/2021). Quando sair o decreto do ano seguinte, basta atualizar a aba Parâmetros da Planilha — os documentos remetem aos valores "atualizados por decreto federal".
+4.2 Passos
+Passo | Ação | Quem | Registro
+1 | Preencher o DFD-NATA (Anexo VI, partes 1 a 4). Anexar a estimativa de preço e sua fonte. | Gestor da demanda | DFD no dossiê
+2 | Atestar previsão no plano de aplicação e saldo na conta específica (parte 6 do DFD). | Financeiro | Assinatura no DFD
+3 | Verificar impedimentos: nenhum membro da Comissão ou gestor tem vínculo com os credenciados da linha? Registrar eventual impedimento e substituição. | Comissão / Controle Interno | Anotação no DFD
+4 | Redigir a oportunidade (parte 5 do DFD) e enviá-la pelo canal da linha (e-mail + WhatsApp + área do fornecedor). Na Faixa 1, enviar apenas ao próximo do rodízio; na Faixa 2, a todos; na Faixa 3, publicar no site. | Comissão | Comprovante de envio/publicação
+5 | Receber propostas (Anexo VII) até o prazo; manter os proponentes sob sigilo até o encerramento; lançar na aba Cotações. | Comissão | Propostas + mapa comparativo
+6 | Julgar: menor preço → empate ficto (10%) → preferência local (10%) → desempate por equidade → sorteio. Lavrar ata sucinta (Faixas 2 e 3). | Comissão | Ata
+7 | Conferir habilitação do selecionado (certidões vigentes, CEIS/CNEP/CEPIM); emitir a Ordem de Fornecimento/Serviço (Anexo VIII) ou registrar o aceite eletrônico (Faixa 1). | Financeiro / Gestor | OF/OS assinada
+8 | Acompanhar a execução; confirmar com o fornecedor 48 horas antes de eventos; registrar ocorrências. | Gestor da demanda | Anotações / fotos
+9 | Receber o objeto e preencher o Termo de Recebimento e Avaliação (Anexo IX) com evidências. | Gestor da demanda | Termo + evidências
+10 | Receber NF ou RPA; reconferir certidões; pagar por Pix/transferência para a conta do fornecedor em até 30 dias; anexar comprovante. | Financeiro | NF/RPA + comprovante
+11 | Fechar o dossiê com o checklist (Anexo XIII); lançar a contratação e a avaliação na Planilha; atualizar o Banco de Preços. | Financeiro / Comissão | Dossiê completo
+
+4.3 Situações especiais
+Urgência (fornecedor falhou às vésperas, risco à segurança, fato imprevisível): o gestor contrata diretamente um credenciado da linha, escreve a justificativa no DFD e dá ciência à Comissão em 2 dias úteis. Urgência não pode virar rotina: a Comissão acompanha a frequência por projeto.
+Poucos credenciados na linha/território: amplie para T2 e depois T3; se ainda faltar, convide fornecedores não credenciados, exigindo a documentação de habilitação antes da ordem, e convide-os a se credenciar. Registre a ampliação no DFD.
+Regra do parceiro mais rígida (por exemplo, três cotações para qualquer valor): a regra do parceiro prevalece. Indique-a no campo próprio do DFD.
+Pessoa física: só para serviços eventuais (oficina, apresentação, aula, reparo pontual). Emita RPA com retenção de INSS (11%, até o teto), IRRF (tabela progressiva) e ISS quando devido; nunca contrate a mesma pessoa de forma habitual e subordinada — isso é vínculo empregatício e deve seguir a política de pessoal.
+Bens permanentes: a compra de equipamentos acima da Faixa 1 segue cotação formal com três propostas, que pode ser feita entre credenciados da linha L13 ou L05, e observa as regras de patrimônio do instrumento de parceria.
+5. Tratamento favorecido na prática
+A ordem de aplicação é sempre a mesma e está automatizada na aba Cotações da Planilha:
+Exclusividade: se há três ou mais pequenos negócios credenciados na linha e território, a oportunidade das Faixas 1 e 2 vai só para eles.
+Empate ficto: ordena-se por preço; toda proposta de pequeno negócio até 10% acima da melhor é considerada empatada; o pequeno negócio mais bem classificado pode cobrir a melhor oferta em 1 dia útil.
+Preferência local: entre as propostas remanescentes, a de fornecedor de território superior (T1 > T2 > T3) vence se estiver até 10% acima da melhor.
+Desempate por equidade: negócio liderado por mulher → mulher negra ou inscrita no CadÚnico → MEI → melhor avaliação → sorteio.
+Chamadas afirmativas: a Diretoria pode dirigir uma linha ou uma oportunidade só a negócios liderados por mulheres quando houver ao menos três credenciadas aptas. Recomenda-se começar pelas linhas L01, L02, L07, L11, L12, L19 e L20, em que a presença feminina no território é historicamente alta.
+Exemplo de julgamento (Faixa 2) / Oportunidade: 200 kits lanche para o Baile da Memória 60+. Propostas: A (EPP, T2) R$ 3.900; B (MEI, mulher, T1) R$ 4.200; C (ME, T3) R$ 3.850. / Menor preço: C (R$ 3.850). Empate ficto: A e B são pequenos negócios; B está 9,1% acima de C → empatada; A está 1,3% acima → empatada. Preferência local: B é T1 e está dentro dos 10% → B tem prioridade e pode cobrir R$ 3.850. Se B cobrir, vence B; se não, A (T2) tem a segunda prioridade sobre C (T3). / Registro: o mapa comparativo da Planilha mostra cada etapa; a ata anota "vencedora: B, após exercício da preferência local (item 8.3 do Edital)".
+
+6. Plano de mobilização territorial
+O cadastro só cumpre sua função social se as pequenas empreendedoras e os pequenos empreendedores do território souberem dele e conseguirem se credenciar. O plano abaixo é o mínimo para os primeiros seis meses.
+Ação | Parceiro / canal | Quando | Meta
+Página do Contrata + NATA no site com edital, catálogo, formulário online e vídeo curto "como se credenciar" | Comunicação do Instituto | Mês 1 | Página no ar
+Oficina presencial "Como vender para o Instituto NATA" (documentos, MEI, nota fiscal, proposta) | Sala do Empreendedor de Mesquita; Sebrae/RJ; unidades dos projetos 60+ | Meses 1–2 e a cada semestre | 2 oficinas, 60 participantes
+Roda de conversa com coletivos de mulheres empreendedoras e artesãs da Baixada | Secretaria de Estado da Mulher; secretarias municipais de mulheres; coletivos e feiras locais | Mês 2 | 3 rodas, 30 credenciadas
+Divulgação nos encontros dos programas 60+ e de juventude (familiares e vizinhos dos participantes são fornecedores potenciais) | Coordenações de projeto | Contínuo | Cartaz e QR code em todas as unidades
+Mutirão de documentação: apoio para emitir CCMEI, certidões e abrir conta | Sala do Empreendedor; agências bancárias parceiras | Meses 2–3 | 40 atendimentos
+Feedback ao não selecionado (por que perdeu, como melhorar) | Comissão | A cada cotação | 100% dos proponentes
+Relatório semestral publicado com os indicadores de inclusão | Comissão / Diretoria | Semestral | Relatório no site
+
+7. Indicadores e relatório semestral
+Indicador | Cálculo | Meta de referência
+Credenciados ativos por linha e território | Contagem na aba Cadastro | Mínimo 3 por linha em T1
+% de pequenos negócios no valor contratado | Σ valor contratado com MEI/ME/EPP/coop./PF ÷ Σ valor contratado | ≥ 70%
+% de negócios liderados por mulheres no valor contratado | Σ valor com negócios liderados por mulheres ÷ Σ valor | ≥ 30%
+% do valor contratado com fornecedores T1 | Σ valor com T1 ÷ Σ valor | ≥ 50%
+Tempo médio DFD → Ordem | Média (data da OF/OS – data do DFD), em dias úteis | Faixa 1 ≤ 4; Faixa 2 ≤ 8
+Avaliação média dos fornecedores | Média das notas dos Termos de Recebimento | ≥ 4,0
+Contratações de urgência | Nº de urgências ÷ nº total de contratações | ≤ 5%
+Dossiês completos na revisão por amostragem | Dossiês sem pendência ÷ dossiês revisados | 100%
+
+8. Perguntas frequentes dos fornecedores
+Pergunta | Resposta
+Preciso pagar para me credenciar? | Não. O credenciamento é gratuito e permanente.
+Sou MEI. Quais documentos preciso? | CCMEI, comprovante de CNPJ, identidade e CPF, comprovante de endereço, certidão federal (RFB/PGFN), FGTS, CNDT, certidão municipal (se exigida), comprovante de conta bancária em seu nome, e os Anexos II, III e V (o Anexo IV se o negócio for liderado por mulher).
+Não tenho CNPJ. Posso participar? | Sim, como pessoa física autônoma, nas linhas que admitem "PF" no Catálogo (oficinas, apresentações, aulas, pequenos reparos, fotografia etc.). O pagamento é por RPA, com retenções. Se quiser formalizar-se como MEI, o Instituto orienta.
+Estou com uma certidão positiva. Posso me credenciar? | Pequenos negócios têm 5 dias úteis, prorrogáveis por mais 5, para regularizar. Se não conseguir, o credenciamento fica pendente até a regularização.
+Como fico sabendo das oportunidades? | Por e-mail, WhatsApp (se autorizar) e na área do fornecedor no site. Mantenha o telefone atualizado.
+Como funciona o rodízio? | Nas contratações pequenas (Faixa 1), o Instituto chama os credenciados da sua linha e território um de cada vez, na ordem do cadastro. Quem é contratado vai para o fim da fila. Se você recusar duas vezes seguidas sem avisar, também vai para o fim da fila.
+O que é "negócio liderado por mulher" e qual a vantagem? | MEI de titular mulher, empresa com pelo menos 50% do capital e a administração nas mãos de mulheres, cooperativa dirigida majoritariamente por mulheres ou profissional autônoma. Tem prioridade nos desempates e pode participar de chamadas exclusivas.
+Fui selecionado. E agora? | O Instituto confere suas certidões e envia a Ordem de Fornecimento para assinatura (ou você aceita a oportunidade pelo sistema, na Faixa 1). Execute, receba o Termo de Recebimento, emita a nota fiscal e receba por Pix ou transferência em até 30 dias.
+Posso pedir adiantamento? | Só para eventos e alimentação, quando previsto na ordem, e no máximo 30% do valor.
+O que acontece se eu não conseguir cumprir? | Avise imediatamente. Se for fato imprevisível e justificado, não há sanção. Atrasos e inexecuções injustificados geram advertência, multa (se prevista), suspensão ou descredenciamento, sempre com direito de defesa.
+Meu credenciamento vale por quanto tempo? | 24 meses. A cada 6 meses o Instituto reconfere as certidões; ao final, você renova atualizando os documentos.
+
+9. Modelos de mensagens
+Boas-vindas ao credenciado / Olá, [nome]! Seu credenciamento no Contrata + NATA foi aprovado na(s) linha(s) [L__] para o(s) território(s) [T_]. Validade: [data]. Você receberá as oportunidades por este WhatsApp e pelo e-mail [e-mail]. Lembre-se de manter suas certidões em dia e de responder às oportunidades dentro do prazo. Dúvidas: contratamais@____.org.br. Bem-vindo(a)!
+
+Oportunidade (Faixa 1 — rodízio) / Olá, [nome]! Chegou a sua vez no rodízio da linha [L]. Oportunidade nº []: [descrição], [quantidade], em [local], no dia [data] às [hora]. Pagamento por Pix em até [__] dias após o recebimento. Você aceita pelo valor de até R$ [teto do Banco de Preços]? Responda "ACEITO" com o seu valor até [data/hora]. Se não puder, responda "PASSO" para chamarmos o próximo sem prejuízo para você.
+
+Oportunidade (Faixa 2 — cotação) / Olá! O Instituto NATA publicou a Oportunidade nº [] na linha [L]: [descrição]. Envie sua proposta (modelo Anexo VII) até [data/hora] pelo link [__]. Esta oportunidade é dirigida [exclusivamente a pequenos negócios / a todos os credenciados]. Boa sorte!
+
+Resultado ao não selecionado / Olá, [nome]. Obrigado por participar da Oportunidade nº []. A proposta vencedora foi de R$ [] ([motivo: menor preço / preferência local / empate ficto]). Sua proposta ficou em [posição]. Dica para a próxima: [feedback objetivo]. Contamos com você nas próximas oportunidades!
