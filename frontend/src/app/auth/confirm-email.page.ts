@@ -2,15 +2,16 @@ import { Component, inject, input, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
+import { AuthLayout } from './auth-layout';
 import { AuthService } from '../core/auth/auth.service';
 import { problemMessage } from '../core/http/problem';
 
 @Component({
   selector: 'app-confirm-email-page',
-  imports: [RouterLink, MatButtonModule, MatProgressSpinnerModule],
+  imports: [AuthLayout, RouterLink, MatButtonModule, MatProgressSpinnerModule],
   template: `
-    <div class="container narrow">
-      <div class="card" aria-live="polite">
+    <app-auth-layout variant="default"
+      ><div aria-live="polite">
         <h1>Confirmação de e-mail</h1>
         @switch (state()) {
           @case ('loading') {
@@ -26,7 +27,7 @@ import { problemMessage } from '../core/http/problem';
           }
         }
       </div>
-    </div>
+    </app-auth-layout>
   `,
 })
 export class ConfirmEmailPage implements OnInit {

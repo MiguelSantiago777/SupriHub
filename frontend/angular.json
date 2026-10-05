@@ -35,6 +35,9 @@
             "styles": [
               "node_modules/@fontsource/atkinson-hyperlegible/400.css",
               "node_modules/@fontsource/atkinson-hyperlegible/700.css",
+              "node_modules/@fontsource/plus-jakarta-sans/600.css",
+              "node_modules/@fontsource/plus-jakarta-sans/700.css",
+              "node_modules/@fontsource/plus-jakarta-sans/800.css",
               "node_modules/@fontsource/material-icons/index.css",
               "src/styles.scss"
             ]

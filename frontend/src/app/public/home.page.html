@@ -1,0 +1,156 @@
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <mat-icon aria-hidden="true">verified</mat-icon>
+        Credenciamento gratuito e permanente
+      </span>
+      <h1>Seu negócio pode <span class="highlight">fornecer</span> para o Instituto NATA</h1>
+      <p class="lead">
+        O <strong>Contrata + NATA</strong> conecta os projetos do Instituto a quem produz no
+        território. Prioridade para
+        <strong>MEIs, pequenos negócios, cooperativas, autônomos</strong> e
+        <strong>negócios liderados por mulheres</strong>.
+      </p>
+      <div class="hero-actions">
+        @if (auth.isAuthenticated()) {
+          <a mat-flat-button [routerLink]="auth.homeRoute()">
+            Ir para minha área <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+          </a>
+        } @else {
+          <a mat-flat-button routerLink="/criar-conta">
+            Quero me credenciar
+            <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+          </a>
+          <a mat-stroked-button routerLink="/catalogo">Ver o que o Instituto compra</a>
+        }
+      </div>
+      <ul class="trust">
+        <li><mat-icon aria-hidden="true">check_circle</mat-icon> Sem custo</li>
+        <li><mat-icon aria-hidden="true">check_circle</mat-icon> Tudo pela internet</li>
+        <li><mat-icon aria-hidden="true">check_circle</mat-icon> Vale por 24 meses</li>
+      </ul>
+    </div>
+
+    <aside class="journey" aria-label="Como fica o seu credenciamento">
+      <div class="journey-head">
+        <span class="journey-title">Sua jornada</span>
+        <span class="badge badge-success">Exemplo</span>
+      </div>
+      <ol>
+        <li class="done">
+          <span class="dot"><mat-icon aria-hidden="true">check</mat-icon></span>
+          <div><strong>Conta criada</strong><span>E-mail confirmado</span></div>
+        </li>
+        <li class="done">
+          <span class="dot"><mat-icon aria-hidden="true">check</mat-icon></span>
+          <div><strong>Documentos enviados</strong><span>CCMEI, certidões e anexos</span></div>
+        </li>
+        <li class="current">
+          <span class="dot"><mat-icon aria-hidden="true">hourglass_top</mat-icon></span>
+          <div><strong>Em análise</strong><span>Até 10 dias úteis pela Comissão</span></div>
+        </li>
+        <li>
+          <span class="dot"><mat-icon aria-hidden="true">workspace_premium</mat-icon></span>
+          <div><strong>Credenciado</strong><span>Recebe oportunidades da sua linha</span></div>
+        </li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="prioridade">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Quem participa</span>
+      <h2 id="prioridade">Feito para os pequenos negócios do território</h2>
+      <p class="muted">
+        Pequenos negócios têm empate ficto de até 10% e prioridade para quem é de Mesquita e da
+        região.
+      </p>
+    </div>
+    <ul class="priorities">
+      @for (p of priorities; track p.title) {
+        <li class="card card-hover">
+          <span class="icon-tile"
+            ><mat-icon aria-hidden="true">{{ p.icon }}</mat-icon></span
+          >
+          <div>
+            <h3>{{ p.title }}</h3>
+            <p class="muted">{{ p.text }}</p>
+          </div>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="section steps-section" aria-labelledby="como-funciona">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Passo a passo</span>
+      <h2 id="como-funciona">Como funciona, em 3 passos</h2>
+    </div>
+    <ol class="steps">
+      @for (s of steps; track s.title; let i = $index) {
+        <li class="card">
+          <div class="step-top">
+            <span class="step-number" aria-hidden="true">{{ i + 1 }}</span>
+            <span class="icon-tile green"
+              ><mat-icon aria-hidden="true">{{ s.icon }}</mat-icon></span
+            >
+          </div>
+          <h3>
+            <span class="visually-hidden">Passo {{ i + 1 }}: </span>{{ s.title }}
+          </h3>
+          <p class="muted">{{ s.text }}</p>
+        </li>
+      }
+    </ol>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="linhas">
+  <div class="container">
+    <div class="section-head row-head">
+      <div>
+        <span class="eyebrow">20 linhas de fornecimento</span>
+        <h2 id="linhas">O que o Instituto compra</h2>
+      </div>
+      <a routerLink="/catalogo" class="see-all">
+        Ver o catálogo completo <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+      </a>
+    </div>
+    <ul class="lines">
+      @for (l of lines; track l.title) {
+        <li>
+          <a routerLink="/catalogo" class="line-chip card-hover">
+            <span class="icon-tile"
+              ><mat-icon aria-hidden="true">{{ l.icon }}</mat-icon></span
+            >
+            <span
+              ><strong>{{ l.title }}</strong
+              ><small>{{ l.text }}</small></span
+            >
+          </a>
+        </li>
+      }
+    </ul>
+    <p class="alert alert-info pf-note">
+      <strong>Não tem CNPJ?</strong> Profissionais autônomos se credenciam nas linhas que aceitam
+      pessoa física: oficinas, apresentações, aulas, fotografia, pequenos reparos e outras.
+    </p>
+  </div>
+</section>
+
+@if (!auth.isAuthenticated()) {
+  <section class="container" aria-labelledby="cta">
+    <div class="cta-band">
+      <div>
+        <h2 id="cta">Pronto para começar?</h2>
+        <p>Leva poucos minutos para criar a conta. Depois você envia os documentos no seu tempo.</p>
+      </div>
+      <a mat-flat-button routerLink="/criar-conta" class="cta-button">Criar minha conta</a>
+    </div>
+  </section>
+}

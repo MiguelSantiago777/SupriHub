@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
 import { AdminApi } from '../../core/api/catalog.api';
@@ -29,6 +30,7 @@ const CATEGORY_LABELS: Record<string, string> = {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatProgressSpinnerModule,
   ],
   template: `
     <div class="container">
@@ -39,11 +41,16 @@ const CATEGORY_LABELS: Record<string, string> = {
         exige motivo e fica registrada no histórico e na auditoria.
       </p>
 
+      @if (!loaded()) {
+        <div class="loading" role="status">
+          <mat-spinner diameter="40" aria-label="Carregando parâmetros" />
+        </div>
+      }
       @for (group of grouped() | keyvalue; track group.key) {
         <section class="card group">
           <h2>{{ categoryLabel(group.key) }}</h2>
           <div class="table-wrap">
-            <table>
+            <table class="data">
               <caption class="visually-hidden">
                 {{
                   categoryLabel(group.key)
@@ -136,6 +143,11 @@ const CATEGORY_LABELS: Record<string, string> = {
     </div>
   `,
   styles: `
+    .loading {
+      display: flex;
+      justify-content: center;
+      padding: 3rem;
+    }
     .group {
       margin-bottom: 1rem;
     }
@@ -172,6 +184,7 @@ export class ParametersPage {
   private readonly snackBar = inject(MatSnackBar);
 
   protected readonly parameters = signal<Parameter[]>([]);
+  protected readonly loaded = signal(false);
   protected readonly editing = signal<Parameter | null>(null);
   protected readonly history = signal<ParameterHistory[]>([]);
   protected readonly error = signal('');
@@ -219,6 +232,12 @@ export class ParametersPage {
   }
 
   private load(): void {
-    this.api.parameters().subscribe((list) => this.parameters.set(list));
+    this.api.parameters().subscribe({
+      next: (list) => {
+        this.parameters.set(list);
+        this.loaded.set(true);
+      },
+      error: () => this.loaded.set(true),
+    });
   }
 }

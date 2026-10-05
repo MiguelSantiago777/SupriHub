@@ -2,7 +2,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from './core/auth/auth.service';
@@ -14,7 +13,6 @@ import { ROLE_LABELS } from './core/models';
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
-    MatToolbarModule,
     MatButtonModule,
     MatMenuModule,
     MatIconModule,
@@ -28,6 +26,12 @@ export class App {
   protected readonly roleLabels = computed(() =>
     (this.auth.user()?.roles ?? []).map((r) => ROLE_LABELS[r]).join(', '),
   );
+  protected readonly initials = computed(() => {
+    const parts = (this.auth.user()?.fullName ?? '').trim().split(/\s+/);
+    return (
+      (parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')
+    ).toUpperCase();
+  });
   protected readonly year = new Date().getFullYear();
 
   constructor() {

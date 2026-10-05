@@ -6,12 +6,18 @@ import { RouterLink } from '@angular/router';
   selector: 'app-admin-home-page',
   imports: [RouterLink, MatIconModule],
   template: `
+    <header class="page-header">
+      <div class="container">
+        <span class="eyebrow">ADMIN</span>
+        <h1>Administração</h1>
+        <p>Parâmetros de negócio, usuários e ferramentas técnicas.</p>
+      </div>
+    </header>
     <div class="container">
-      <h1>Administração</h1>
       <ul class="tiles">
         <li>
-          <a routerLink="parametros" class="card tile">
-            <mat-icon aria-hidden="true">tune</mat-icon>
+          <a routerLink="parametros" class="card card-hover tile">
+            <span class="icon-tile"><mat-icon aria-hidden="true">tune</mat-icon></span>
             <span>
               <strong>Parâmetros</strong><br />
               Limites das faixas, margens, prazos e metas — com histórico de alterações.
@@ -19,8 +25,8 @@ import { RouterLink } from '@angular/router';
           </a>
         </li>
         <li>
-          <a routerLink="usuarios" class="card tile">
-            <mat-icon aria-hidden="true">group</mat-icon>
+          <a routerLink="usuarios" class="card card-hover tile">
+            <span class="icon-tile"><mat-icon aria-hidden="true">group</mat-icon></span>
             <span>
               <strong>Usuários</strong><br />
               Convidar equipe do Instituto, definir perfis e desativar acessos.
@@ -28,8 +34,8 @@ import { RouterLink } from '@angular/router';
           </a>
         </li>
         <li>
-          <a href="/swagger-ui" class="card tile">
-            <mat-icon aria-hidden="true">api</mat-icon>
+          <a href="/swagger-ui" class="card card-hover tile">
+            <span class="icon-tile"><mat-icon aria-hidden="true">api</mat-icon></span>
             <span>
               <strong>Documentação da API</strong><br />
               Swagger UI (somente em ambiente de desenvolvimento).

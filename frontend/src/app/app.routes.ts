@@ -20,7 +20,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    canMatch: [guestGuard],
+    canActivateChild: [guestGuard],
     loadChildren: () => import('./auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
   {

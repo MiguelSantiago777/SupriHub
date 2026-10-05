@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanMatchFn, Router } from '@angular/router';
+import { CanActivateFn, CanMatchFn, Router } from '@angular/router';
 import { AppRole } from '../models';
 import { AuthService } from './auth.service';
 
@@ -26,8 +26,12 @@ export function roleGuard(...roles: AppRole[]): CanMatchFn {
   };
 }
 
-/** Telas de login/cadastro: quem já está logado vai para a sua área. */
-export const guestGuard: CanMatchFn = () => {
+/**
+ * Telas de login/cadastro: quem já está logado vai para a sua área.
+ * Use em `canActivateChild` (nunca em `canMatch` de rota com path vazio: ela casa com
+ * qualquer URL e o redirecionamento entraria em loop infinito).
+ */
+export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   return auth.isAuthenticated() ? inject(Router).createUrlTree([auth.homeRoute()]) : true;
 };

@@ -213,3 +213,18 @@ Spring Boot 3.5.16 (último 3.x, como pedido), Java 21 (o build local usa o JDK 
 Bucket4j em memória, por IP: 120 req/min em `/api/public/**` e 20 req/min em
 `/api/auth/**`, com resposta 429 + `Retry-After` em ProblemDetail. Com várias instâncias,
 trocar por Bucket4j com Redis ou JDBC.
+
+**D-063 — Identidade visual** · Fase 0 · vigente
+Visual moderno derivado do logo do Instituto NATA (azul ciano + verde):
+- Títulos em Plus Jakarta Sans; corpo em Atkinson Hyperlegible, 18px.
+- Cabeçalho branco translúcido fixo, cards com raio de 16px e botões em pílula.
+- Hero com a "jornada do credenciamento", catálogo em grade de cards e telas de acesso em
+  duas colunas.
+- Gradiente decorativo (`--sh-gradient`) só onde não há texto. Texto branco sobre gradiente
+  usa `--sh-gradient-deep` (todas as paradas com contraste ≥ 5:1).
+
+**D-064 — Guard de visitante** · Fase 0 · corrigido
+`guestGuard` estava em `canMatch` de uma rota com `path: ''`, que casa com qualquer URL.
+Com o usuário logado, cada navegação redirecionava de novo para a própria área, em loop
+infinito: o login "ficava entrando para sempre". Agora o guard roda em `canActivateChild`,
+e `app.routes.spec.ts` testa a navegação real com prazo para pegar o loop.

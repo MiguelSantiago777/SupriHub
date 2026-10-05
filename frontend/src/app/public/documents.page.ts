@@ -11,16 +11,21 @@ interface PublicDocument {
   selector: 'app-documents-page',
   imports: [MatIconModule],
   template: `
+    <header class="page-header">
+      <div class="container">
+        <span class="eyebrow">Documentos públicos</span>
+        <h1>Edital e anexos</h1>
+        <p>
+          Documentos públicos do Contrata + NATA — Instituto NATA (Política art. 27). Arquivos no
+          formato Word (.docx).
+        </p>
+      </div>
+    </header>
     <div class="container">
-      <h1>Edital e anexos</h1>
-      <p class="muted">
-        Documentos públicos do Contrata + NATA — Instituto NATA (Política art. 27). Arquivos no
-        formato Word (.docx).
-      </p>
       <ul class="docs">
         @for (doc of documents; track doc.file) {
-          <li class="card">
-            <mat-icon aria-hidden="true">article</mat-icon>
+          <li class="card card-hover">
+            <span class="icon-tile"><mat-icon aria-hidden="true">description</mat-icon></span>
             <div>
               <h2>{{ doc.title }}</h2>
               <p>{{ doc.description }}</p>

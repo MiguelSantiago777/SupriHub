@@ -86,7 +86,7 @@ const INTERNAL_ROLES: AppRole[] = [
           <button mat-stroked-button type="submit">Buscar</button>
         </form>
         <div class="table-wrap">
-          <table>
+          <table class="data">
             <thead>
               <tr>
                 <th scope="col">Nome</th>

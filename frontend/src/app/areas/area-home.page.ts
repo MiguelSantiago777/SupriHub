@@ -24,9 +24,14 @@ const DESCRIPTIONS: Partial<Record<AppRole, string[]>> = {
   selector: 'app-area-home-page',
   imports: [RouterLink],
   template: `
+    <header class="page-header">
+      <div class="container">
+        <span class="eyebrow">Área interna</span>
+        <h1>{{ title() }}</h1>
+        <p>Olá, {{ auth.user()?.fullName }}.</p>
+      </div>
+    </header>
     <div class="container">
-      <h1>{{ title() }}</h1>
-      <p class="muted">Olá, {{ auth.user()?.fullName }}.</p>
       <section class="card">
         <h2>O que você fará aqui</h2>
         <ul>

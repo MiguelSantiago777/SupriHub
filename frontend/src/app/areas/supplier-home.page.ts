@@ -7,10 +7,14 @@ import { AuthService } from '../core/auth/auth.service';
   selector: 'app-supplier-home-page',
   imports: [RouterLink, MatIconModule],
   template: `
+    <header class="page-header">
+      <div class="container">
+        <span class="eyebrow">Área do fornecedor</span>
+        <h1>Olá, {{ auth.user()?.fullName }}!</h1>
+        <p>Esta é a sua área de fornecedor no Contrata + NATA.</p>
+      </div>
+    </header>
     <div class="container">
-      <h1>Olá, {{ auth.user()?.fullName }}!</h1>
-      <p class="muted">Esta é a sua área de fornecedor no Contrata + NATA.</p>
-
       <section class="card stack" aria-labelledby="proximo-passo">
         <h2 id="proximo-passo">Próximo passo: requerimento de credenciamento</h2>
         <p>

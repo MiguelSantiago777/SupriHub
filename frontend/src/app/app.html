@@ -1,55 +1,85 @@
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-<header>
-  <mat-toolbar class="topbar">
+<header class="site-header">
+  <div class="header-inner">
     <a routerLink="/" class="brand" aria-label="SupriHub — página inicial">
-      <span class="brand-name">SupriHub</span>
-      <span class="brand-sub">Contrata + NATA</span>
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span class="brand-text">
+        <span class="brand-name">SupriHub</span>
+        <span class="brand-sub">Contrata + NATA</span>
+      </span>
     </a>
 
-    <span class="spacer"></span>
-
     <button
-      mat-icon-button
       class="menu-toggle"
       type="button"
       (click)="toggleMenu()"
       [attr.aria-expanded]="menuOpen()"
       aria-controls="menu-principal"
-      aria-label="Abrir menu"
+      [attr.aria-label]="menuOpen() ? 'Fechar menu' : 'Abrir menu'"
     >
       <mat-icon aria-hidden="true">{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
     </button>
 
     <nav id="menu-principal" class="main-nav" [class.open]="menuOpen()" aria-label="Menu principal">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+      <a
+        class="nav-link"
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
         >Início</a
       >
-      <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
-      <a routerLink="/edital" routerLinkActive="active">Edital e anexos</a>
+      <a
+        class="nav-link"
+        routerLink="/catalogo"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Catálogo</a
+      >
+      <a
+        class="nav-link"
+        routerLink="/edital"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Edital e anexos</a
+      >
+
+      <span class="nav-divider" aria-hidden="true"></span>
 
       @if (auth.user(); as user) {
-        <a [routerLink]="auth.homeRoute()" routerLinkActive="active">Minha área</a>
-        <button mat-button class="user-btn" type="button" [matMenuTriggerFor]="userMenu">
-          <mat-icon aria-hidden="true">account_circle</mat-icon>
-          {{ user.fullName.split(' ')[0] }}
+        <a class="nav-link" [routerLink]="auth.homeRoute()" routerLinkActive="active">Minha área</a>
+        <button class="user-chip" type="button" [matMenuTriggerFor]="userMenu">
+          <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+          <span class="user-first">{{ user.fullName.split(' ')[0] }}</span>
+          <mat-icon aria-hidden="true">expand_more</mat-icon>
         </button>
-        <mat-menu #userMenu="matMenu">
+        <mat-menu #userMenu="matMenu" xPosition="before">
           <div class="user-info" role="presentation">
             <strong>{{ user.fullName }}</strong>
             <span>{{ roleLabels() }}</span>
           </div>
+          <a mat-menu-item [routerLink]="auth.homeRoute()">
+            <mat-icon aria-hidden="true">dashboard</mat-icon>
+            Minha área
+          </a>
           <button mat-menu-item type="button" (click)="auth.logout()">
             <mat-icon aria-hidden="true">logout</mat-icon>
             Sair
           </button>
         </mat-menu>
       } @else {
-        <a routerLink="/entrar" routerLinkActive="active">Entrar</a>
-        <a routerLink="/criar-conta" class="cta">Quero me credenciar</a>
+        <a
+          class="nav-link"
+          routerLink="/entrar"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          >Entrar</a
+        >
+        <a mat-flat-button routerLink="/criar-conta" class="nav-cta">Quero me credenciar</a>
       }
     </nav>
-  </mat-toolbar>
+  </div>
 </header>
 
 <main id="conteudo" tabindex="-1">
@@ -57,16 +87,35 @@
 </main>
 
 <footer class="site-footer">
-  <div class="container footer-inner">
-    <img src="img/instituto-nata.png" alt="Instituto NATA" width="180" height="88" />
-    <div>
-      <p><strong>Contrata + NATA — Instituto NATA</strong></p>
-      <p>Novas Atitudes Transformam o Amanhã · Mesquita/RJ</p>
-      <p class="small">
-        Credenciamento gratuito e permanente. Seus dados são tratados conforme a LGPD (Lei nº
-        13.709/2018).
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <div class="logo-card">
+        <img src="img/instituto-nata.png" alt="Instituto NATA" width="168" height="82" />
+      </div>
+      <p>
+        <strong>Contrata + NATA — Instituto NATA</strong><br />
+        Novas Atitudes Transformam o Amanhã · Mesquita/RJ
       </p>
-      <p class="small">© {{ year }} Instituto NATA</p>
     </div>
+    <nav aria-label="Links do rodapé">
+      <h2 class="footer-title">Navegação</h2>
+      <ul>
+        <li><a routerLink="/catalogo">Catálogo de linhas</a></li>
+        <li><a routerLink="/edital">Edital e anexos</a></li>
+        <li><a routerLink="/criar-conta">Quero me credenciar</a></li>
+        <li><a routerLink="/entrar">Entrar</a></li>
+      </ul>
+    </nav>
+    <div>
+      <h2 class="footer-title">Seus dados</h2>
+      <p class="small">
+        Credenciamento gratuito e permanente. Tratamos seus dados conforme a LGPD (Lei nº
+        13.709/2018) e o art. 28 da Política de Credenciamento. Raça/cor e CadÚnico são facultativos
+        e nunca publicados individualmente.
+      </p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container">© {{ year }} Instituto NATA · SupriHub</div>
   </div>
 </footer>

@@ -1,59 +1,96 @@
 @use '@angular/material' as mat;
 
-// ---------------------------------------------------------------------------
-// SupriHub — tema acessível (WCAG AA). Público inclui microempreendedores com
-// pouca familiaridade digital: fonte legível (Atkinson Hyperlegible, projetada
-// para baixa visão), base 18px, alto contraste, foco sempre visível.
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// SupriHub — design system
+// Moderno e acessível (WCAG AA). Público inclui microempreendedores com pouca
+// familiaridade digital: corpo em Atkinson Hyperlegible (baixa visão) 18px,
+// títulos em Plus Jakarta Sans, contraste ≥ 4,5:1, foco sempre visível.
+// Paleta derivada do logo do Instituto NATA (azul ciano + verde).
+// ===========================================================================
 
 html {
   color-scheme: light;
   font-size: 112.5%; // 18px
+  scroll-behavior: smooth;
+
   @include mat.theme(
     (
       color: (
         theme-type: light,
-        primary: mat.$cyan-palette,
-        tertiary: mat.$orange-palette,
+        primary: mat.$azure-palette,
+        tertiary: mat.$green-palette,
       ),
       typography: (
         plain-family: "'Atkinson Hyperlegible', 'Segoe UI', Roboto, Arial, sans-serif",
-        brand-family: "'Atkinson Hyperlegible', 'Segoe UI', Roboto, Arial, sans-serif",
+        brand-family: "'Plus Jakarta Sans', 'Segoe UI', Roboto, Arial, sans-serif",
       ),
       density: 0,
     )
   );
 
-  // Cores próprias com contraste ≥ 4,5:1 sobre branco.
-  --sh-primary: #0b4f6c; // 8,9:1
-  --sh-primary-contrast: #ffffff;
-  --sh-accent: #9a3412; // 7,1:1
-  --sh-text: #1a1a1a;
-  --sh-text-muted: #4a4a4a; // 8,9:1
+  // --- Tokens -------------------------------------------------------------
+  --sh-navy: #0b2239; // texto forte / rodapé — 15,6:1
+  --sh-primary: #0a6aa6; // ações e links — 5,6:1 sobre branco
+  --sh-primary-hover: #08578a;
+  --sh-primary-soft: #e6f3fb;
+  --sh-primary-bright: #0090d0; // só decorativo (gradientes, ícones grandes)
+  --sh-green: #15803d; // 5,0:1
+  --sh-green-soft: #e8f7ee;
+  --sh-green-bright: #7cc242; // decorativo
+  --sh-amber-soft: #fff6e0;
+  --sh-amber: #8a5300; // 6,3:1
+  --sh-text: #0f1b2d;
+  --sh-text-muted: #4a5568; // 7,5:1
+  --sh-border: #dfe6ee;
+  --sh-border-strong: #8592a3;
   --sh-surface: #ffffff;
-  --sh-surface-alt: #f2f6f8;
-  --sh-border: #8a8a8a;
-  --sh-success: #166534;
-  --sh-warning-bg: #fff4d6;
-  --sh-error: #b3261e;
+  --sh-bg: #f6f9fc;
+  --sh-error: #b42318;
+  --sh-error-soft: #fdecea;
   --sh-focus: #ffbf47;
-  --sh-radius: 10px;
+  --sh-gradient: linear-gradient(135deg, #0a6aa6 0%, #0090d0 55%, #2ba84a 100%); // decorativo
+  // Para fundos com texto branco: todas as paradas com contraste ≥ 5:1
+  --sh-gradient-deep: linear-gradient(135deg, #0a5c91 0%, #0a6aa6 50%, #157a3d 100%);
+  --sh-radius-sm: 10px;
+  --sh-radius: 16px;
+  --sh-radius-lg: 24px;
+  --sh-shadow-sm: 0 1px 2px rgba(15, 27, 45, 0.06), 0 1px 3px rgba(15, 27, 45, 0.08);
+  --sh-shadow: 0 4px 6px -2px rgba(15, 27, 45, 0.05), 0 12px 24px -6px rgba(15, 27, 45, 0.12);
+  --sh-shadow-lg: 0 24px 48px -12px rgba(11, 34, 57, 0.25);
+  --sh-font-heading: 'Plus Jakarta Sans', 'Segoe UI', Roboto, Arial, sans-serif;
 
+  // --- Material ------------------------------------------------------------
   @include mat.button-overrides(
     (
       filled-container-color: var(--sh-primary),
-      filled-label-text-color: var(--sh-primary-contrast),
+      filled-label-text-color: #fff,
+      filled-container-shape: 999px,
       filled-container-height: 52px,
-      outlined-container-height: 52px,
-      text-container-height: 48px,
+      filled-horizontal-padding: 28px,
       filled-label-text-size: 1rem,
+      filled-label-text-weight: 700,
+      outlined-container-shape: 999px,
+      outlined-container-height: 52px,
+      outlined-horizontal-padding: 28px,
+      outlined-label-text-color: var(--sh-primary),
+      outlined-outline-color: var(--sh-border-strong),
       outlined-label-text-size: 1rem,
+      outlined-label-text-weight: 700,
+      text-container-shape: 999px,
+      text-label-text-weight: 700,
     )
   );
-  @include mat.toolbar-overrides(
+  @include mat.form-field-overrides(
     (
-      container-background-color: var(--sh-primary),
-      container-text-color: var(--sh-primary-contrast),
+      outlined-container-shape: 12px,
+      outlined-outline-color: var(--sh-border-strong),
+      outlined-focus-outline-color: var(--sh-primary),
+      outlined-focus-label-text-color: var(--sh-primary),
+    )
+  );
+  @include mat.expansion-overrides(
+    (
+      container-shape: 16px,
     )
   );
 }
@@ -61,56 +98,84 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--sh-surface-alt);
+  background: var(--sh-bg);
   color: var(--sh-text);
   font-family: 'Atkinson Hyperlegible', 'Segoe UI', Roboto, Arial, sans-serif;
-  line-height: 1.6;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
 h2,
-h3 {
-  line-height: 1.25;
-  color: var(--sh-text);
+h3,
+h4 {
+  font-family: var(--sh-font-heading);
+  color: var(--sh-navy);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 800;
 }
 
 h1 {
-  font-size: 1.75rem;
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.6rem);
   margin: 0 0 0.75rem;
 }
 
 h2 {
-  font-size: 1.35rem;
-  margin: 1.5rem 0 0.5rem;
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.8rem);
+  margin: 0 0 0.5rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0 0 0.75rem;
 }
 
 a {
   color: var(--sh-primary);
   text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+
+  &:hover {
+    color: var(--sh-primary-hover);
+    text-decoration-thickness: 2px;
+  }
 }
 
 // Foco sempre visível e forte (WCAG 2.4.7 / 2.4.11)
 :focus-visible {
   outline: 3px solid var(--sh-focus) !important;
   outline-offset: 2px !important;
-  box-shadow: 0 0 0 5px var(--sh-text) !important;
-  border-radius: 4px;
+  box-shadow: 0 0 0 5px var(--sh-navy) !important;
+  border-radius: 6px;
 }
 
-// Link "pular para o conteúdo"
+main:focus,
+main:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .skip-link {
   position: absolute;
   left: 1rem;
   top: -100px;
   z-index: 1000;
   padding: 0.75rem 1rem;
-  background: var(--sh-text);
+  background: var(--sh-navy);
   color: #fff;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: var(--sh-radius-sm);
 
   &:focus {
     top: 0.5rem;
+    color: #fff;
   }
 }
 
@@ -123,16 +188,16 @@ a {
   white-space: nowrap;
 }
 
-// Layout utilitário mobile-first
+// --- Layout --------------------------------------------------------------
 .container {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1.25rem 1rem;
   box-sizing: border-box;
 
   @media (min-width: 768px) {
-    padding: 1.5rem 2rem;
+    padding: 2rem 1.5rem;
   }
 }
 
@@ -140,14 +205,79 @@ a {
   max-width: 560px;
 }
 
+.section {
+  padding: 3rem 0;
+
+  @media (min-width: 900px) {
+    padding: 4.5rem 0;
+  }
+}
+
+.section-head {
+  max-width: 44rem;
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.85rem 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: var(--sh-primary-soft);
+  color: var(--sh-primary-hover);
+  font-family: var(--sh-font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+
+  .material-icons {
+    font-size: 18px;
+  }
+}
+
+// Faixa de título das páginas internas
+.page-header {
+  background:
+    radial-gradient(900px 300px at 100% 0%, rgba(0, 144, 208, 0.12), transparent 60%),
+    radial-gradient(600px 240px at 0% 100%, rgba(43, 168, 74, 0.1), transparent 60%),
+    var(--sh-surface);
+  border-bottom: 1px solid var(--sh-border);
+
+  .container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  p {
+    color: var(--sh-text-muted);
+    max-width: 48rem;
+    margin: 0;
+  }
+}
+
 .card {
   background: var(--sh-surface);
-  border: 1px solid #d0d7dc;
+  border: 1px solid var(--sh-border);
   border-radius: var(--sh-radius);
   padding: 1.25rem;
+  box-shadow: var(--sh-shadow-sm);
 
   @media (min-width: 768px) {
     padding: 1.75rem;
+  }
+}
+
+.card-hover {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sh-shadow);
+    border-color: #c5d3e2;
   }
 }
 
@@ -163,7 +293,7 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 
   > * {
     flex: 1 1 auto;
@@ -174,67 +304,93 @@ a {
   color: var(--sh-text-muted);
 }
 
+.icon-tile {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--sh-primary-soft);
+  color: var(--sh-primary);
+  flex: 0 0 auto;
+
+  &.green {
+    background: var(--sh-green-soft);
+    color: var(--sh-green);
+  }
+
+  &.amber {
+    background: var(--sh-amber-soft);
+    color: var(--sh-amber);
+  }
+}
+
 .badge {
-  display: inline-block;
-  padding: 0.1rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.65rem;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  border: 2px solid currentColor;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
 .badge-success {
-  color: var(--sh-success);
+  background: var(--sh-green-soft);
+  color: var(--sh-green);
 }
 
 .badge-info {
-  color: var(--sh-primary);
+  background: var(--sh-primary-soft);
+  color: var(--sh-primary-hover);
 }
 
 .alert {
-  padding: 1rem;
-  border-radius: var(--sh-radius);
-  border-left: 6px solid;
+  padding: 1rem 1.15rem;
+  border-radius: var(--sh-radius-sm);
+  border: 1px solid;
+
+  p:last-child {
+    margin-bottom: 0;
+  }
 
   &.alert-info {
-    background: #e6f1f6;
-    border-color: var(--sh-primary);
+    background: var(--sh-primary-soft);
+    border-color: #b8dcf1;
   }
 
   &.alert-success {
-    background: #e8f5ec;
-    border-color: var(--sh-success);
+    background: var(--sh-green-soft);
+    border-color: #b6e3c4;
   }
 
   &.alert-error {
-    background: #fdecea;
-    border-color: var(--sh-error);
+    background: var(--sh-error-soft);
+    border-color: #f3b8b2;
+    color: #7a1a12;
   }
 
   &.alert-warning {
-    background: var(--sh-warning-bg);
-    border-color: #8a5a00;
+    background: var(--sh-amber-soft);
+    border-color: #f0d48f;
   }
 }
 
-// Campos de formulário maiores e legíveis
+// Formulários
 .mat-mdc-form-field {
   width: 100%;
   font-size: 1rem;
 }
 
+.mat-mdc-text-field-wrapper {
+  background: var(--sh-surface);
+}
+
 .mat-mdc-form-field-error {
   font-size: 0.9rem;
   font-weight: 700;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 // Ícones (fonte self-hosted via @fontsource; a classe vem do stylesheet do Google, não do pacote)
@@ -254,23 +410,50 @@ a {
   font-feature-settings: 'liga';
 }
 
-// O <main> recebe foco programático a cada navegação; não precisa de contorno.
-main:focus,
-main:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
+// Tabelas simples (telas administrativas)
+.table-wrap {
+  overflow-x: auto;
 }
 
-// Cabeçalhos do acordeão com altura automática (nomes longos quebram linha no celular)
-.mat-expansion-panel-header.mat-expansion-panel-header {
-  height: auto !important;
-  min-height: 56px;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    font-family: var(--sh-font-heading);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sh-text-muted);
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--sh-border);
+  }
+
+  td {
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid var(--sh-border);
+    vertical-align: top;
+  }
+
+  tbody tr:hover td {
+    background: #fafcfe;
+  }
 }
 
-.mat-expansion-panel-header-title {
-  flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-  align-items: center;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.links-after {
+  margin-top: 1.25rem;
 }
