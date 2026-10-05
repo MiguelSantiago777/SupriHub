@@ -156,6 +156,21 @@ a {
   border-radius: 6px;
 }
 
+// Campos do Material: o anel de foco envolve o campo inteiro, não o <input>/<textarea>
+// dentro do contorno (que ficava com borda dupla).
+.mat-mdc-form-field .mat-mdc-input-element:focus-visible,
+.mat-mdc-form-field .mat-mdc-select:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 3px var(--sh-surface),
+    0 0 0 6px var(--sh-focus);
+}
+
 main:focus,
 main:focus-visible {
   outline: none !important;
