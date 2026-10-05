@@ -33,6 +33,10 @@ export class App {
     ).toUpperCase();
   });
   protected readonly year = new Date().getFullYear();
+  /** Equipe do Instituto (qualquer perfil além de fornecedor). */
+  protected readonly isStaff = computed(() =>
+    (this.auth.user()?.roles ?? []).some((r) => r !== 'SUPPLIER'),
+  );
 
   constructor() {
     inject(Router)

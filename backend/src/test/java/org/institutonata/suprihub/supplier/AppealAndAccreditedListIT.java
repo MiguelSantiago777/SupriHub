@@ -38,8 +38,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/** Recurso contra inabilitação (Edital 5.2) e lista pública de credenciados (Política art. 27). */
-class AppealAndPublicListIT extends IntegrationTest {
+/** Recurso contra inabilitação (Edital 5.2) e cadastro interno de credenciados (D-027). */
+class AppealAndAccreditedListIT extends IntegrationTest {
 
     static final String PASSWORD = "Senha2026";
     static final byte[] PDF = "%PDF-1.4\n% recurso\n".getBytes(StandardCharsets.US_ASCII);
@@ -226,7 +226,7 @@ class AppealAndPublicListIT extends IntegrationTest {
     }
 
     @Test
-    void comissaoReconsideraEFornecedorEntraNaListaPublica() throws Exception {
+    void comissaoReconsideraEFornecedorEntraNoCadastroDeCredenciados() throws Exception {
         String supplierEmail = createUser(AppRole.SUPPLIER);
         String supplier = Auth.bearer(mvc, supplierEmail, PASSWORD);
         String commission = Auth.bearer(mvc, createUser(AppRole.COMMISSION), PASSWORD);
@@ -247,32 +247,40 @@ class AppealAndPublicListIT extends IntegrationTest {
                 .andExpect(jsonPath("$.application.accreditationValidUntil").isNotEmpty());
         awaitMail(supplierEmail, "Recurso aceito");
 
-        // Lista pública: sem login, filtra por linha e território, sem dados sensíveis
-        String list = mvc.perform(get("/api/public/suppliers").param("line", "L02").param("q", name))
+        // Cadastro de credenciados: só equipe interna (não é público nem do fornecedor)
+        mvc.perform(get("/api/suppliers")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/suppliers").header("Authorization", supplier)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/public/suppliers")).andExpect(status().isNotFound());
+        String list = mvc.perform(get("/api/suppliers").param("line", "L02").param("q", name)
+                        .header("Authorization", commission))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.content[0].name").value(name))
                 .andExpect(jsonPath("$.content[0].womanLed").value(true))
                 .andExpect(jsonPath("$.content[0].documentMasked").value("11.222.***/****-81"))
                 .andExpect(jsonPath("$.content[0].municipalityName").value("Mesquita"))
+                .andExpect(jsonPath("$.content[0].contactEmail").value("contato@exemplo.com"))
+                .andExpect(jsonPath("$.content[0].phone").value("21999990001"))
                 .andReturn().getResponse().getContentAsString();
-        assertThat(list).doesNotContain("contato@exemplo.com", "21999990001", "PRETA", "12345678901", "Caixa");
-        mvc.perform(get("/api/public/suppliers").param("line", "L01").param("q", name))
+        assertThat(list).doesNotContain("PRETA", "12345678901", "Caixa");
+        mvc.perform(get("/api/suppliers").param("line", "L01").param("q", name).header("Authorization", commission))
                 .andExpect(jsonPath("$.content.length()").value(0));
-        mvc.perform(get("/api/public/suppliers").param("territory", "T3").param("q", name))
+        mvc.perform(get("/api/suppliers").param("territory", "T3").param("q", name)
+                        .header("Authorization", commission))
                 .andExpect(jsonPath("$.content.length()").value(0));
-        mvc.perform(get("/api/public/suppliers").param("territory", "T2").param("q", name))
+        mvc.perform(get("/api/suppliers").param("territory", "T2").param("q", name)
+                        .header("Authorization", commission))
                 .andExpect(jsonPath("$.content.length()").value(1));
 
         // Credenciamento vencido sai da lista
         jdbc.update("UPDATE supplier_application SET accreditation_valid_until = current_date - 1 WHERE id = ?",
                 num(app, "$.id"));
-        mvc.perform(get("/api/public/suppliers").param("q", name))
+        mvc.perform(get("/api/suppliers").param("q", name).header("Authorization", commission))
                 .andExpect(jsonPath("$.content.length()").value(0));
     }
 
     @Test
-    void semAutorizacaoNaoPublicaLideradoPorMulherEPrazoDeRecursoVence() throws Exception {
+    void outrosPerfisInternosVeemCredenciadosEPrazoDeRecursoVence() throws Exception {
         String supplier = Auth.bearer(mvc, createUser(AppRole.SUPPLIER), PASSWORD);
         String commission = Auth.bearer(mvc, createUser(AppRole.COMMISSION), PASSWORD);
         String name = "Sem Autorizacao " + UUID.randomUUID().toString().substring(0, 8);
@@ -282,8 +290,10 @@ class AppealAndPublicListIT extends IntegrationTest {
                         .header("Authorization", commission).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"version\":" + version(app) + "}"))
                 .andExpect(status().isOk());
-        mvc.perform(get("/api/public/suppliers").param("q", name))
-                .andExpect(jsonPath("$.content[0].womanLed").value(false));
+        String finance = Auth.bearer(mvc, createUser(AppRole.FINANCE), PASSWORD);
+        mvc.perform(get("/api/suppliers").param("q", name).header("Authorization", finance))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].womanLed").value(true));
 
         // Prazo de recurso vencido
         String other = Auth.bearer(mvc, createUser(AppRole.SUPPLIER), PASSWORD);

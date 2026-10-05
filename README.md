@@ -8,7 +8,7 @@ mulheres.
 > Estado atual: **Fase 0** concluída (esqueleto, autenticação, catálogo, parâmetros,
 > calendário, auditoria, mensageria). **Fase 1** em andamento: requerimento de
 > credenciamento pelo fornecedor, análise pela Comissão (habilitar, pedir ajuste,
-> inabilitar), recurso à Comissão/Diretoria e lista pública de credenciados. A Fase 2
+> inabilitar), recurso à Comissão/Diretoria e cadastro de credenciados (uso interno). A Fase 2
 > (editais e julgamento) vem a seguir.
 
 ## Rodar tudo com Docker
@@ -41,7 +41,7 @@ Para testar o autocadastro: em http://localhost:4200, clique em "Quero me creden
 abra o link de confirmação no MailHog. Depois, preencha e envie o requerimento em
 "Minha área". Para analisar, entre como `commission@suprihub.local` (ou como ADMIN) e
 abra **Requerimentos**. Recursos ficam em **/recursos** (Comissão e Diretoria,
-`board@suprihub.local`), e a lista pública em **/credenciados**.
+`board@suprihub.local`), e o cadastro de credenciados em **/credenciados** (só equipe interna).
 
 ## Desenvolvimento local (sem Docker para app)
 

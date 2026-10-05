@@ -3,30 +3,30 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
-import { CatalogApi } from '../core/api/catalog.api';
+import { CatalogApi } from '../../core/api/catalog.api';
 import {
-  PublicSupplier,
-  PublicSupplierApi,
+  AccreditedSupplier,
+  AccreditedSupplierApi,
   Territory,
   TERRITORIES,
-} from '../core/api/supplier.api';
-import { AuthService } from '../core/auth/auth.service';
-import { formatDate } from '../core/format';
-import { problemMessage } from '../core/http/problem';
-import { SupplyLine } from '../core/models';
+} from '../../core/api/supplier.api';
+import { AuthService } from '../../core/auth/auth.service';
+import { formatDate, formatPhone } from '../../core/format';
+import { problemMessage } from '../../core/http/problem';
+import { SupplyLine } from '../../core/models';
 
-/** Lista pública de credenciados (Política art. 27; Edital 4.6). */
+/** Cadastro de credenciados — uso interno da equipe do Instituto (D-027). */
 @Component({
-  selector: 'app-suppliers-page',
+  selector: 'app-accredited-suppliers-page',
   imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   template: `
     <header class="page-header">
       <div class="container">
-        <span class="eyebrow">Lista pública · Política, art. 27</span>
+        <span class="eyebrow">Uso interno</span>
         <h1>Fornecedores credenciados</h1>
         <p>
-          Negócios e profissionais habilitados pela Comissão de Credenciamento do Contrata + NATA,
-          por linha de fornecimento e território. O credenciamento vale por 24 meses.
+          Quem está habilitado e com o credenciamento em vigor, por linha de fornecimento e
+          território. Use para encontrar e contatar fornecedores para as demandas dos projetos.
         </p>
       </div>
     </header>
@@ -104,7 +104,7 @@ import { SupplyLine } from '../core/models';
                   </li>
                 }
                 @if (s.documentMasked) {
-                  <li><mat-icon aria-hidden="true">badge</mat-icon>CNPJ {{ s.documentMasked }}</li>
+                  <li><mat-icon aria-hidden="true">badge</mat-icon>{{ s.documentMasked }}</li>
                 }
                 @if (s.municipalityName) {
                   <li><mat-icon aria-hidden="true">place</mat-icon>{{ s.municipalityName }}/RJ</li>
@@ -113,6 +113,18 @@ import { SupplyLine } from '../core/models';
                   <mat-icon aria-hidden="true">map</mat-icon>
                   Atende: {{ territoryCodes(s.territories) }}
                 </li>
+                @if (s.phone) {
+                  <li>
+                    <mat-icon aria-hidden="true">call</mat-icon>
+                    <a [href]="'tel:+55' + s.phone">{{ phone(s.phone) }}</a>
+                  </li>
+                }
+                @if (s.contactEmail) {
+                  <li>
+                    <mat-icon aria-hidden="true">mail</mat-icon>
+                    <a [href]="'mailto:' + s.contactEmail">{{ s.contactEmail }}</a>
+                  </li>
+                }
               </ul>
               <ul class="lines" aria-label="Linhas credenciadas">
                 @for (l of s.lines; track l.code) {
@@ -129,6 +141,11 @@ import { SupplyLine } from '../core/models';
                 @if (s.womanLed) {
                   <span class="badge badge-info">Liderado por mulher</span>
                 }
+                @if (auth.hasRole('COMMISSION', 'ADMIN')) {
+                  <a class="open" [routerLink]="['/comissao/requerimentos', s.id]"
+                    >Ver requerimento</a
+                  >
+                }
               </div>
             </li>
           } @empty {
@@ -141,9 +158,6 @@ import { SupplyLine } from '../core/models';
                   Ainda não há fornecedores credenciados.
                 }
               </p>
-              @if (!auth.isAuthenticated()) {
-                <a mat-flat-button routerLink="/criar-conta">Quero me credenciar</a>
-              }
             </li>
           }
         </ul>
@@ -172,9 +186,8 @@ import { SupplyLine } from '../core/models';
       }
 
       <p class="note muted">
-        Dados de contato, documentos, dados bancários e informações de raça/cor e CadÚnico não são
-        publicados (Política, art. 28). A indicação "liderado por mulher" aparece só com autorização
-        do credenciado.
+        Contém dados pessoais de contato: uso restrito à equipe do Instituto, para o credenciamento
+        e as contratações (Política, art. 28; LGPD). Não compartilhe fora do sistema.
       </p>
     </div>
   `,
@@ -315,6 +328,10 @@ import { SupplyLine } from '../core/models';
       display: flex;
       align-items: center;
       gap: 0.4rem;
+      min-width: 0;
+    }
+    .meta a {
+      overflow-wrap: anywhere;
     }
     .meta mat-icon {
       width: 18px;
@@ -341,12 +358,18 @@ import { SupplyLine } from '../core/models';
       margin-top: auto;
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 0.4rem;
     }
     .foot mat-icon {
       width: 16px;
       height: 16px;
       font-size: 16px;
+    }
+    .open {
+      margin-left: auto;
+      font-weight: 700;
+      font-size: 0.9rem;
     }
     .empty {
       grid-column: 1 / -1;
@@ -378,16 +401,17 @@ import { SupplyLine } from '../core/models';
     }
   `,
 })
-export class SuppliersPage implements OnInit {
-  private readonly api = inject(PublicSupplierApi);
+export class AccreditedSuppliersPage implements OnInit {
+  private readonly api = inject(AccreditedSupplierApi);
   private readonly catalog = inject(CatalogApi);
   protected readonly auth = inject(AuthService);
 
   protected readonly territories = TERRITORIES;
   protected readonly date = formatDate;
+  protected readonly phone = formatPhone;
 
   protected readonly lines = signal<SupplyLine[]>([]);
-  protected readonly items = signal<PublicSupplier[]>([]);
+  protected readonly items = signal<AccreditedSupplier[]>([]);
   protected readonly query = signal('');
   protected readonly line = signal('');
   protected readonly territory = signal<Territory | null>(null);

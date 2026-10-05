@@ -188,7 +188,6 @@ export class SupplierApplicationPage implements OnInit {
   protected readonly selectedLines = signal<string[]>([]);
   protected readonly selectedTerritories = signal<Territory[]>([]);
   protected readonly cadUnico = signal(false);
-  protected readonly womanLed = signal(false);
   protected readonly dirty = signal(false);
 
   protected readonly issues = computed<Issue[]>(() => this.app()?.pendingItems ?? []);
@@ -254,7 +253,6 @@ export class SupplierApplicationPage implements OnInit {
       this.selectedLines.set(v.lineCodes ?? []);
       this.selectedTerritories.set(v.territories ?? []);
       this.cadUnico.set(!!v.cadUnico);
-      this.womanLed.set(!!v.womanLed);
       this.dirty.set(this.form.dirty);
     });
     // Trocar o tipo muda a lista de documentos: salva na hora para o checklist acompanhar.
@@ -311,7 +309,6 @@ export class SupplierApplicationPage implements OnInit {
     this.selectedLines.set(app.lines.map((l) => l.code));
     this.selectedTerritories.set(app.territories);
     this.cadUnico.set(app.cadUnico);
-    this.womanLed.set(app.womanLed);
     this.form.markAsPristine();
     this.dirty.set(false);
     if (app.editable) {

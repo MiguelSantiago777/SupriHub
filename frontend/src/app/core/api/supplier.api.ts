@@ -219,13 +219,16 @@ export interface AppealDetail {
   application: Application;
 }
 
-export interface PublicSupplier {
+/** Credenciado vigente — cadastro de uso interno da equipe do Instituto. */
+export interface AccreditedSupplier {
   id: number;
   name: string;
   legalName: string | null;
   supplierTypeLabel: string | null;
   documentMasked: string | null;
   municipalityName: string | null;
+  phone: string | null;
+  contactEmail: string | null;
   lines: ApplicationLine[];
   territories: Territory[];
   womanLed: boolean;
@@ -381,7 +384,7 @@ export class AppealApi {
 }
 
 @Injectable({ providedIn: 'root' })
-export class PublicSupplierApi {
+export class AccreditedSupplierApi {
   private readonly http = inject(HttpClient);
 
   search(
@@ -389,7 +392,7 @@ export class PublicSupplierApi {
     territory: Territory | null,
     q: string,
     page = 0,
-  ): Observable<Page<PublicSupplier>> {
+  ): Observable<Page<AccreditedSupplier>> {
     let params = new HttpParams().set('page', page).set('size', 24);
     if (line) {
       params = params.set('line', line);
@@ -400,6 +403,6 @@ export class PublicSupplierApi {
     if (q.trim()) {
       params = params.set('q', q.trim());
     }
-    return this.http.get<Page<PublicSupplier>>('/api/public/suppliers', { params });
+    return this.http.get<Page<AccreditedSupplier>>('/api/suppliers', { params });
   }
 }

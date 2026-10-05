@@ -9,14 +9,15 @@ import { AppRole } from './core/models';
 /** Navega com prazo: um loop de redirecionamento faria a promessa nunca resolver. */
 async function navigate(url: string): Promise<string> {
   const router = TestBed.inject(Router);
+  // Um loop nunca termina; 10 s cobrem com folga o carregamento sob demanda (lazy) das telas.
   const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error(`Navegação para ${url} não terminou (loop?)`)), 3000),
+    setTimeout(() => reject(new Error(`Navegação para ${url} não terminou (loop?)`)), 10_000),
   );
   await Promise.race([router.navigateByUrl(url), timeout]);
   return router.url;
 }
 
-describe('Rotas da aplicação', () => {
+describe('Rotas da aplicação', { timeout: 15_000 }, () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],

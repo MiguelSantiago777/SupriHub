@@ -331,33 +331,40 @@ public final class SupplierDtos {
             long version) {
     }
 
-    // ------------------------------------------------------------ lista pública
+    // ---------------------------------------------------- cadastro de credenciados
 
     /**
-     * Credenciado na lista pública (Política art. 27). Sem contatos, dados bancários, raça/cor
-     * ou CadÚnico (art. 28); "liderado por mulher" só com autorização (Anexo II, item 5).
+     * Credenciado vigente, para a equipe interna (D-027): inclui contato para a Comissão e os
+     * gestores acionarem o fornecedor. Documento mascarado; dados bancários, raça/cor e
+     * CadÚnico ficam só no detalhe do requerimento.
      */
-    public record PublicSupplier(
+    public record AccreditedSupplier(
             Long id,
             String name,
             String legalName,
             String supplierTypeLabel,
             String documentMasked,
             String municipalityName,
+            String phone,
+            String contactEmail,
             List<LineDto> lines,
             Set<Territory> territories,
             boolean womanLed,
             LocalDate validUntil) {
 
-        static PublicSupplier of(SupplierApplication a) {
+        static AccreditedSupplier of(SupplierApplication a) {
             String name = a.getTradeName() != null ? a.getTradeName() : a.getLegalName();
-            boolean individual = a.getSupplierType() != null && a.getSupplierType().isIndividual();
-            return new PublicSupplier(a.getId(), name, individual ? null : a.getLegalName(),
+            return new AccreditedSupplier(a.getId(), name, a.getLegalName(),
                     a.getSupplierType() == null ? null : a.getSupplierType().label(),
-                    individual || a.getDocumentNumber() == null ? null : DocumentMasker.mask(a.getDocumentNumber()),
-                    a.getMunicipality() == null ? null : a.getMunicipality().getName(),
-                    a.sortedLines().stream().map(LineDto::of).toList(), a.getTerritories(),
-                    a.isWomanLed() && a.isPublishWomanLed(), a.getAccreditationValidUntil());
+                    a.getDocumentNumber() == null ? null : DocumentMasker.mask(a.getDocumentNumber()),
+                    a.getMunicipality() == null ? null : a.getMunicipality().getName(), a.getPhone(),
+                    a.getContactEmail(), a.sortedLines().stream().map(LineDto::of).toList(), a.getTerritories(),
+                    a.isWomanLed(), a.getAccreditationValidUntil());
+        }
+
+        @Override
+        public String toString() {
+            return "AccreditedSupplier#" + id;
         }
     }
 }

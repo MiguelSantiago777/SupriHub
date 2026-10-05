@@ -37,13 +37,15 @@
         ariaCurrentWhenActive="page"
         >Catálogo</a
       >
-      <a
-        class="nav-link"
-        routerLink="/credenciados"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        >Credenciados</a
-      >
+      @if (isStaff()) {
+        <a
+          class="nav-link"
+          routerLink="/credenciados"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          >Credenciados</a
+        >
+      }
       <a
         class="nav-link"
         routerLink="/edital"

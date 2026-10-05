@@ -16,7 +16,11 @@ export const routes: Routes = [
   {
     path: 'credenciados',
     title: 'Credenciados',
-    loadComponent: () => import('./public/suppliers.page').then((m) => m.SuppliersPage),
+    canMatch: [
+      roleGuard('COMMISSION', 'DEMAND_MANAGER', 'FINANCE', 'INTERNAL_CONTROL', 'BOARD', 'ADMIN'),
+    ],
+    loadComponent: () =>
+      import('./areas/accredited/accredited-suppliers.page').then((m) => m.AccreditedSuppliersPage),
   },
   {
     path: 'edital',

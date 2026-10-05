@@ -25,6 +25,15 @@ import { RouterLink } from '@angular/router';
           </a>
         </li>
         <li>
+          <a routerLink="/credenciados" class="card card-hover tile">
+            <span class="icon-tile green"><mat-icon aria-hidden="true">storefront</mat-icon></span>
+            <span>
+              <strong>Credenciados</strong><br />
+              Fornecedores habilitados por linha e território, com contato.
+            </span>
+          </a>
+        </li>
+        <li>
           <a routerLink="/recursos" class="card card-hover tile">
             <span class="icon-tile amber"><mat-icon aria-hidden="true">gavel</mat-icon></span>
             <span>

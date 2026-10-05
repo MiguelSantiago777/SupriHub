@@ -149,17 +149,23 @@ Comissão e ADMIN na reconsideração e no encaminhamento; Diretoria e ADMIN na 
 final. A Diretoria entra direto em `/recursos`. Recurso contra seleção ou sanção (outras
 etapas do Anexo X) fica para as Fases 2 e 3.
 
-**D-027 — Lista pública de credenciados** · Fase 1 · vigente
-Política art. 27 e Edital 4.6. A página `/credenciados` e a rota `/api/public/suppliers`
-mostram só habilitados com `accreditation_valid_until` vigente: ao vencer, o fornecedor
-sai da lista sozinho. A lista pode ser filtrada por linha, território e nome.
+**D-027 — Cadastro de credenciados só para a equipe interna** · Fase 1 · vigente (decisão do usuário)
+A Política (art. 27) e o Edital (4.6) mandam **publicar** a lista de credenciados no sítio.
+Por decisão do Instituto, a lista fica **restrita** ao ADMIN e aos perfis internos que
+operam o sistema: Comissão, Diretoria, Gestor da demanda, Financeiro e Controle Interno.
+Divergência registrada para a Comissão avaliar a publicação por outro meio.
 
-O que aparece: nome fantasia (ou nome), razão social, tipo, CNPJ mascarado, município,
-linhas, territórios e validade. Pessoa física aparece sem documento.
-
-O que não aparece (art. 28): contato, endereço, dados bancários, raça/cor e CadÚnico. O
-selo "liderado por mulher" só aparece com a autorização do Anexo II, item 5 (caixa
-própria, `publish_woman_led`).
+- **Onde:** página `/credenciados`, só com login interno (fornecedor recebe "acesso
+  negado"), e `GET /api/suppliers`. Não há mais rota pública.
+- **Quem aparece:** só habilitados com `accreditation_valid_until` vigente. Ao vencer, o
+  fornecedor sai da lista sozinho. Filtros por linha, território e nome.
+- **O que mostra:** nome, razão social, tipo, documento mascarado, município, territórios,
+  linhas, validade, "liderado por mulher" e **contato** (telefone e e-mail), para a equipe
+  acionar o fornecedor.
+- **O que fica só no detalhe do requerimento:** dados bancários, raça/cor e CadÚnico
+  (art. 28).
+- **Autorização de divulgação:** como não há publicação, a caixa do Anexo II, item 5,
+  saiu do formulário. A coluna `publish_woman_led` (V11) ficou sem uso.
 
 ## 3. Pontos em aberto do prompt (§12) — padrões adotados
 

@@ -11,16 +11,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Lista pública de credenciados (Política art. 27; Edital 4.6): só habilitados com
+ * Cadastro de credenciados (uso interno, D-027): só habilitados com
  * credenciamento vigente. Vencido o prazo de 24 meses, sai da lista automaticamente.
  */
 @Service
-public class PublicDirectoryService {
+public class AccreditedDirectoryService {
 
     private final SupplierApplicationRepository applications;
     private final CalendarService calendar;
 
-    public PublicDirectoryService(SupplierApplicationRepository applications, CalendarService calendar) {
+    public AccreditedDirectoryService(SupplierApplicationRepository applications, CalendarService calendar) {
         this.applications = applications;
         this.calendar = calendar;
     }
