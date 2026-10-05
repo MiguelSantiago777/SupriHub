@@ -13,6 +13,26 @@ export const COMMISSION_ROUTES: Routes = [
     loadComponent: () => import('./applications.page').then((m) => m.ApplicationsPage),
   },
   {
+    path: 'editais',
+    title: 'Editais',
+    loadComponent: () => import('../tenders/tenders.page').then((m) => m.TendersPage),
+  },
+  {
+    path: 'editais/novo',
+    title: 'Nova oportunidade',
+    loadComponent: () => import('../tenders/tender-form.page').then((m) => m.TenderFormPage),
+  },
+  {
+    path: 'editais/:id',
+    title: 'Oportunidade',
+    loadComponent: () => import('../tenders/tender.page').then((m) => m.TenderPage),
+  },
+  {
+    path: 'editais/:id/editar',
+    title: 'Editar oportunidade',
+    loadComponent: () => import('../tenders/tender-form.page').then((m) => m.TenderFormPage),
+  },
+  {
     path: 'requerimentos/:id',
     title: 'Análise do requerimento',
     loadComponent: () => import('./application-review.page').then((m) => m.ApplicationReviewPage),

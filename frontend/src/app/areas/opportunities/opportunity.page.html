@@ -1,0 +1,498 @@
+<header class="page-header">
+  <div class="container">
+    <p class="back"><a routerLink="/fornecedor/editais">← Editais em aberto</a></p>
+    @if (op(); as o) {
+      <span class="eyebrow">{{ o.number }} · {{ o.bandLabel }} — {{ o.selectionMode }}</span>
+      <h1>{{ o.title }}</h1>
+      <p>Linha {{ o.line.code }} · {{ o.line.shortName }}</p>
+    } @else {
+      <h1>Oportunidade</h1>
+    }
+  </div>
+</header>
+<app-area-tabs area="supplier" />
+
+<div class="container page">
+  @if (error()) {
+    <p class="alert alert-error" role="alert">{{ error() }}</p>
+  } @else if (!op()) {
+    <div class="loading" role="status"><mat-spinner diameter="36" /> Carregando…</div>
+  } @else {
+    @let o = op()!;
+
+    <!-- Situação ---------------------------------------------------------- -->
+    @if (o.band === 'FAIXA_1' && o.invitation) {
+      @switch (o.invitation.status) {
+        @case ('INVITED') {
+          <section class="status-card warning" role="status">
+            <mat-icon aria-hidden="true">notifications_active</mat-icon>
+            <div>
+              <h2>Chegou a sua vez no rodízio</h2>
+              <p>
+                Responda até <strong>{{ date(o.invitation.dueDate) }}</strong
+                >: envie o seu preço para aceitar, ou recuse — a vez passa ao próximo credenciado.
+              </p>
+              @if (!declining()) {
+                <button mat-stroked-button type="button" (click)="declining.set(true)">
+                  Não posso atender
+                </button>
+              } @else {
+                <div class="decline">
+                  <mat-form-field class="full">
+                    <mat-label>Motivo (opcional)</mat-label>
+                    <input matInput [(ngModel)]="declineReason" maxlength="500" />
+                  </mat-form-field>
+                  <button mat-stroked-button type="button" (click)="declining.set(false)">
+                    Voltar
+                  </button>
+                  <button
+                    mat-flat-button
+                    type="button"
+                    class="danger"
+                    [disabled]="busy()"
+                    (click)="decline()"
+                  >
+                    Recusar convite
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+        }
+        @case ('ACCEPTED') {
+          <section class="status-card info" role="status">
+            <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+            <div>
+              <h2>Convite aceito</h2>
+              <p>A Comissão está conferindo o seu preço. Você recebe a confirmação por e-mail.</p>
+            </div>
+          </section>
+        }
+        @case ('CONFIRMED') {
+          <section class="status-card success" role="status">
+            <mat-icon aria-hidden="true">verified</mat-icon>
+            <div>
+              <h2>Você foi selecionado!</h2>
+              <p>
+                O Instituto vai emitir a Ordem de Fornecimento. Fique atento ao e-mail e ao
+                WhatsApp.
+              </p>
+            </div>
+          </section>
+        }
+        @default {
+          <section class="status-card neutral" role="status">
+            <mat-icon aria-hidden="true">info</mat-icon>
+            <div>
+              <h2>{{ o.invitation.statusLabel }}</h2>
+              <p>
+                Este convite foi encerrado. Você continua na fila para as próximas oportunidades.
+              </p>
+            </div>
+          </section>
+        }
+      }
+    } @else if (o.band !== 'FAIXA_1') {
+      @if (o.canSubmit) {
+        <section class="status-card info" role="status">
+          <mat-icon aria-hidden="true">schedule</mat-icon>
+          <div>
+            <h2>{{ o.proposal ? 'Proposta enviada' : 'Aberto para propostas' }}</h2>
+            <p>
+              Prazo: <strong>{{ dateTime(o.proposalDeadline) }}</strong
+              >. Até lá você pode
+              {{ o.proposal ? 'alterar ou retirar a sua proposta' : 'enviar a sua proposta' }}. As
+              propostas ficam em sigilo até o fim do prazo.
+            </p>
+          </div>
+        </section>
+      } @else {
+        <section class="status-card neutral" role="status">
+          <mat-icon aria-hidden="true">lock_clock</mat-icon>
+          <div>
+            <h2>
+              {{
+                o.status === 'CANCELLED' ? 'Oportunidade cancelada' : 'Prazo de propostas encerrado'
+              }}
+            </h2>
+            <p>
+              @if (o.proposal) {
+                A sua proposta está em julgamento. O resultado chega por e-mail.
+              } @else {
+                Não é mais possível enviar propostas.
+              }
+            </p>
+          </div>
+        </section>
+      }
+    }
+
+    <div class="layout">
+      <!-- O que o Instituto precisa ------------------------------------------ -->
+      <section class="card info" aria-labelledby="t-oque">
+        <h2 id="t-oque">
+          <mat-icon aria-hidden="true">shopping_cart</mat-icon> O que o Instituto precisa
+        </h2>
+        <p class="pre">{{ o.description }}</p>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Descrição</th>
+                <th scope="col">Unid.</th>
+                <th scope="col" class="num">Qtd.</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (i of o.items; track i.id) {
+                <tr>
+                  <td>{{ i.position }}</td>
+                  <td>{{ i.description }}</td>
+                  <td>{{ i.unit }}</td>
+                  <td class="num">{{ qty(i.quantity) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <dl class="facts">
+          @if (o.location || o.executionMunicipalityName) {
+            <div>
+              <dt>Onde</dt>
+              <dd>
+                {{ o.location }}
+                @if (o.executionMunicipalityName) {
+                  ({{ o.executionMunicipalityName }}/RJ)
+                }
+              </dd>
+            </div>
+          }
+          @if (o.schedule) {
+            <div>
+              <dt>Quando</dt>
+              <dd>{{ o.schedule }}</dd>
+            </div>
+          }
+          @if (o.executionDeadline) {
+            <div>
+              <dt>Prazo de execução/entrega</dt>
+              <dd>{{ o.executionDeadline }}</dd>
+            </div>
+          }
+          @if (o.paymentTerms) {
+            <div>
+              <dt>Pagamento</dt>
+              <dd>{{ o.paymentTerms }}</dd>
+            </div>
+          }
+          <div>
+            <dt>Dirigida a</dt>
+            <dd>{{ o.audienceLabel }} · {{ territoryLabels() }}</dd>
+          </div>
+          @if (o.requirements) {
+            <div class="wide">
+              <dt>Requisitos</dt>
+              <dd class="pre">{{ o.requirements }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      <!-- Proposta ------------------------------------------------------------- -->
+      <div class="proposal-col">
+        @if (o.proposal && !editing()) {
+          <section class="card mine" aria-labelledby="t-minha">
+            <h2 id="t-minha"><mat-icon aria-hidden="true">request_quote</mat-icon> Sua proposta</h2>
+            <p class="total">{{ money(o.proposal.totalValue) }}</p>
+            <dl class="facts">
+              <div>
+                <dt>Forma de envio</dt>
+                <dd>{{ o.proposal.modeLabel }}</dd>
+              </div>
+              <div>
+                <dt>Validade</dt>
+                <dd>{{ o.proposal.validityDays }} dias</dd>
+              </div>
+              @if (o.proposal.executionDeadline) {
+                <div>
+                  <dt>Prazo de execução</dt>
+                  <dd>{{ o.proposal.executionDeadline }}</dd>
+                </div>
+              }
+              <div>
+                <dt>Enviada em</dt>
+                <dd>{{ dateTime(o.proposal.updatedAt) }}</dd>
+              </div>
+            </dl>
+            @if (o.proposal.mode === 'ONLINE') {
+              <table class="data mini">
+                <tbody>
+                  @for (i of o.items; track i.id) {
+                    <tr>
+                      <td>{{ i.description }}</td>
+                      <td class="num">
+                        {{ money(o.proposal.unitPrices[i.id]) }} × {{ qty(i.quantity) }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+            @if (o.proposal.fileName) {
+              <button mat-stroked-button type="button" (click)="openMyFile()">
+                <mat-icon aria-hidden="true">attach_file</mat-icon> {{ o.proposal.fileName }}
+              </button>
+            }
+            @if (o.canSubmit) {
+              <div class="form-actions">
+                @if (o.canWithdraw) {
+                  <button mat-stroked-button type="button" [disabled]="busy()" (click)="withdraw()">
+                    Retirar proposta
+                  </button>
+                }
+                <button mat-flat-button type="button" (click)="edit()">Alterar proposta</button>
+              </div>
+            }
+          </section>
+        }
+
+        @if (showForm()) {
+          <section class="card send" aria-labelledby="t-enviar">
+            <h2 id="t-enviar">
+              <mat-icon aria-hidden="true">send</mat-icon>
+              {{
+                o.band === 'FAIXA_1'
+                  ? 'Aceitar e enviar o preço'
+                  : 'Como você quer enviar a proposta?'
+              }}
+            </h2>
+            <div class="methods" role="radiogroup" aria-label="Forma de envio">
+              @for (m of methods; track m.mode) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="method"
+                  [attr.aria-checked]="mode() === m.mode"
+                  [class.selected]="mode() === m.mode"
+                  (click)="choose(m.mode)"
+                >
+                  <span class="icon-tile" aria-hidden="true"
+                    ><mat-icon>{{ m.icon }}</mat-icon></span
+                  >
+                  <span class="m-text">
+                    <strong>
+                      {{ m.title }}
+                      @if (recommended() === m.mode) {
+                        <span class="badge badge-success">recomendado</span>
+                      }
+                    </strong>
+                    <small>{{ m.text }}</small>
+                  </span>
+                </button>
+              }
+            </div>
+          </section>
+
+          @if (mode(); as m) {
+            <form class="card form" id="proposal-form" (ngSubmit)="send()" novalidate>
+              <h2>{{ methodTitle(m) }}</h2>
+
+              @if (m === 'MODEL') {
+                <ol class="steps">
+                  <li>
+                    <strong>Baixe o modelo</strong> — já vem com seus dados e os itens.
+                    <button mat-stroked-button type="button" class="dl" (click)="downloadModel()">
+                      <mat-icon aria-hidden="true">download</mat-icon> Baixar proposta (Word)
+                    </button>
+                  </li>
+                  <li>
+                    <strong>Preencha os valores e assine</strong> — no Word, no celular ou impresso
+                    à mão.
+                  </li>
+                  <li>
+                    <strong>Envie aqui</strong> o arquivo ou uma foto legível e informe o valor
+                    total.
+                  </li>
+                </ol>
+              }
+
+              @if (m === 'ONLINE') {
+                <div class="table-wrap">
+                  <table class="data prices">
+                    <thead>
+                      <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col" class="num">Qtd.</th>
+                        <th scope="col">Preço unitário (R$)</th>
+                        <th scope="col" class="num">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (i of o.items; track i.id) {
+                        <tr>
+                          <td>
+                            {{ i.description }} <span class="muted">({{ i.unit }})</span>
+                          </td>
+                          <td class="num">{{ qty(i.quantity) }}</td>
+                          <td>
+                            <input
+                              class="price"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              inputmode="decimal"
+                              [attr.aria-label]="'Preço unitário de ' + i.description"
+                              [value]="prices()[i.id] ?? ''"
+                              (input)="setPrice(i.id, $any($event.target).value)"
+                            />
+                            @if (fieldErrors()['items.' + i.id]; as e) {
+                              <small class="field-error">{{ e }}</small>
+                            }
+                          </td>
+                          <td class="num">{{ money((prices()[i.id] ?? 0) * i.quantity) }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <th scope="row" colspan="3">Total da proposta</th>
+                        <td class="num grand">{{ money(onlineTotal()) }}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              } @else {
+                <div class="file-row">
+                  <label class="upload-btn">
+                    <input
+                      type="file"
+                      [accept]="accept"
+                      (change)="pickFile($event)"
+                      class="visually-hidden"
+                    />
+                    <mat-icon aria-hidden="true">upload</mat-icon>
+                    {{
+                      file()
+                        ? 'Trocar arquivo'
+                        : m === 'MODEL'
+                          ? 'Enviar modelo assinado'
+                          : 'Enviar arquivo da proposta'
+                    }}
+                  </label>
+                  @if (file(); as f) {
+                    <span>{{ f.name }} · {{ size(f.size) }}</span>
+                  } @else if (o.proposal?.fileName && o.proposal?.mode === m) {
+                    <span class="muted"
+                      >Atual: {{ o.proposal?.fileName }} (mantido se não trocar)</span
+                    >
+                  }
+                </div>
+                @if (fieldErrors()['file']; as e) {
+                  <p class="field-error">{{ e }}</p>
+                }
+                <mat-form-field class="money">
+                  <mat-label>Valor total da proposta (R$)</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="totalValue"
+                    [(ngModel)]="totalValue"
+                  />
+                  <mat-hint>O mesmo valor do arquivo. É ele que entra no julgamento.</mat-hint>
+                  @if (fieldErrors()['totalValue']; as e) {
+                    <mat-error>{{ e }}</mat-error>
+                  }
+                </mat-form-field>
+              }
+
+              <div class="row">
+                <mat-form-field>
+                  <mat-label>Prazo de execução / entrega</mat-label>
+                  <input
+                    matInput
+                    name="executionDeadline"
+                    [(ngModel)]="executionDeadline"
+                    maxlength="300"
+                    [placeholder]="o.executionDeadline ?? 'Ex.: 10 dias após a ordem'"
+                  />
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Validade da proposta (dias)</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    name="validityDays"
+                    [(ngModel)]="validityDays"
+                    [min]="o.minValidityDays"
+                  />
+                  <mat-hint>Mínimo de {{ o.minValidityDays }} dias.</mat-hint>
+                </mat-form-field>
+              </div>
+              @if (fieldErrors()['validityDays']; as e) {
+                <p class="field-error">{{ e }}</p>
+              }
+              <mat-form-field class="full">
+                <mat-label>Condições especiais (opcional)</mat-label>
+                <textarea
+                  matInput
+                  name="specialConditions"
+                  [(ngModel)]="specialConditions"
+                  rows="2"
+                  maxlength="2000"
+                  placeholder="Sinal, montagem, equipe, equipamentos"
+                ></textarea>
+              </mat-form-field>
+              <mat-form-field class="full">
+                <mat-label>Observações (opcional)</mat-label>
+                <textarea
+                  matInput
+                  name="notes"
+                  [(ngModel)]="notes"
+                  rows="2"
+                  maxlength="2000"
+                ></textarea>
+              </mat-form-field>
+
+              <div class="declaration">
+                <mat-checkbox name="declaration" [(ngModel)]="declaration">
+                  Declaro que o valor proposto inclui todos os custos diretos e indiretos, tributos,
+                  encargos, materiais, equipamentos, deslocamento e EPIs; que mantenho as condições
+                  de habilitação; e que aceito as condições da oportunidade, do Edital nº 001/2026 e
+                  da Política de Credenciamento (Anexo VII).
+                </mat-checkbox>
+                @if (fieldErrors()['declarationAccepted']; as e) {
+                  <p class="field-error">{{ e }}</p>
+                }
+              </div>
+
+              @if (formError()) {
+                <p class="alert alert-error" role="alert">{{ formError() }}</p>
+              }
+              <div class="form-actions">
+                @if (editing()) {
+                  <button mat-stroked-button type="button" (click)="editing.set(false)">
+                    Cancelar
+                  </button>
+                }
+                <button mat-flat-button type="submit" [disabled]="busy()">
+                  {{
+                    busy()
+                      ? 'Enviando…'
+                      : o.band === 'FAIXA_1'
+                        ? 'Aceitar e enviar preço'
+                        : o.proposal
+                          ? 'Salvar alterações'
+                          : 'Enviar proposta'
+                  }}
+                </button>
+              </div>
+            </form>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

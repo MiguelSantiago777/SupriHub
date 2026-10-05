@@ -44,10 +44,8 @@ export const routes: Routes = [
   },
   {
     path: 'fornecedor',
-    title: 'Meu requerimento',
     canMatch: [roleGuard('SUPPLIER')],
-    loadComponent: () =>
-      import('./areas/supplier/supplier-application.page').then((m) => m.SupplierApplicationPage),
+    loadChildren: () => import('./areas/supplier/supplier.routes').then((m) => m.SUPPLIER_ROUTES),
   },
   {
     path: 'comissao',

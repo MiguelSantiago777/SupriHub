@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { AreaTabs } from '../shared/area-tabs';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -61,6 +62,7 @@ const BOARD_OPTIONS: Option[] = [
 @Component({
   selector: 'app-appeal-detail-page',
   imports: [
+    AreaTabs,
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,
@@ -92,6 +94,7 @@ const BOARD_OPTIONS: Option[] = [
         }
       </div>
     </header>
+    <app-area-tabs />
 
     <div class="container page">
       @if (error()) {

@@ -25,6 +25,15 @@ import { RouterLink } from '@angular/router';
           </a>
         </li>
         <li>
+          <a routerLink="/comissao/editais" class="card card-hover tile">
+            <span class="icon-tile"><mat-icon aria-hidden="true">campaign</mat-icon></span>
+            <span>
+              <strong>Editais</strong><br />
+              Oportunidades de compra: publicar, rodízio e propostas recebidas.
+            </span>
+          </a>
+        </li>
+        <li>
           <a routerLink="/credenciados" class="card card-hover tile">
             <span class="icon-tile green"><mat-icon aria-hidden="true">storefront</mat-icon></span>
             <span>

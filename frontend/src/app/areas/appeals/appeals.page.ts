@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { AreaTabs } from '../shared/area-tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -42,7 +43,7 @@ const TABS: Tab[] = [
 
 @Component({
   selector: 'app-appeals-page',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [AreaTabs, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   template: `
     <header class="page-header">
       <div class="container">
@@ -62,6 +63,7 @@ const TABS: Tab[] = [
         </p>
       </div>
     </header>
+    <app-area-tabs />
 
     <div class="container page">
       <div class="tabs" role="tablist" aria-label="Etapa dos recursos">

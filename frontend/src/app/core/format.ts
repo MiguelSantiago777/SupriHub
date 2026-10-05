@@ -74,3 +74,13 @@ export function formatSize(bytes: number): string {
   }
   return `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
 }
+
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+export function formatMoney(value: number | null | undefined): string {
+  return value == null ? '' : BRL.format(value);
+}
+
+export function formatQuantity(value: number | null | undefined): string {
+  return value == null ? '' : value.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+}

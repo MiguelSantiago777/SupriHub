@@ -118,7 +118,8 @@ Migrações Flyway em `backend/src/main/resources/db/migration`:
 | V10 | Fase 1 — requerimento (Anexo II), linhas, territórios, documentos e andamento |
 | V11 | Fase 1 — recurso da inabilitação (e coluna de autorização de divulgação, sem uso — D-027) |
 | V12+ | Fase 1 — certidões e atualização cadastral |
-| V20+ | Fase 2 — editais, propostas, julgamento (+ tabelas da Fase 3 já modeladas) |
+| V20 | Fase 2A — oportunidades, itens, territórios, convites do rodízio, propostas |
+| V21+ | Fase 2B — julgamento, cobertura, ata (+ tabelas da Fase 3) |
 
 ## Testes
 

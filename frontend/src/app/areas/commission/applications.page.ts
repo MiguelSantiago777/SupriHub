@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { AreaTabs } from '../shared/area-tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -64,6 +65,7 @@ const TABS: Tab[] = [
 @Component({
   selector: 'app-applications-page',
   imports: [
+    AreaTabs,
     RouterLink,
     MatButtonModule,
     MatFormFieldModule,
@@ -88,6 +90,7 @@ const TABS: Tab[] = [
         </p>
       </div>
     </header>
+    <app-area-tabs />
 
     <div class="container page">
       <div class="tabs" role="tablist" aria-label="Situação dos requerimentos">

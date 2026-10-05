@@ -1,0 +1,407 @@
+<header class="page-header">
+  <div class="container">
+    <p class="back"><a routerLink="/comissao/editais">← Editais</a></p>
+    @if (t(); as d) {
+      <div class="head">
+        <div>
+          <span class="eyebrow"
+            >{{ d.number || 'Rascunho' }} · {{ d.bandLabel }} — {{ d.selectionMode }}</span
+          >
+          <h1>{{ d.title }}</h1>
+          <p>
+            Linha {{ d.line.code }} · {{ d.line.shortName }} · valor estimado
+            <strong>{{ money(d.estimatedValue) }}</strong>
+          </p>
+        </div>
+        <span class="badge big" [class]="badge[d.status]">{{ d.statusLabel }}</span>
+      </div>
+    } @else {
+      <h1>Oportunidade</h1>
+    }
+  </div>
+</header>
+<app-area-tabs />
+
+<div class="container page">
+  @if (error()) {
+    <p class="alert alert-error" role="alert">{{ error() }}</p>
+  } @else if (!t()) {
+    <div class="loading" role="status"><mat-spinner diameter="36" /> Carregando…</div>
+  } @else {
+    @let d = t()!;
+
+    <!-- Ações ------------------------------------------------------------- -->
+    @if (d.status === 'DRAFT' || d.status === 'OPEN') {
+      <section class="card actions" aria-label="Ações">
+        @if (d.status === 'DRAFT') {
+          <div class="publish">
+            <div>
+              <strong>Pronto para publicar?</strong>
+              <p class="muted">
+                @if (d.band === 'FAIXA_1') {
+                  {{ d.eligibleCount }} credenciado(s) na fila do rodízio para esta linha e
+                  território.
+                } @else {
+                  {{ d.eligibleCount }} fornecedor(es) vão receber o aviso por e-mail. Propostas até
+                  {{ dateTime(d.proposalDeadline) || '—' }}.
+                }
+              </p>
+            </div>
+            <div class="btns">
+              <a mat-stroked-button [routerLink]="['/comissao/editais', d.id, 'editar']">
+                <mat-icon aria-hidden="true">edit</mat-icon> Editar
+              </a>
+              <button mat-flat-button type="button" [disabled]="busy()" (click)="publish()">
+                <mat-icon aria-hidden="true">campaign</mat-icon> Publicar
+              </button>
+            </div>
+          </div>
+        } @else if (d.band !== 'FAIXA_1') {
+          <p class="sealed">
+            <mat-icon aria-hidden="true">{{ d.proposalsSealed ? 'lock' : 'lock_open' }}</mat-icon>
+            @if (d.proposalsSealed) {
+              <span>
+                <strong
+                  >{{ d.proposalCount }}
+                  {{ d.proposalCount === 1 ? 'proposta recebida' : 'propostas recebidas' }}</strong
+                >
+                — ficam em sigilo até {{ dateTime(d.proposalDeadline) }}.
+                {{ d.eligibleCount }} fornecedor(es) podem participar.
+              </span>
+            } @else {
+              <span><strong>Prazo encerrado.</strong> As propostas estão abertas abaixo.</span>
+            }
+          </p>
+        }
+        @if (issues().length) {
+          <div class="alert alert-warning" role="alert">
+            <p>
+              <strong>{{ actionError() }}</strong>
+            </p>
+            <ul>
+              @for (i of issues(); track i.field) {
+                <li>{{ i.message }}</li>
+              }
+            </ul>
+          </div>
+        } @else if (actionError()) {
+          <p class="alert alert-error" role="alert">{{ actionError() }}</p>
+        }
+        <div class="cancel">
+          @if (!cancelling()) {
+            <button mat-button type="button" class="link-danger" (click)="cancelling.set(true)">
+              Cancelar oportunidade
+            </button>
+          } @else {
+            <mat-form-field class="grow">
+              <mat-label>Motivo do cancelamento</mat-label>
+              <input matInput [(ngModel)]="cancelReason" maxlength="1000" />
+            </mat-form-field>
+            <button mat-stroked-button type="button" (click)="cancelling.set(false)">Voltar</button>
+            <button
+              mat-flat-button
+              type="button"
+              class="danger"
+              [disabled]="busy() || !cancelReason.trim()"
+              (click)="cancel()"
+            >
+              Confirmar cancelamento
+            </button>
+          }
+        </div>
+      </section>
+    } @else if (d.status === 'CANCELLED') {
+      <p class="alert alert-error">Cancelada: {{ d.cancelReason }}</p>
+    }
+
+    <div class="layout">
+      <!-- Rodízio ou propostas --------------------------------------------------- -->
+      <div class="main">
+        @if (d.band === 'FAIXA_1' && d.status !== 'DRAFT') {
+          <section class="card" aria-labelledby="t-rod">
+            <h2 id="t-rod"><mat-icon aria-hidden="true">autorenew</mat-icon> Rodízio</h2>
+            @if (!d.invitations.length) {
+              <p class="muted">Ninguém foi convidado ainda.</p>
+            }
+            <ol class="rotation">
+              @for (inv of d.invitations; track inv.id) {
+                <li>
+                  <div class="rot-head">
+                    <strong>{{ inv.supplierName }}</strong>
+                    <span class="badge" [class]="invBadge[inv.status]">{{ inv.statusLabel }}</span>
+                  </div>
+                  <span class="muted">
+                    Convidado em {{ dateTime(inv.invitedAt) }} · prazo {{ date(inv.dueDate) }}
+                    @if (inv.declineReason) {
+                      · {{ inv.declineReason }}
+                    }
+                  </span>
+                  @if (inv.proposedTotal !== null) {
+                    <span
+                      >Preço proposto: <strong>{{ money(inv.proposedTotal) }}</strong>
+                      <span class="muted">(estimado {{ money(d.estimatedValue) }})</span></span
+                    >
+                  }
+                  @if (inv.status === 'ACCEPTED') {
+                    <div class="btns">
+                      @if (rejecting() !== inv.id) {
+                        <button mat-stroked-button type="button" (click)="rejecting.set(inv.id)">
+                          Recusar preço
+                        </button>
+                        <button
+                          mat-flat-button
+                          type="button"
+                          class="ok"
+                          [disabled]="busy()"
+                          (click)="confirm(inv)"
+                        >
+                          Confirmar seleção
+                        </button>
+                      } @else {
+                        <mat-form-field class="grow">
+                          <mat-label>Motivo (ex.: acima do Banco de Preços)</mat-label>
+                          <input matInput [(ngModel)]="rejectReason" maxlength="1000" />
+                        </mat-form-field>
+                        <button mat-stroked-button type="button" (click)="rejecting.set(null)">
+                          Voltar
+                        </button>
+                        <button
+                          mat-flat-button
+                          type="button"
+                          class="danger"
+                          [disabled]="busy() || !rejectReason.trim()"
+                          (click)="rejectPrice(inv)"
+                        >
+                          Recusar e chamar o próximo
+                        </button>
+                      }
+                    </div>
+                  }
+                </li>
+              }
+            </ol>
+            @if (d.status === 'OPEN' && !activeInvitation()) {
+              <div class="alert alert-warning">
+                <p>
+                  <strong>Não há credenciado disponível na fila.</strong> Amplie o território para
+                  continuar o rodízio (Manual, item 4.3).
+                </p>
+                @if (missingTerritories().length) {
+                  <div class="expand">
+                    @for (x of missingTerritories(); track x.value) {
+                      <mat-checkbox (change)="toggleAdd(x.value, $event.checked)">{{
+                        x.label
+                      }}</mat-checkbox>
+                    }
+                    <button
+                      mat-flat-button
+                      type="button"
+                      [disabled]="busy() || !addTerritories().length"
+                      (click)="expand()"
+                    >
+                      Ampliar e convidar
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        }
+
+        @if (d.band !== 'FAIXA_1' && d.status !== 'DRAFT') {
+          <section class="card" aria-labelledby="t-map">
+            <h2 id="t-map"><mat-icon aria-hidden="true">table_view</mat-icon> Mapa de propostas</h2>
+            @if (d.proposalsSealed) {
+              <p class="muted">As propostas aparecem aqui quando o prazo terminar.</p>
+            } @else if (!d.proposals.length) {
+              <p class="muted">Nenhuma proposta recebida.</p>
+            } @else {
+              <p class="muted small">
+                Ordenado pelo menor valor. O julgamento com empate ficto, preferência local e
+                desempate por equidade entra na próxima etapa do sistema.
+              </p>
+              <div class="table-wrap">
+                <table class="data map">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Fornecedor</th>
+                      <th scope="col">Território</th>
+                      <th scope="col">Forma</th>
+                      <th scope="col" class="num">Total</th>
+                      <th scope="col"><span class="visually-hidden">Ações</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (p of d.proposals; track p.id; let i = $index) {
+                      <tr [class.best]="i === 0">
+                        <td>{{ i + 1 }}º</td>
+                        <td>
+                          <strong>{{ p.supplierName }}</strong
+                          ><br />
+                          <span class="muted">{{ p.supplierTypeLabel }}</span>
+                          @if (p.womanLed) {
+                            <span class="badge badge-info">mulher</span>
+                          }
+                        </td>
+                        <td>{{ p.seatTerritory || '—' }}</td>
+                        <td>{{ p.modeLabel }}</td>
+                        <td class="num">
+                          <strong>{{ money(p.totalValue) }}</strong>
+                        </td>
+                        <td class="acts">
+                          @if (p.fileName) {
+                            <button
+                              mat-icon-button
+                              type="button"
+                              (click)="openFile(p)"
+                              [attr.aria-label]="'Abrir arquivo de ' + p.supplierName"
+                            >
+                              <mat-icon>attach_file</mat-icon>
+                            </button>
+                          }
+                          <button
+                            mat-icon-button
+                            type="button"
+                            (click)="toggleRow(p.id)"
+                            [attr.aria-expanded]="expanded() === p.id"
+                            [attr.aria-label]="'Detalhes de ' + p.supplierName"
+                          >
+                            <mat-icon>{{
+                              expanded() === p.id ? 'expand_less' : 'expand_more'
+                            }}</mat-icon>
+                          </button>
+                        </td>
+                      </tr>
+                      @if (expanded() === p.id) {
+                        <tr class="details">
+                          <td colspan="6">
+                            <dl>
+                              <div>
+                                <dt>Prazo de execução</dt>
+                                <dd>{{ p.executionDeadline || '—' }}</dd>
+                              </div>
+                              <div>
+                                <dt>Validade</dt>
+                                <dd>{{ p.validityDays }} dias</dd>
+                              </div>
+                              <div>
+                                <dt>Enviada em</dt>
+                                <dd>{{ dateTime(p.submittedAt) }}</dd>
+                              </div>
+                              @if (p.specialConditions) {
+                                <div class="wide">
+                                  <dt>Condições</dt>
+                                  <dd>{{ p.specialConditions }}</dd>
+                                </div>
+                              }
+                              @if (p.notes) {
+                                <div class="wide">
+                                  <dt>Observações</dt>
+                                  <dd>{{ p.notes }}</dd>
+                                </div>
+                              }
+                            </dl>
+                            @if (p.mode === 'ONLINE' || d.items.length) {
+                              <table class="data mini">
+                                @for (it of d.items; track it.id) {
+                                  <tr>
+                                    <td>{{ it.description }}</td>
+                                    <td class="num">
+                                      @if (price(p, it.id) !== null) {
+                                        {{ money(price(p, it.id)) }} × {{ qty(it.quantity) }}
+                                      } @else {
+                                        <span class="muted">no arquivo</span>
+                                      }
+                                    </td>
+                                  </tr>
+                                }
+                              </table>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </section>
+        }
+      </div>
+
+      <!-- Detalhes ----------------------------------------------------------------- -->
+      <section class="card info" aria-labelledby="t-det">
+        <h2 id="t-det"><mat-icon aria-hidden="true">description</mat-icon> Detalhes</h2>
+        <p class="pre">{{ d.description }}</p>
+        <table class="data mini">
+          <thead>
+            <tr>
+              <th scope="col">Item</th>
+              <th scope="col">Unid.</th>
+              <th scope="col" class="num">Qtd.</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (i of d.items; track i.id) {
+              <tr>
+                <td>{{ i.position }}. {{ i.description }}</td>
+                <td>{{ i.unit }}</td>
+                <td class="num">{{ qty(i.quantity) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <dl>
+          <div>
+            <dt>Dirigida a</dt>
+            <dd>{{ d.audienceLabel }}</dd>
+          </div>
+          <div>
+            <dt>Territórios</dt>
+            <dd>{{ territoryLabels() }}</dd>
+          </div>
+          @if (d.executionMunicipalityName || d.location) {
+            <div>
+              <dt>Onde</dt>
+              <dd>
+                {{ d.location }}
+                {{ d.executionMunicipalityName ? '(' + d.executionMunicipalityName + ')' : '' }}
+              </dd>
+            </div>
+          }
+          @if (d.schedule) {
+            <div>
+              <dt>Quando</dt>
+              <dd>{{ d.schedule }}</dd>
+            </div>
+          }
+          @if (d.executionDeadline) {
+            <div>
+              <dt>Prazo de execução</dt>
+              <dd>{{ d.executionDeadline }}</dd>
+            </div>
+          }
+          @if (d.paymentTerms) {
+            <div>
+              <dt>Pagamento</dt>
+              <dd>{{ d.paymentTerms }}</dd>
+            </div>
+          }
+          @if (d.requirements) {
+            <div>
+              <dt>Requisitos</dt>
+              <dd class="pre">{{ d.requirements }}</dd>
+            </div>
+          }
+          @if (d.publishedAt) {
+            <div>
+              <dt>Publicada em</dt>
+              <dd>{{ dateTime(d.publishedAt) }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+    </div>
+  }
+</div>

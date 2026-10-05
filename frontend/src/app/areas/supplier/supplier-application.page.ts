@@ -1,4 +1,5 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { AreaTabs } from '../shared/area-tabs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -100,6 +101,7 @@ const ACCEPT = '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png';
 @Component({
   selector: 'app-supplier-application-page',
   imports: [
+    AreaTabs,
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,

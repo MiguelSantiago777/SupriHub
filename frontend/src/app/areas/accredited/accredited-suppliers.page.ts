@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { AreaTabs } from '../shared/area-tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -18,7 +19,7 @@ import { SupplyLine } from '../../core/models';
 /** Cadastro de credenciados — uso interno da equipe do Instituto (D-027). */
 @Component({
   selector: 'app-accredited-suppliers-page',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [AreaTabs, RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   template: `
     <header class="page-header">
       <div class="container">
@@ -30,6 +31,7 @@ import { SupplyLine } from '../../core/models';
         </p>
       </div>
     </header>
+    <app-area-tabs />
 
     <div class="container page">
       <form class="toolbar" role="search" (submit)="$event.preventDefault(); load(0)">

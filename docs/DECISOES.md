@@ -167,6 +167,56 @@ Divergência registrada para a Comissão avaliar a publicação por outro meio.
 - **Autorização de divulgação:** como não há publicação, a caixa do Anexo II, item 5,
   saiu do formulário. A coluna `publish_woman_led` (V11) ficou sem uso.
 
+**D-040 — Oportunidades: quem abre e o que o fornecedor vê** · Fase 2A · vigente (decisão do usuário)
+- **Quem abre:** a Comissão (ou o ADMIN) cadastra e publica direto a parte 5 do DFD-NATA
+  (Anexo VI): título, descrição, itens, linha, territórios, local e prazos. O fluxo completo
+  do DFD, com pedido do gestor e atesto de saldo pelo Financeiro (partes 1 a 4 e 6), fica
+  para depois.
+- **Faixa:** sai do valor estimado e dos parâmetros vigentes (`BandPolicy`). O valor
+  estimado **nunca** é exibido ao fornecedor.
+- **Prazo mínimo para propostas:** `band2_min_proposal_business_days` (3) e
+  `band3_min_proposal_business_days` (5), conferidos na publicação.
+- **Quem participa:** fornecedor com a linha da oportunidade e algum território em comum.
+  Se a oportunidade for exclusiva a mulheres, só negócio liderado por mulher. Nas Faixas 1
+  e 2, só credenciado vigente. Na Faixa 3, também quem tem requerimento enviado ou em
+  ajuste (D-033).
+- **Onde aparece:** só na aba "Editais em aberto" de quem tem login, inclusive a Faixa 3.
+  A Política (art. 27) manda publicar no sítio as chamadas da Faixa 3 e seus resultados;
+  divergência registrada, como em D-027.
+
+**D-041 — Rodízio da Faixa 1** · Fase 2A · vigente
+Política art. 13, Manual 4.1 e D-034. Ao publicar, o sistema convida o primeiro da fila.
+A ordem: quem nunca foi selecionado, depois quem está há mais tempo sem seleção, depois o
+credenciamento mais antigo.
+- O convidado tem `band1_acceptance_business_days` (2) para **aceitar enviando o preço**
+  (proposta) ou recusar.
+- Recusa, falta de resposta no prazo (job de hora em hora) ou preço recusado pela Comissão
+  passam a vez ao seguinte.
+- A Comissão **confere o preço e confirma** a seleção. A conferência automática contra o
+  Banco de Preços (teto = média + 10%) entra quando o Banco existir.
+- Sem ninguém na fila, a Comissão amplia o território (T2/T3, Manual 4.3).
+
+**D-042 — Propostas e modelo do Anexo VII** · Fase 2A · vigente (pedido do usuário)
+O fornecedor escolhe como enviar:
+- **Preencher no sistema:** preço unitário de cada item; o total é calculado.
+- **Modelo do Instituto:** Anexo VII em Word (.docx, gerado sem dependência externa) já
+  preenchido com os dados da oportunidade e do fornecedor (porte, liderado por mulher e
+  território da sede marcados). Ele preenche, assina e envia de volta (PDF, Word ou foto).
+- **Proposta própria:** em PDF, Word ou foto.
+
+Regras comuns:
+- Nos dois modos com arquivo, o **valor total é digitado no sistema**, porque é ele que
+  entra no julgamento.
+- Validade mínima `proposal_validity_days` (30) e declaração do Anexo VII obrigatórias.
+- Para MEI e pessoa física a tela recomenda o modelo; para as empresas, preencher no
+  sistema.
+- **Sigilo:** até o prazo, a Comissão só vê a quantidade de propostas. Depois vê o mapa
+  ordenado pelo total, com o território da sede calculado para a oportunidade.
+- Nas Faixas 2 e 3, o fornecedor pode substituir ou retirar a proposta até o prazo.
+
+O julgamento (empate ficto, preferência local, desempate por equidade, direito de cobrir
+e ata) é a Fase 2, parte B.
+
 ## 3. Pontos em aberto do prompt (§12) — padrões adotados
 
 **D-030 — Visibilidade dos editais** · Fase 2 · padrão

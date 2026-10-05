@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { AreaTabs } from '../shared/area-tabs';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -39,6 +40,7 @@ const DECISIONS: { value: Decision; label: string; icon: string; hint: string }[
 @Component({
   selector: 'app-application-review-page',
   imports: [
+    AreaTabs,
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,
@@ -71,6 +73,7 @@ const DECISIONS: { value: Decision; label: string; icon: string; hint: string }[
         }
       </div>
     </header>
+    <app-area-tabs />
 
     <div class="container page">
       @if (error()) {
