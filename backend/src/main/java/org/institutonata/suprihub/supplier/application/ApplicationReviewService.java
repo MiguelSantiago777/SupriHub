@@ -121,7 +121,9 @@ public class ApplicationReviewService {
     public SupplierApplication reject(long id, long reviewerId, String reason, long version) {
         SupplierApplication app = underAnalysis(id, version);
         Instant now = clock.instant();
-        app.reject(reviewerId, reason, now);
+        LocalDate appealDeadline = calendar.calendar().addBusinessDays(calendar.today(),
+                parameters.integer(ParameterKey.APPEAL_FILING_BUSINESS_DAYS));
+        app.reject(reviewerId, reason, appealDeadline, now);
         history.save(new ApplicationEvent(app.getId(), app.getStatus(), app.getDecisionReason(), reviewerId, now));
         audit.record(SupplierEvents.AGGREGATE, id, "REJECT", Map.of("status", "SUBMITTED"),
                 Map.of("status", app.getStatus().name()), app.getDecisionReason());

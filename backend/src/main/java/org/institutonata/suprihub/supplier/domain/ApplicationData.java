@@ -40,6 +40,7 @@ public record ApplicationData(
         String pixKey,
         String accountHolder,
         boolean womanLed,
+        boolean publishWomanLed,
         Race race,
         boolean cadUnico,
         String nis,

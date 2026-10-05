@@ -121,6 +121,8 @@ public class SupplierApplication {
 
     @Column(name = "woman_led", nullable = false)
     private boolean womanLed;
+    @Column(name = "publish_woman_led", nullable = false)
+    private boolean publishWomanLed;
     @Enumerated(EnumType.STRING)
     private Race race;
     @Column(name = "cad_unico", nullable = false)
@@ -146,6 +148,8 @@ public class SupplierApplication {
     private String decisionReason;
     @Column(name = "accreditation_valid_until")
     private LocalDate accreditationValidUntil;
+    @Column(name = "appeal_deadline")
+    private LocalDate appealDeadline;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -201,6 +205,7 @@ public class SupplierApplication {
         this.pixKey = trim(d.pixKey());
         this.accountHolder = trim(d.accountHolder());
         this.womanLed = d.womanLed();
+        this.publishWomanLed = d.womanLed() && d.publishWomanLed();
         this.race = d.race();
         this.cadUnico = d.cadUnico();
         this.nis = d.cadUnico() ? digits(d.nis()) : null;
@@ -233,6 +238,7 @@ public class SupplierApplication {
         decidedAt = null;
         decidedBy = null;
         decisionReason = null;
+        appealDeadline = null;
         updatedAt = now;
     }
 
@@ -254,13 +260,33 @@ public class SupplierApplication {
         updatedAt = now;
     }
 
-    public void reject(long reviewerId, String reason, Instant now) {
+    public void reject(long reviewerId, String reason, LocalDate appealDeadline, Instant now) {
         requireUnderAnalysis();
         status = ApplicationStatus.REJECTED;
         decidedAt = now;
         decidedBy = reviewerId;
         decisionReason = reason.trim();
+        this.appealDeadline = appealDeadline;
         updatedAt = now;
+    }
+
+    /** Recurso provido (reconsideração da Comissão ou decisão da Diretoria): passa a habilitado. */
+    public void approveOnAppeal(long deciderId, String reason, LocalDate validUntil, Instant now) {
+        if (status != ApplicationStatus.REJECTED) {
+            throw new IllegalStateException("Recurso só reverte inabilitação; situação: " + status);
+        }
+        status = ApplicationStatus.APPROVED;
+        decidedAt = now;
+        decidedBy = deciderId;
+        decisionReason = reason.trim();
+        accreditationValidUntil = validUntil;
+        appealDeadline = null;
+        updatedAt = now;
+    }
+
+    /** Ainda dentro do prazo de recurso (inclusive o último dia). */
+    public boolean canAppeal(LocalDate today) {
+        return status == ApplicationStatus.REJECTED && appealDeadline != null && !today.isAfter(appealDeadline);
     }
 
     private void requireUnderAnalysis() {
@@ -425,6 +451,14 @@ public class SupplierApplication {
 
     public Race getRace() {
         return race;
+    }
+
+    public boolean isPublishWomanLed() {
+        return publishWomanLed;
+    }
+
+    public LocalDate getAppealDeadline() {
+        return appealDeadline;
     }
 
     public boolean isCadUnico() {

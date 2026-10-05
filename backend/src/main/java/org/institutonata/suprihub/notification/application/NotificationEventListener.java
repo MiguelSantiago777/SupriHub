@@ -19,8 +19,10 @@ import org.institutonata.suprihub.messaging.infra.RabbitTopology;
 import org.institutonata.suprihub.notification.application.NotificationService.Recipient;
 import org.institutonata.suprihub.notification.domain.MessageChannel.ChannelType;
 import org.institutonata.suprihub.shared.config.SupriHubProperties;
+import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierEvents;
+import org.institutonata.suprihub.supplier.infra.AppealRepository;
 import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,16 +47,18 @@ public class NotificationEventListener {
     private final AppUserRepository users;
     private final VerificationTokenService tokens;
     private final SupplierApplicationRepository applications;
+    private final AppealRepository appeals;
     private final String frontendUrl;
 
     public NotificationEventListener(IdempotentConsumer idempotency, NotificationService notifications,
             AppUserRepository users, VerificationTokenService tokens, SupplierApplicationRepository applications,
-            SupriHubProperties props) {
+            AppealRepository appeals, SupriHubProperties props) {
         this.idempotency = idempotency;
         this.notifications = notifications;
         this.users = users;
         this.tokens = tokens;
         this.applications = applications;
+        this.appeals = appeals;
         this.frontendUrl = props.frontendUrl();
     }
 
@@ -107,8 +111,59 @@ public class NotificationEventListener {
                     email(user, "application-rejected", "Resultado do seu requerimento " + app.getProtocol(), event,
                             Map.of("protocol", app.getProtocol(), "reason", app.getDecisionReason(),
                                     "link", frontendUrl + "/fornecedor")));
+            case SupplierEvents.APPEAL_FILED -> withAppeal(event, (user, app, appeal) -> {
+                email(user, "appeal-filed", "Recebemos seu recurso — " + app.getProtocol(), event,
+                        Map.of("protocol", app.getProtocol(), "dueDate", date(appeal.getReconsiderationDue()),
+                                "link", frontendUrl + "/fornecedor"));
+                notifyRole(AppRole.COMMISSION, event, "appeal-received", "Recurso a analisar: " + app.getProtocol(),
+                        Map.of("protocol", app.getProtocol(), "supplierName", nz(app.getLegalName()),
+                                "stage", "Comissão (reconsiderar ou encaminhar à Diretoria)",
+                                "dueDate", date(appeal.getReconsiderationDue()),
+                                "link", frontendUrl + "/recursos/" + appeal.getId()));
+            });
+            case SupplierEvents.APPEAL_FORWARDED -> withAppeal(event, (user, app, appeal) -> {
+                email(user, "appeal-forwarded", "Seu recurso foi encaminhado à Diretoria", event,
+                        Map.of("protocol", app.getProtocol(), "dueDate", date(appeal.getBoardDue()),
+                                "link", frontendUrl + "/fornecedor"));
+                notifyRole(AppRole.BOARD, event, "appeal-received", "Recurso para decidir: " + app.getProtocol(),
+                        Map.of("protocol", app.getProtocol(), "supplierName", nz(app.getLegalName()),
+                                "stage", "Diretoria (decisão final)", "dueDate", date(appeal.getBoardDue()),
+                                "link", frontendUrl + "/recursos/" + appeal.getId()));
+            });
+            case SupplierEvents.APPEAL_GRANTED -> withAppeal(event, (user, app, appeal) ->
+                    email(user, "appeal-granted", "Recurso aceito: você está credenciado", event,
+                            Map.of("protocol", app.getProtocol(), "reason", nz(app.getDecisionReason()),
+                                    "validUntil", date(app.getAccreditationValidUntil()),
+                                    "link", frontendUrl + "/fornecedor")));
+            case SupplierEvents.APPEAL_DENIED -> withAppeal(event, (user, app, appeal) ->
+                    email(user, "appeal-denied", "Decisão do seu recurso — " + app.getProtocol(), event,
+                            Map.of("protocol", app.getProtocol(), "reason", nz(appeal.getBoardReason()),
+                                    "link", frontendUrl + "/fornecedor")));
             default -> log.debug("Evento {} sem notificação associada", event.type());
         }
+    }
+
+    @FunctionalInterface
+    private interface AppealAction {
+        void accept(AppUser user, SupplierApplication app, Appeal appeal);
+    }
+
+    private void withAppeal(EventEnvelope event, AppealAction action) {
+        Long appealId = event.payloadLong("appealId");
+        appeals.findById(appealId).ifPresentOrElse(
+                appeal -> withApplication(event, (user, app) -> action.accept(user, app, appeal)),
+                () -> log.info("Recurso #{} inexistente — notificação {} ignorada", appealId, event.type()));
+    }
+
+    private void notifyRole(AppRole role, EventEnvelope event, String template, String subject,
+            Map<String, Object> vars) {
+        users.searchByRole(role, "", Pageable.unpaged()).stream()
+                .filter(AppUser::isEnabled)
+                .forEach(member -> email(member, template, subject, event, vars));
+    }
+
+    private static String nz(String s) {
+        return s == null ? "" : s;
     }
 
     private void withApplication(EventEnvelope event, BiConsumer<AppUser, SupplierApplication> action) {

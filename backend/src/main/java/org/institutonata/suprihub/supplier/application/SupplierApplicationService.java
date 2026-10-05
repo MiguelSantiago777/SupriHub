@@ -38,6 +38,7 @@ import org.institutonata.suprihub.supplier.domain.DocumentType;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierDocument;
 import org.institutonata.suprihub.supplier.domain.SupplierEvents;
+import org.institutonata.suprihub.supplier.infra.AppealRepository;
 import org.institutonata.suprihub.supplier.infra.ApplicationEventRepository;
 import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
 import org.institutonata.suprihub.supplier.infra.SupplierDocumentRepository;
@@ -65,12 +66,14 @@ public class SupplierApplicationService {
     private final CalendarService calendar;
     private final DomainEvents events;
     private final AuditService audit;
+    private final AppealRepository appeals;
     private final Clock clock;
 
     public SupplierApplicationService(SupplierApplicationRepository applications, SupplierDocumentRepository documents,
             ApplicationEventRepository history, AppUserRepository users, MunicipalityRepository municipalities,
             SupplyLineRepository supplyLines, FileStorage storage, FileScanner scanner, ParameterService parameters,
-            CalendarService calendar, DomainEvents events, AuditService audit, Clock clock) {
+            CalendarService calendar, DomainEvents events, AuditService audit, AppealRepository appeals,
+            Clock clock) {
         this.applications = applications;
         this.documents = documents;
         this.history = history;
@@ -83,6 +86,7 @@ public class SupplierApplicationService {
         this.calendar = calendar;
         this.events = events;
         this.audit = audit;
+        this.appeals = appeals;
         this.clock = clock;
     }
 
@@ -237,7 +241,19 @@ public class SupplierApplicationService {
                     ? "Seu credenciamento já foi aprovado. Para atualizar dados, fale com a Comissão."
                     : "Seu requerimento está em análise e não pode ser alterado agora.", HttpStatus.CONFLICT);
         }
+        if (hasOpenAppeal(app)) {
+            throw new BusinessException("APPLICATION_UNDER_APPEAL",
+                    "Seu recurso está em análise. Aguarde a decisão para alterar o requerimento.",
+                    HttpStatus.CONFLICT);
+        }
         return app;
+    }
+
+    /** Com recurso em andamento, o requerimento fica com a Comissão/Diretoria. */
+    public boolean hasOpenAppeal(SupplierApplication app) {
+        return app.getStatus() == ApplicationStatus.REJECTED
+                && appeals.findFirstByApplicationIdOrderByFiledAtDesc(app.getId())
+                        .map(a -> a.getStatus().isOpen()).orElse(false);
     }
 
     /** Tipo real pelo conteúdo (não confia na extensão nem no Content-Type do navegador). */

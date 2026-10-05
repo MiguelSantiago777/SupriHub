@@ -1,8 +1,10 @@
 package org.institutonata.suprihub.supplier.infra;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.institutonata.suprihub.catalog.domain.Territory;
 import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,21 @@ public interface SupplierApplicationRepository extends JpaRepository<SupplierApp
             """)
     Page<SupplierApplication> search(@Param("status") ApplicationStatus status, @Param("q") String q,
             @Param("digits") String digits, Pageable pageable);
+
+    /** Lista pública: habilitados com credenciamento vigente, por linha, território e nome. */
+    @Query("""
+            SELECT DISTINCT a FROM SupplierApplication a LEFT JOIN a.lines l
+            WHERE a.status = :status
+              AND a.accreditationValidUntil >= :today
+              AND (:line = '' OR l.code = :line)
+              AND (:territory IS NULL OR :territory MEMBER OF a.territories)
+              AND (:q = ''
+                   OR lower(coalesce(a.legalName, '')) LIKE lower(concat('%', :q, '%'))
+                   OR lower(coalesce(a.tradeName, '')) LIKE lower(concat('%', :q, '%')))
+            """)
+    Page<SupplierApplication> searchPublic(@Param("status") ApplicationStatus status, @Param("today") LocalDate today,
+            @Param("line") String line, @Param("territory") Territory territory, @Param("q") String q,
+            Pageable pageable);
 
     @Query("SELECT a.status, COUNT(a) FROM SupplierApplication a GROUP BY a.status")
     List<Object[]> countByStatus();

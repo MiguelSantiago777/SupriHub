@@ -15,6 +15,7 @@ import org.institutonata.suprihub.supplier.api.SupplierDtos.ApplicationDto;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.ApplicationSummary;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.DecisionRequest;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.RequiredMessageRequest;
+import org.institutonata.suprihub.supplier.application.AppealService;
 import org.institutonata.suprihub.supplier.application.ApplicationReviewService;
 import org.institutonata.suprihub.supplier.application.SupplierApplicationService;
 import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
@@ -42,12 +43,14 @@ public class ApplicationReviewController {
     private final ApplicationReviewService review;
     private final SupplierApplicationService applications;
     private final CalendarService calendar;
+    private final AppealService appeals;
 
     public ApplicationReviewController(ApplicationReviewService review, SupplierApplicationService applications,
-            CalendarService calendar) {
+            CalendarService calendar, AppealService appeals) {
         this.review = review;
         this.applications = applications;
         this.calendar = calendar;
+        this.appeals = appeals;
     }
 
     @GetMapping
@@ -103,6 +106,6 @@ public class ApplicationReviewController {
 
     private ApplicationDto dto(SupplierApplication app) {
         return ApplicationDto.of(app, applications.documents(app.getId()), applications.history(app.getId()),
-                List.of());
+                List.of(), appeals.latestFor(app.getId()).orElse(null), calendar.today());
     }
 }

@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Size;
 import org.institutonata.suprihub.catalog.domain.SupplyLine;
 import org.institutonata.suprihub.catalog.domain.Territory;
 import org.institutonata.suprihub.shared.privacy.DocumentMasker;
+import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.supplier.domain.ApplicationCompleteness.Issue;
 import org.institutonata.suprihub.supplier.domain.ApplicationData;
 import org.institutonata.suprihub.supplier.domain.ApplicationEvent;
@@ -59,6 +60,7 @@ public final class SupplierDtos {
             @Size(max = 140) String pixKey,
             @Size(max = 200) String accountHolder,
             boolean womanLed,
+            boolean publishWomanLed,
             Race race,
             boolean cadUnico,
             @Size(max = 11) String nis,
@@ -70,7 +72,7 @@ public final class SupplierDtos {
                     addressNumber, addressComplement, district, municipalityId, cep, phone, contactEmail, website,
                     representativeName, representativeCpf, representativeRole, lineCodes, linesDescription,
                     territories, territoriesNote, bankName, bankBranch, bankAccount, bankAccountType, pixKey,
-                    accountHolder, womanLed, race, cadUnico, nis, declarationsAccepted);
+                    accountHolder, womanLed, publishWomanLed, race, cadUnico, nis, declarationsAccepted);
         }
 
         @Override
@@ -160,6 +162,7 @@ public final class SupplierDtos {
             String pixKey,
             String accountHolder,
             boolean womanLed,
+            boolean publishWomanLed,
             Race race,
             boolean cadUnico,
             String nis,
@@ -172,14 +175,24 @@ public final class SupplierDtos {
             Instant decidedAt,
             String decisionReason,
             LocalDate accreditationValidUntil,
+            LocalDate appealDeadline,
+            boolean canAppeal,
+            AppealDto appeal,
             boolean editable,
             List<ChecklistItem> checklist,
             List<HistoryDto> history,
             List<IssueDto> pendingItems,
             long version) {
 
+        /**
+         * @param appeal recurso mais recente (ou {@code null})
+         * @param today  data de referência para o prazo de recurso
+         */
         static ApplicationDto of(SupplierApplication a, List<SupplierDocument> docs, List<ApplicationEvent> events,
-                List<Issue> pending) {
+                List<Issue> pending, Appeal appeal, LocalDate today) {
+            boolean openAppeal = appeal != null && appeal.getStatus().isOpen();
+            boolean appealedThisDecision = appeal != null && a.getDecidedAt() != null
+                    && !appeal.getFiledAt().isBefore(a.getDecidedAt());
             Map<DocumentType, SupplierDocument> byType = new java.util.EnumMap<>(DocumentType.class);
             docs.forEach(d -> byType.put(d.getType(), d));
             List<ChecklistItem> checklist = Arrays.stream(DocumentType.values())
@@ -201,10 +214,14 @@ public final class SupplierDtos {
                     a.sortedLines().stream().map(LineDto::of).toList(), a.getLinesDescription(),
                     a.getTerritories(), a.getTerritoriesNote(), a.getBankName(), a.getBankBranch(),
                     a.getBankAccount(), a.getBankAccountType(), a.getPixKey(), a.getAccountHolder(),
-                    a.isWomanLed(), a.getRace(), a.isCadUnico(), a.getNis(), a.declarationsAccepted(),
+                    a.isWomanLed(), a.isPublishWomanLed(), a.getRace(), a.isCadUnico(), a.getNis(),
+                    a.declarationsAccepted(),
                     a.getDeclarationsAcceptedAt(), a.getSubmittedAt(), a.getAnalysisDueDate(),
                     a.getAdjustmentMessage(), a.getAdjustmentDueDate(), a.getDecidedAt(), a.getDecisionReason(),
-                    a.getAccreditationValidUntil(), a.getStatus().isEditableBySupplier(), checklist,
+                    a.getAccreditationValidUntil(), a.getAppealDeadline(),
+                    a.canAppeal(today) && !appealedThisDecision && !openAppeal,
+                    appeal == null ? null : AppealDto.of(appeal),
+                    a.getStatus().isEditableBySupplier() && !openAppeal, checklist,
                     events.stream().map(e -> HistoryDto.of(e, a)).toList(),
                     pending.stream().map(IssueDto::of).toList(), a.getVersion());
         }
@@ -245,6 +262,102 @@ public final class SupplierDtos {
                     a.sortedLines().stream().map(SupplyLine::getCode).toList(), a.isWomanLed(), a.getSubmittedAt(),
                     a.getAnalysisDueDate(), a.getAdjustmentDueDate(), a.getAccreditationValidUntil(),
                     due != null && due.isBefore(today));
+        }
+    }
+
+    // ------------------------------------------------------------------ recurso
+
+    public record AttachmentDto(String filename, String contentType, long sizeBytes) {
+    }
+
+    public record AppealDto(
+            Long id,
+            Appeal.Status status,
+            String statusLabel,
+            String reasons,
+            String request,
+            AttachmentDto attachment,
+            Instant filedAt,
+            LocalDate reconsiderationDue,
+            String commissionReason,
+            Instant commissionDecidedAt,
+            LocalDate boardDue,
+            String boardReason,
+            Instant boardDecidedAt,
+            long version) {
+
+        static AppealDto of(Appeal a) {
+            Appeal.Attachment at = a.attachment();
+            return new AppealDto(a.getId(), a.getStatus(), a.getStatus().label(), a.getReasons(), a.getRequest(),
+                    at == null ? null : new AttachmentDto(at.filename(), at.contentType(), at.sizeBytes()),
+                    a.getFiledAt(), a.getReconsiderationDue(), a.getCommissionReason(), a.getCommissionDecidedAt(),
+                    a.getBoardDue(), a.getBoardReason(), a.getBoardDecidedAt(), a.getVersion());
+        }
+    }
+
+    public record AppealSummary(
+            Long id,
+            Appeal.Status status,
+            String statusLabel,
+            Long applicationId,
+            String protocol,
+            String legalName,
+            String supplierTypeLabel,
+            Instant filedAt,
+            LocalDate dueDate,
+            boolean overdue) {
+
+        static AppealSummary of(Appeal a, SupplierApplication app, LocalDate today) {
+            LocalDate due = a.getStatus() == Appeal.Status.FILED ? a.getReconsiderationDue()
+                    : a.getStatus() == Appeal.Status.FORWARDED ? a.getBoardDue() : null;
+            return new AppealSummary(a.getId(), a.getStatus(), a.getStatus().label(), app.getId(),
+                    app.getProtocol(), app.getLegalName(),
+                    app.getSupplierType() == null ? null : app.getSupplierType().label(), a.getFiledAt(), due,
+                    due != null && due.isBefore(today));
+        }
+    }
+
+    public record AppealDetail(AppealDto appeal, ApplicationDto application) {
+    }
+
+    public record AppealDecisionRequest(
+            @NotBlank(message = "Escreva a motivação.") @Size(max = 3000) String reason,
+            long version) {
+    }
+
+    public record BoardDecisionRequest(
+            boolean granted,
+            @NotBlank(message = "Escreva a motivação.") @Size(max = 3000) String reason,
+            long version) {
+    }
+
+    // ------------------------------------------------------------ lista pública
+
+    /**
+     * Credenciado na lista pública (Política art. 27). Sem contatos, dados bancários, raça/cor
+     * ou CadÚnico (art. 28); "liderado por mulher" só com autorização (Anexo II, item 5).
+     */
+    public record PublicSupplier(
+            Long id,
+            String name,
+            String legalName,
+            String supplierTypeLabel,
+            String documentMasked,
+            String municipalityName,
+            List<LineDto> lines,
+            Set<Territory> territories,
+            boolean womanLed,
+            LocalDate validUntil) {
+
+        static PublicSupplier of(SupplierApplication a) {
+            String name = a.getTradeName() != null ? a.getTradeName() : a.getLegalName();
+            boolean individual = a.getSupplierType() != null && a.getSupplierType().isIndividual();
+            return new PublicSupplier(a.getId(), name, individual ? null : a.getLegalName(),
+                    a.getSupplierType() == null ? null : a.getSupplierType().label(),
+                    individual || a.getDocumentNumber() == null ? null : DocumentMasker.mask(a.getDocumentNumber()),
+                    a.getMunicipality() == null ? null : a.getMunicipality().getName(),
+                    a.sortedLines().stream().map(LineDto::of).toList(), a.getTerritories(),
+                    a.isWomanLed() && a.isPublishWomanLed(), a.getAccreditationValidUntil());
         }
     }
 }

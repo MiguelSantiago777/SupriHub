@@ -3,6 +3,7 @@ package org.institutonata.suprihub.supplier.api;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.supplier.domain.SupplierDocument;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.CacheControl;
@@ -18,13 +19,22 @@ final class Downloads {
     }
 
     static ResponseEntity<InputStreamResource> of(SupplierDocument doc, InputStream content) {
+        return of(doc.getOriginalFilename(), doc.getContentType(), doc.getSizeBytes(), content);
+    }
+
+    static ResponseEntity<InputStreamResource> of(Appeal.Attachment att, InputStream content) {
+        return of(att.filename(), att.contentType(), att.sizeBytes(), content);
+    }
+
+    private static ResponseEntity<InputStreamResource> of(String filename, String contentType, long size,
+            InputStream content) {
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(doc.getContentType()))
-                .contentLength(doc.getSizeBytes())
+                .contentType(MediaType.parseMediaType(contentType))
+                .contentLength(size)
                 .cacheControl(CacheControl.noStore())
                 .header("X-Content-Type-Options", "nosniff")
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()
-                        .filename(doc.getOriginalFilename(), StandardCharsets.UTF_8).build().toString())
+                        .filename(filename, StandardCharsets.UTF_8).build().toString())
                 .body(new InputStreamResource(content));
     }
 }
