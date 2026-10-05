@@ -25,34 +25,42 @@
           <a mat-stroked-button routerLink="/catalogo">Ver o que o Instituto compra</a>
         }
       </div>
-      <ul class="trust">
-        <li><mat-icon aria-hidden="true">check_circle</mat-icon> Sem custo</li>
-        <li><mat-icon aria-hidden="true">check_circle</mat-icon> Tudo pela internet</li>
-        <li><mat-icon aria-hidden="true">check_circle</mat-icon> Vale por 24 meses</li>
-      </ul>
     </div>
 
     <aside class="journey" aria-label="Como fica o seu credenciamento">
       <div class="journey-head">
-        <span class="journey-title">Sua jornada</span>
+        <div>
+          <span class="journey-title">Sua jornada</span>
+          <span class="journey-sub">2 de 4 etapas concluídas</span>
+        </div>
         <span class="badge badge-success">Exemplo</span>
       </div>
+      <div class="journey-progress" aria-hidden="true"><span></span></div>
       <ol>
         <li class="done">
           <span class="dot"><mat-icon aria-hidden="true">check</mat-icon></span>
-          <div><strong>Conta criada</strong><span>E-mail confirmado</span></div>
+          <div class="step-text">
+            <strong>Conta criada</strong><span>E-mail confirmado</span>
+          </div>
         </li>
         <li class="done">
           <span class="dot"><mat-icon aria-hidden="true">check</mat-icon></span>
-          <div><strong>Documentos enviados</strong><span>CCMEI, certidões e anexos</span></div>
+          <div class="step-text">
+            <strong>Documentos enviados</strong><span>CCMEI, certidões e anexos</span>
+          </div>
         </li>
-        <li class="current">
+        <li class="current" aria-current="step">
           <span class="dot"><mat-icon aria-hidden="true">hourglass_top</mat-icon></span>
-          <div><strong>Em análise</strong><span>Até 10 dias úteis pela Comissão</span></div>
+          <div class="step-text">
+            <strong>Em análise <em class="now">Agora</em></strong
+            ><span>Até 10 dias úteis pela Comissão</span>
+          </div>
         </li>
-        <li>
+        <li class="next">
           <span class="dot"><mat-icon aria-hidden="true">workspace_premium</mat-icon></span>
-          <div><strong>Credenciado</strong><span>Recebe oportunidades da sua linha</span></div>
+          <div class="step-text">
+            <strong>Credenciado</strong><span>Recebe oportunidades da sua linha</span>
+          </div>
         </li>
       </ol>
     </aside>
