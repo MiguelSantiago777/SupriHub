@@ -45,6 +45,14 @@ public interface SupplierApplicationRepository extends JpaRepository<SupplierApp
             @Param("line") String line, @Param("territory") Territory territory, @Param("q") String q,
             Pageable pageable);
 
+    /** Requerimentos nas situações informadas que incluem a linha (candidatos a uma oportunidade). */
+    @Query("""
+            SELECT DISTINCT a FROM SupplierApplication a JOIN a.lines l
+            WHERE l.code = :line AND a.status IN :statuses
+            """)
+    List<SupplierApplication> findByLineAndStatusIn(@Param("line") String line,
+            @Param("statuses") java.util.Collection<ApplicationStatus> statuses);
+
     @Query("SELECT a.status, COUNT(a) FROM SupplierApplication a GROUP BY a.status")
     List<Object[]> countByStatus();
 

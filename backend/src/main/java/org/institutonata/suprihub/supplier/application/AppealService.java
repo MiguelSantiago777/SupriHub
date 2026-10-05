@@ -22,6 +22,7 @@ import org.institutonata.suprihub.shared.error.NotFoundException;
 import org.institutonata.suprihub.shared.storage.FileScanner;
 import org.institutonata.suprihub.shared.storage.FileStorage;
 import org.institutonata.suprihub.shared.storage.FileStorage.StoredFile;
+import org.institutonata.suprihub.shared.storage.UploadedFiles;
 import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.supplier.domain.ApplicationEvent;
 import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
@@ -241,7 +242,7 @@ public class AppealService {
             throw new BusinessException("FILE_TOO_LARGE", "O anexo é maior que "
                     + parameters.integer(ParameterKey.UPLOAD_MAX_SIZE_MB) + " MB.", HttpStatus.PAYLOAD_TOO_LARGE);
         }
-        String contentType = SupplierApplicationService.detectContentType(file);
+        String contentType = UploadedFiles.detect(file, false);
         StoredFile stored;
         try (InputStream in = file.getInputStream()) {
             stored = storage.store("appeal-" + applicationId, file.getOriginalFilename(), in);
@@ -252,7 +253,7 @@ public class AppealService {
             storage.delete(stored.storageKey());
             throw new BusinessException("FILE_INFECTED", "O anexo foi recusado pela verificação de segurança.");
         }
-        return new Appeal.Attachment(SupplierApplicationService.safeFilename(file.getOriginalFilename()),
+        return new Appeal.Attachment(UploadedFiles.safeFilename(file.getOriginalFilename()),
                 contentType, stored.sizeBytes(), stored.sha256(), stored.storageKey());
     }
 

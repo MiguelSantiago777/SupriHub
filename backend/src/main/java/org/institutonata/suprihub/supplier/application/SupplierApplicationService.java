@@ -29,6 +29,7 @@ import org.institutonata.suprihub.shared.error.NotFoundException;
 import org.institutonata.suprihub.shared.storage.FileScanner;
 import org.institutonata.suprihub.shared.storage.FileStorage;
 import org.institutonata.suprihub.shared.storage.FileStorage.StoredFile;
+import org.institutonata.suprihub.shared.storage.UploadedFiles;
 import org.institutonata.suprihub.supplier.domain.ApplicationCompleteness;
 import org.institutonata.suprihub.supplier.domain.ApplicationCompleteness.Issue;
 import org.institutonata.suprihub.supplier.domain.ApplicationData;
@@ -133,7 +134,7 @@ public class SupplierApplicationService {
             throw new BusinessException("FILE_TOO_LARGE", "O arquivo é maior que "
                     + parameters.integer(ParameterKey.UPLOAD_MAX_SIZE_MB) + " MB.", HttpStatus.PAYLOAD_TOO_LARGE);
         }
-        String contentType = detectContentType(file);
+        String contentType = UploadedFiles.detect(file, false);
         StoredFile stored;
         try (InputStream in = file.getInputStream()) {
             stored = storage.store("supplier-" + app.getId(), file.getOriginalFilename(), in);
@@ -150,7 +151,7 @@ public class SupplierApplicationService {
             storage.delete(old.getStorageKey());
         });
         SupplierDocument doc = documents.save(new SupplierDocument(app.getId(), type,
-                safeFilename(file.getOriginalFilename()), contentType, stored.sizeBytes(), stored.sha256(),
+                UploadedFiles.safeFilename(file.getOriginalFilename()), contentType, stored.sizeBytes(), stored.sha256(),
                 stored.storageKey(), clock.instant()));
         audit.record("supplier_document", doc.getId(), "UPLOAD", null,
                 Map.of("applicationId", app.getId(), "type", type.name(), "sha256", stored.sha256()));
@@ -254,35 +255,5 @@ public class SupplierApplicationService {
         return app.getStatus() == ApplicationStatus.REJECTED
                 && appeals.findFirstByApplicationIdOrderByFiledAtDesc(app.getId())
                         .map(a -> a.getStatus().isOpen()).orElse(false);
-    }
-
-    /** Tipo real pelo conteúdo (não confia na extensão nem no Content-Type do navegador). */
-    static String detectContentType(MultipartFile file) {
-        byte[] head = new byte[8];
-        int read;
-        try (InputStream in = file.getInputStream()) {
-            read = in.readNBytes(head, 0, head.length);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Falha ao ler o arquivo enviado", e);
-        }
-        if (read >= 4 && head[0] == '%' && head[1] == 'P' && head[2] == 'D' && head[3] == 'F') {
-            return "application/pdf";
-        }
-        if (read >= 3 && (head[0] & 0xFF) == 0xFF && (head[1] & 0xFF) == 0xD8 && (head[2] & 0xFF) == 0xFF) {
-            return "image/jpeg";
-        }
-        if (read >= 8 && (head[0] & 0xFF) == 0x89 && head[1] == 'P' && head[2] == 'N' && head[3] == 'G') {
-            return "image/png";
-        }
-        throw new BusinessException("FILE_TYPE_NOT_ALLOWED", "Envie o documento em PDF, JPG ou PNG.");
-    }
-
-    static String safeFilename(String original) {
-        String name = original == null ? "" : original.replace('\\', '/');
-        name = name.substring(name.lastIndexOf('/') + 1).replaceAll("[\\p{Cntrl}\"<>|*?:]", "").trim();
-        if (name.isEmpty()) {
-            name = "documento";
-        }
-        return name.length() > 150 ? name.substring(name.length() - 150) : name;
     }
 }

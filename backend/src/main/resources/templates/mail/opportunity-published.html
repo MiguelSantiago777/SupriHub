@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{mail/fragments :: head}"></head>
+<body style="margin:0;background:#f4f4f4;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;">
+    <div th:replace="~{mail/fragments :: header}"></div>
+    <div style="padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.6;color:#1a1a1a;">
+        <p>Olá, <strong th:text="${name}">Maria</strong>!</p>
+        <p>Abriu uma <strong>nova oportunidade</strong> do Contrata + NATA na sua linha de fornecimento:</p>
+        <p style="font-size:19px;margin:16px 0;"><strong th:text="${title}">Cadeiras de plástico</strong></p>
+        <p>Nº <strong th:text="${number}">OP-2026-0001</strong><br>
+            Linha: <span th:text="${line}">L05</span><br>
+            <span th:text="${band}">Faixa 2</span><br>
+            Envie sua proposta até <strong th:text="${deadline}">20/10/2026 às 17:00</strong>.</p>
+        <p>Você pode preencher a proposta no sistema, baixar o modelo pronto (Word) ou enviar a sua própria.</p>
+        <p style="text-align:center;margin:28px 0;">
+            <a th:replace="~{mail/fragments :: button(${link}, 'Ver a oportunidade')}"></a>
+        </p>
+    </div>
+    <div th:replace="~{mail/fragments :: footer}"></div>
+</div>
+</body>
+</html>

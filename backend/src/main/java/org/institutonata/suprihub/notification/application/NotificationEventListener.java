@@ -1,8 +1,13 @@
 package org.institutonata.suprihub.notification.application;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -22,7 +27,12 @@ import org.institutonata.suprihub.shared.config.SupriHubProperties;
 import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierEvents;
+import org.institutonata.suprihub.proposal.infra.ProposalRepository;
 import org.institutonata.suprihub.supplier.infra.AppealRepository;
+import org.institutonata.suprihub.tender.application.EligibleSuppliers;
+import org.institutonata.suprihub.tender.domain.TenderEvents;
+import org.institutonata.suprihub.tender.infra.TenderInvitationRepository;
+import org.institutonata.suprihub.tender.infra.TenderRepository;
 import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +51,7 @@ public class NotificationEventListener {
     static final String CONSUMER = "notifications";
     private static final Logger log = LoggerFactory.getLogger(NotificationEventListener.class);
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");
 
     private final IdempotentConsumer idempotency;
     private final NotificationService notifications;
@@ -48,17 +59,29 @@ public class NotificationEventListener {
     private final VerificationTokenService tokens;
     private final SupplierApplicationRepository applications;
     private final AppealRepository appeals;
+    private final TenderRepository tenders;
+    private final TenderInvitationRepository invitations;
+    private final ProposalRepository proposals;
+    private final EligibleSuppliers eligibleSuppliers;
+    private final Clock clock;
     private final String frontendUrl;
 
     public NotificationEventListener(IdempotentConsumer idempotency, NotificationService notifications,
             AppUserRepository users, VerificationTokenService tokens, SupplierApplicationRepository applications,
-            AppealRepository appeals, SupriHubProperties props) {
+            AppealRepository appeals, TenderRepository tenders, TenderInvitationRepository invitations,
+            ProposalRepository proposals, EligibleSuppliers eligibleSuppliers, Clock clock,
+            SupriHubProperties props) {
         this.idempotency = idempotency;
         this.notifications = notifications;
         this.users = users;
         this.tokens = tokens;
         this.applications = applications;
         this.appeals = appeals;
+        this.tenders = tenders;
+        this.invitations = invitations;
+        this.proposals = proposals;
+        this.eligibleSuppliers = eligibleSuppliers;
+        this.clock = clock;
         this.frontendUrl = props.frontendUrl();
     }
 
@@ -139,6 +162,37 @@ public class NotificationEventListener {
                     email(user, "appeal-denied", "Decisão do seu recurso — " + app.getProtocol(), event,
                             Map.of("protocol", app.getProtocol(), "reason", nz(appeal.getBoardReason()),
                                     "link", frontendUrl + "/fornecedor")));
+            case TenderEvents.PUBLISHED -> tenders.findById(event.payloadLong("tenderId")).ifPresent(t -> {
+                Map<String, Object> vars = Map.of("number", t.getNumber(), "title", t.getTitle(),
+                        "line", t.getSupplyLine().getCode() + " · " + t.getSupplyLine().getShortName(),
+                        "band", t.getBand().label() + " — " + t.getBand().selectionMode(),
+                        "deadline", dateTime(t.getProposalDeadline()),
+                        "link", frontendUrl + "/fornecedor/editais/" + t.getId());
+                for (SupplierApplication app : eligibleSuppliers.of(t, LocalDate.now(clock))) {
+                    users.findById(app.getUserId()).filter(AppUser::isEnabled).ifPresent(user ->
+                            email(user, "opportunity-published", "Nova oportunidade: " + t.getTitle(), event, vars));
+                }
+            });
+            case TenderEvents.INVITATION_CREATED -> invitations.findById(event.payloadLong("invitationId"))
+                    .ifPresent(inv -> tenders.findById(inv.getTenderId()).ifPresent(t ->
+                            applications.findById(inv.getApplicationId())
+                                    .flatMap(app -> users.findById(app.getUserId()))
+                                    .filter(AppUser::isEnabled)
+                                    .ifPresent(user -> email(user, "opportunity-invitation",
+                                            "Você foi convidado: " + t.getTitle(), event,
+                                            Map.of("number", t.getNumber(), "title", t.getTitle(),
+                                                    "dueDate", date(inv.getDueDate()),
+                                                    "link", frontendUrl + "/fornecedor/editais/" + t.getId())))));
+            case TenderEvents.PROPOSAL_SUBMITTED -> proposals.findById(event.payloadLong("proposalId"))
+                    .ifPresent(pr -> tenders.findById(pr.getTenderId()).ifPresent(t ->
+                            applications.findById(pr.getApplicationId())
+                                    .flatMap(app -> users.findById(app.getUserId()))
+                                    .filter(AppUser::isEnabled)
+                                    .ifPresent(user -> email(user, "proposal-received",
+                                            "Recebemos sua proposta — " + t.getNumber(), event,
+                                            Map.of("number", t.getNumber(), "title", t.getTitle(),
+                                                    "total", money(pr.getTotalValue()),
+                                                    "link", frontendUrl + "/fornecedor/editais/" + t.getId())))));
             default -> log.debug("Evento {} sem notificação associada", event.type());
         }
     }
@@ -182,6 +236,14 @@ public class NotificationEventListener {
                 .filter(AppUser::isEnabled)
                 .forEach(member -> email(member, "application-received-commission",
                         "Novo requerimento na fila: " + app.getProtocol(), event, vars));
+    }
+
+    private String dateTime(Instant i) {
+        return i == null ? "" : DATE_TIME.format(i.atZone(clock.getZone()));
+    }
+
+    private static String money(BigDecimal v) {
+        return v == null ? "" : NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(v);
     }
 
     private static String date(LocalDate d) {

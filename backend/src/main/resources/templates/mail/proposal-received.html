@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{mail/fragments :: head}"></head>
+<body style="margin:0;background:#f4f4f4;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;">
+    <div th:replace="~{mail/fragments :: header}"></div>
+    <div style="padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.6;color:#1a1a1a;">
+        <p>Olá, <strong th:text="${name}">Maria</strong>!</p>
+        <p>Recebemos a sua proposta para a oportunidade <strong th:text="${number}">OP-2026-0001</strong> —
+            <span th:text="${title}">Cadeiras de plástico</span>.</p>
+        <p>Valor total informado: <strong th:text="${total}">R$ 1.000,00</strong></p>
+        <p>Até o fim do prazo você pode alterar ou retirar a proposta pela sua área. As propostas ficam em
+            sigilo até o prazo terminar.</p>
+        <p style="text-align:center;margin:28px 0;">
+            <a th:replace="~{mail/fragments :: button(${link}, 'Ver minha proposta')}"></a>
+        </p>
+    </div>
+    <div th:replace="~{mail/fragments :: footer}"></div>
+</div>
+</body>
+</html>
