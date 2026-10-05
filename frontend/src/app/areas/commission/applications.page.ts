@@ -242,6 +242,12 @@ const TABS: Tab[] = [
       padding-bottom: 0.25rem;
       margin-bottom: 1rem;
     }
+    @media (min-width: 900px) {
+      .tabs {
+        flex-wrap: wrap;
+        overflow: visible;
+      }
+    }
     .tabs button {
       display: inline-flex;
       align-items: center;

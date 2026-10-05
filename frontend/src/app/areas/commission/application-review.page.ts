@@ -234,6 +234,9 @@ const DECISIONS: { value: Decision; label: string; icon: string; hint: string }[
       .panel {
         position: sticky;
         top: 96px;
+        max-height: calc(100vh - 112px);
+        overflow-y: auto;
+        border-radius: var(--sh-radius);
       }
     }
     .panel {

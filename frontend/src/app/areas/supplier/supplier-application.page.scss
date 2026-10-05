@@ -75,15 +75,15 @@
     border-color: #f3b8b2;
   }
 
-  .icon-tile.error {
+  &.info .icon-tile,
+  &.warning .icon-tile,
+  &.success .icon-tile,
+  &.error .icon-tile {
     background: #fff;
-    color: var(--sh-error);
   }
 
-  .status-card.info .icon-tile,
-  &.warning .icon-tile,
-  &.success .icon-tile {
-    background: #fff;
+  .icon-tile.error {
+    color: var(--sh-error);
   }
 
   blockquote {

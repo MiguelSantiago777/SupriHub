@@ -197,6 +197,12 @@ export class SupplierApplicationPage implements OnInit {
         this.issues().filter((i) => s.fields.some((f) => i.field === f || i.field.startsWith(f))),
       );
     }
+    // Sem tipo de negócio ainda não há lista de documentos: a etapa não está completa.
+    if (!this.app()?.supplierType) {
+      map.set('documentos', [
+        { field: 'documents.', message: 'Escolha o tipo de negócio para ver os documentos.' },
+      ]);
+    }
     return map;
   });
 
