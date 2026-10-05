@@ -180,15 +180,24 @@ const DECISIONS: { value: Decision; label: string; icon: string; hint: string }[
                   @case ('REJECTED') {
                     <p>Inabilitado em {{ dateTime(a.decidedAt) }}.</p>
                     <blockquote>{{ a.decisionReason }}</blockquote>
-                    <p class="muted">
-                      O fornecedor pode corrigir e reenviar ou recorrer em 3 dias úteis.
-                    </p>
+                    @if (a.canAppeal) {
+                      <p class="muted">
+                        O fornecedor pode recorrer até {{ date(a.appealDeadline) }} ou corrigir e
+                        reenviar.
+                      </p>
+                    }
                   }
                   @default {
                     <p>
                       O fornecedor ainda está preenchendo o requerimento. Não há decisão a tomar.
                     </p>
                   }
+                }
+                @if (a.appeal; as ap) {
+                  <p class="appeal-link">
+                    <span class="badge badge-warning">Recurso: {{ ap.statusLabel }}</span>
+                    <a [routerLink]="['/recursos', ap.id]">Abrir o recurso</a>
+                  </p>
                 }
               </div>
             }
@@ -350,6 +359,12 @@ const DECISIONS: { value: Decision; label: string; icon: string; hint: string }[
     }
     .confirm.reject {
       --mat-button-filled-container-color: var(--sh-error);
+    }
+    .appeal-link {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
     }
     blockquote {
       margin: 0.5rem 0;

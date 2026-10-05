@@ -80,9 +80,12 @@ const TABS: Tab[] = [
           Analise os requerimentos em até 10 dias úteis (Edital 4.3): habilite, peça ajuste ou
           inabilite com motivo. O fornecedor é avisado por e-mail a cada decisão.
         </p>
-        @if (auth.hasRole('ADMIN')) {
-          <p class="back"><a routerLink="/admin">← Administração</a></p>
-        }
+        <p class="back">
+          <a routerLink="/recursos">Recursos contra inabilitação</a>
+          @if (auth.hasRole('ADMIN')) {
+            · <a routerLink="/admin">Administração</a>
+          }
+        </p>
       </div>
     </header>
 

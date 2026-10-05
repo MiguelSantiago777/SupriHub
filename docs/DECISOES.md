@@ -121,16 +121,45 @@ declarações aceitas. Opcionais no envio: "se aplicável", "quando exigível" e
 O pedido de ajuste (Edital 4.3) devolve o requerimento ao fornecedor com prazo de
 `diligence_business_days`. Ao reenviar, o prazo de análise é recalculado. A inabilitação
 exige motivo. O inabilitado pode corrigir e reenviar, porque o credenciamento é permanente.
-O **recurso** (Anexo X, Edital 5.2) ainda não tem tela: o e-mail informa o direito e o
-prazo de 3 dias úteis. A prorrogação fiscal de pequenos negócios (5 + 5 d.u., Edital 4.4)
+O recurso está em D-026. A prorrogação fiscal de pequenos negócios (5 + 5 d.u., Edital 4.4)
 é feita como novo pedido de ajuste.
 
 **D-025 — Quem analisa** · Fase 1 · vigente
 A fila e as decisões ficam com a Comissão de Credenciamento e com o ADMIN
 (`hasAnyRole('COMMISSION','ADMIN')`). Cada envio avisa por e-mail todos os membros ativos
-da Comissão. A habilitação vale por `accreditation_validity_months` (24). A lista pública
-de credenciados, a reconferência semestral de certidões e a atualização de dados do
-habilitado (Edital 6.3) ficam para as próximas entregas da Fase 1.
+da Comissão. A habilitação vale por `accreditation_validity_months` (24). A lista pública está
+em D-027. A reconferência semestral de certidões e a atualização de dados do habilitado
+(Edital 6.3) ficam para as próximas entregas da Fase 1.
+
+**D-026 — Recurso contra a inabilitação** · Fase 1 · vigente
+Edital 5.2 e Anexo X. O inabilitado recorre em até `appeal_filing_business_days` (3) dias
+úteis da comunicação. Esse prazo é fixado no momento da inabilitação
+(`supplier_application.appeal_deadline`). O recurso tem razões, pedido e um anexo
+opcional. Cabe um recurso por decisão.
+
+A Comissão **não nega** o recurso. Ela tem duas saídas:
+- reconsidera em `appeal_reconsideration_business_days` (3): o recurso é provido e o
+  fornecedor é habilitado por 24 meses;
+- mantém a decisão e o **encaminha com motivação** à Diretoria, que provê ou nega em
+  `board_appeal_decision_business_days` (5).
+
+Enquanto o recurso corre, o requerimento fica bloqueado para edição. Negado o recurso, o
+fornecedor pode corrigir e reenviar, porque o credenciamento é permanente. Quem age:
+Comissão e ADMIN na reconsideração e no encaminhamento; Diretoria e ADMIN na decisão
+final. A Diretoria entra direto em `/recursos`. Recurso contra seleção ou sanção (outras
+etapas do Anexo X) fica para as Fases 2 e 3.
+
+**D-027 — Lista pública de credenciados** · Fase 1 · vigente
+Política art. 27 e Edital 4.6. A página `/credenciados` e a rota `/api/public/suppliers`
+mostram só habilitados com `accreditation_valid_until` vigente: ao vencer, o fornecedor
+sai da lista sozinho. A lista pode ser filtrada por linha, território e nome.
+
+O que aparece: nome fantasia (ou nome), razão social, tipo, CNPJ mascarado, município,
+linhas, territórios e validade. Pessoa física aparece sem documento.
+
+O que não aparece (art. 28): contato, endereço, dados bancários, raça/cor e CadÚnico. O
+selo "liderado por mulher" só aparece com a autorização do Anexo II, item 5 (caixa
+própria, `publish_woman_led`).
 
 ## 3. Pontos em aberto do prompt (§12) — padrões adotados
 

@@ -25,6 +25,15 @@ import { RouterLink } from '@angular/router';
           </a>
         </li>
         <li>
+          <a routerLink="/recursos" class="card card-hover tile">
+            <span class="icon-tile amber"><mat-icon aria-hidden="true">gavel</mat-icon></span>
+            <span>
+              <strong>Recursos</strong><br />
+              Recursos contra inabilitação: reconsiderar, encaminhar e decidir.
+            </span>
+          </a>
+        </li>
+        <li>
           <a routerLink="parametros" class="card card-hover tile">
             <span class="icon-tile"><mat-icon aria-hidden="true">tune</mat-icon></span>
             <span>

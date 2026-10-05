@@ -14,6 +14,11 @@ export const routes: Routes = [
     loadComponent: () => import('./public/catalog.page').then((m) => m.CatalogPage),
   },
   {
+    path: 'credenciados',
+    title: 'Credenciados',
+    loadComponent: () => import('./public/suppliers.page').then((m) => m.SuppliersPage),
+  },
+  {
     path: 'edital',
     title: 'Edital e anexos',
     loadComponent: () => import('./public/documents.page').then((m) => m.DocumentsPage),
@@ -45,6 +50,11 @@ export const routes: Routes = [
     canMatch: [roleGuard('COMMISSION', 'ADMIN')],
     loadChildren: () =>
       import('./areas/commission/commission.routes').then((m) => m.COMMISSION_ROUTES),
+  },
+  {
+    path: 'recursos',
+    canMatch: [roleGuard('COMMISSION', 'BOARD', 'ADMIN')],
+    loadChildren: () => import('./areas/appeals/appeals.routes').then((m) => m.APPEAL_ROUTES),
   },
   {
     path: 'gestor',

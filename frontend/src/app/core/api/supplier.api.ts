@@ -122,6 +122,7 @@ export interface ApplicationForm {
   pixKey: string | null;
   accountHolder: string | null;
   womanLed: boolean;
+  publishWomanLed: boolean;
   race: Race | null;
   cadUnico: boolean;
   nis: string | null;
@@ -144,6 +145,9 @@ export interface Application extends Omit<ApplicationForm, 'lineCodes'> {
   decidedAt: string | null;
   decisionReason: string | null;
   accreditationValidUntil: string | null;
+  appealDeadline: string | null;
+  canAppeal: boolean;
+  appeal: Appeal | null;
   editable: boolean;
   checklist: ChecklistItem[];
   history: HistoryEntry[];
@@ -168,6 +172,64 @@ export interface ApplicationSummary {
   adjustmentDueDate: string | null;
   accreditationValidUntil: string | null;
   overdue: boolean;
+}
+
+export type AppealStatus = 'FILED' | 'FORWARDED' | 'GRANTED' | 'DENIED';
+export type AppealStage = 'COMMISSION' | 'BOARD' | 'DECIDED';
+
+export const APPEAL_BADGE: Record<AppealStatus, string> = {
+  FILED: 'badge-warning',
+  FORWARDED: 'badge-info',
+  GRANTED: 'badge-success',
+  DENIED: 'badge-error',
+};
+
+export interface Appeal {
+  id: number;
+  status: AppealStatus;
+  statusLabel: string;
+  reasons: string;
+  request: string;
+  attachment: { filename: string; contentType: string; sizeBytes: number } | null;
+  filedAt: string;
+  reconsiderationDue: string;
+  commissionReason: string | null;
+  commissionDecidedAt: string | null;
+  boardDue: string | null;
+  boardReason: string | null;
+  boardDecidedAt: string | null;
+  version: number;
+}
+
+export interface AppealSummary {
+  id: number;
+  status: AppealStatus;
+  statusLabel: string;
+  applicationId: number;
+  protocol: string | null;
+  legalName: string | null;
+  supplierTypeLabel: string | null;
+  filedAt: string;
+  dueDate: string | null;
+  overdue: boolean;
+}
+
+export interface AppealDetail {
+  appeal: Appeal;
+  application: Application;
+}
+
+export interface PublicSupplier {
+  id: number;
+  name: string;
+  legalName: string | null;
+  supplierTypeLabel: string | null;
+  documentMasked: string | null;
+  municipalityName: string | null;
+  lines: ApplicationLine[];
+  territories: Territory[];
+  womanLed: boolean;
+  validUntil: string;
 }
 
 /** Abre um arquivo protegido (precisa do token) numa nova aba. */
@@ -204,6 +266,20 @@ export class SupplierApi {
     this.http
       .get(`${this.base}/documents/${id}/file`, { responseType: 'blob' })
       .subscribe(openBlob);
+  }
+
+  appeal(reasons: string, request: string, file: File | null): Observable<Application> {
+    const body = new FormData();
+    body.append('reasons', reasons);
+    body.append('request', request);
+    if (file) {
+      body.append('file', file);
+    }
+    return this.http.post<Application>(`${this.base}/appeal`, body);
+  }
+
+  openAppealAttachment(): void {
+    this.http.get(`${this.base}/appeal/attachment`, { responseType: 'blob' }).subscribe(openBlob);
   }
 
   submit(version: number): Observable<Application> {
@@ -251,5 +327,79 @@ export class ReviewApi {
 
   reject(id: number, message: string, version: number): Observable<Application> {
     return this.http.post<Application>(`${this.base}/${id}/reject`, { message, version });
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class AppealApi {
+  private readonly http = inject(HttpClient);
+  private readonly base = '/api/appeals';
+
+  list(stage: AppealStage, page = 0): Observable<Page<AppealSummary>> {
+    const params = new HttpParams().set('stage', stage).set('page', page).set('size', 20);
+    return this.http.get<Page<AppealSummary>>(this.base, { params });
+  }
+
+  counts(): Observable<Record<AppealStage, number>> {
+    return this.http.get<Record<AppealStage, number>>(`${this.base}/counts`);
+  }
+
+  get(id: number): Observable<AppealDetail> {
+    return this.http.get<AppealDetail>(`${this.base}/${id}`);
+  }
+
+  openAttachment(id: number): void {
+    this.http.get(`${this.base}/${id}/attachment`, { responseType: 'blob' }).subscribe(openBlob);
+  }
+
+  openDocument(id: number, documentId: number): void {
+    this.http
+      .get(`${this.base}/${id}/documents/${documentId}/file`, { responseType: 'blob' })
+      .subscribe(openBlob);
+  }
+
+  reconsider(id: number, reason: string, version: number): Observable<AppealDetail> {
+    return this.http.post<AppealDetail>(`${this.base}/${id}/reconsider`, { reason, version });
+  }
+
+  forward(id: number, reason: string, version: number): Observable<AppealDetail> {
+    return this.http.post<AppealDetail>(`${this.base}/${id}/forward`, { reason, version });
+  }
+
+  boardDecision(
+    id: number,
+    granted: boolean,
+    reason: string,
+    version: number,
+  ): Observable<AppealDetail> {
+    return this.http.post<AppealDetail>(`${this.base}/${id}/board-decision`, {
+      granted,
+      reason,
+      version,
+    });
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class PublicSupplierApi {
+  private readonly http = inject(HttpClient);
+
+  search(
+    line: string,
+    territory: Territory | null,
+    q: string,
+    page = 0,
+  ): Observable<Page<PublicSupplier>> {
+    let params = new HttpParams().set('page', page).set('size', 24);
+    if (line) {
+      params = params.set('line', line);
+    }
+    if (territory) {
+      params = params.set('territory', territory);
+    }
+    if (q.trim()) {
+      params = params.set('q', q.trim());
+    }
+    return this.http.get<Page<PublicSupplier>>('/api/public/suppliers', { params });
   }
 }

@@ -1,6 +1,6 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,6 +20,7 @@ import {
   ChecklistItem,
   Issue,
   RACES,
+  APPEAL_BADGE,
   STATUS_BADGE,
   SUPPLIER_TYPES,
   SupplierApi,
@@ -112,7 +113,7 @@ const ACCEPT = '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png';
     ApplicationView,
   ],
   templateUrl: './supplier-application.page.html',
-  styleUrl: './supplier-application.page.scss',
+  styleUrls: ['./supplier-application.page.scss', './supplier-appeal.scss'],
 })
 export class SupplierApplicationPage implements OnInit {
   private readonly api = inject(SupplierApi);
@@ -127,6 +128,7 @@ export class SupplierApplicationPage implements OnInit {
   protected readonly races = RACES;
   protected readonly accountTypes = ACCOUNT_TYPES;
   protected readonly badge = STATUS_BADGE;
+  protected readonly appealBadge = APPEAL_BADGE;
   protected readonly accept = ACCEPT;
   protected readonly maxUploadMb = MAX_UPLOAD_MB;
   protected readonly fmtDate = formatDate;
@@ -173,6 +175,7 @@ export class SupplierApplicationPage implements OnInit {
     pixKey: new FormControl<string | null>(null),
     accountHolder: new FormControl<string | null>(null),
     womanLed: new FormControl(false, { nonNullable: true }),
+    publishWomanLed: new FormControl(false, { nonNullable: true }),
     race: new FormControl<Race | null>(null),
     cadUnico: new FormControl(false, { nonNullable: true }),
     nis: new FormControl<string | null>(null),
@@ -185,6 +188,7 @@ export class SupplierApplicationPage implements OnInit {
   protected readonly selectedLines = signal<string[]>([]);
   protected readonly selectedTerritories = signal<Territory[]>([]);
   protected readonly cadUnico = signal(false);
+  protected readonly womanLed = signal(false);
   protected readonly dirty = signal(false);
 
   protected readonly issues = computed<Issue[]>(() => this.app()?.pendingItems ?? []);
@@ -212,6 +216,23 @@ export class SupplierApplicationPage implements OnInit {
     return { done: required.filter((c) => c.document).length, total: required.length };
   });
 
+  /** Recurso contra a decisão atual (ignora recurso de uma inabilitação anterior). */
+  protected readonly currentAppeal = computed(() => {
+    const a = this.app();
+    const ap = a?.appeal;
+    if (!a || !ap) {
+      return null;
+    }
+    if (ap.status === 'GRANTED') {
+      return a.status === 'APPROVED' ? ap : null;
+    }
+    return a.status === 'REJECTED' &&
+      a.decidedAt &&
+      new Date(ap.filedAt).getTime() >= new Date(a.decidedAt).getTime()
+      ? ap
+      : null;
+  });
+
   protected readonly firstName = computed(() => this.auth.user()?.fullName.split(' ')[0] ?? '');
 
   ngOnInit(): void {
@@ -233,6 +254,7 @@ export class SupplierApplicationPage implements OnInit {
       this.selectedLines.set(v.lineCodes ?? []);
       this.selectedTerritories.set(v.territories ?? []);
       this.cadUnico.set(!!v.cadUnico);
+      this.womanLed.set(!!v.womanLed);
       this.dirty.set(this.form.dirty);
     });
     // Trocar o tipo muda a lista de documentos: salva na hora para o checklist acompanhar.
@@ -277,6 +299,7 @@ export class SupplierApplicationPage implements OnInit {
         pixKey: app.pixKey,
         accountHolder: app.accountHolder,
         womanLed: app.womanLed,
+        publishWomanLed: app.publishWomanLed,
         race: app.race,
         cadUnico: app.cadUnico,
         nis: app.nis,
@@ -288,6 +311,7 @@ export class SupplierApplicationPage implements OnInit {
     this.selectedLines.set(app.lines.map((l) => l.code));
     this.selectedTerritories.set(app.territories);
     this.cadUnico.set(app.cadUnico);
+    this.womanLed.set(app.womanLed);
     this.form.markAsPristine();
     this.dirty.set(false);
     if (app.editable) {
@@ -327,6 +351,7 @@ export class SupplierApplicationPage implements OnInit {
       pixKey: text(v.pixKey),
       accountHolder: text(v.accountHolder),
       nis: v.cadUnico ? nums(v.nis) : null,
+      publishWomanLed: v.womanLed && v.publishWomanLed,
     };
   }
 
@@ -544,5 +569,60 @@ export class SupplierApplicationPage implements OnInit {
 
   protected openDocument(id: number): void {
     this.api.openDocument(id);
+  }
+
+  // --- Recurso (Edital 5.2; Anexo X) ------------------------------------------
+
+  protected readonly appealOpen = signal(false);
+  protected readonly appealBusy = signal(false);
+  protected readonly appealError = signal('');
+  protected readonly appealFile = signal<File | null>(null);
+  protected readonly appealForm = new FormGroup({
+    reasons: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(5000)],
+    }),
+    request: new FormControl('Reconsiderar a decisão e habilitar o meu credenciamento.', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(2000)],
+    }),
+  });
+
+  protected pickAppealFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (file && file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      input.value = '';
+      this.snack.open(`O arquivo tem mais de ${MAX_UPLOAD_MB} MB.`, 'OK', { duration: 5000 });
+      return;
+    }
+    this.appealFile.set(file);
+  }
+
+  protected sendAppeal(): void {
+    if (this.appealForm.invalid) {
+      this.appealForm.markAllAsTouched();
+      return;
+    }
+    const { reasons, request } = this.appealForm.getRawValue();
+    this.appealBusy.set(true);
+    this.appealError.set('');
+    this.api.appeal(reasons.trim(), request.trim(), this.appealFile()).subscribe({
+      next: (app) => {
+        this.appealBusy.set(false);
+        this.appealOpen.set(false);
+        this.load(app);
+        this.snack.open('Recurso enviado à Comissão.', 'OK', { duration: 5000 });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      error: (e: unknown) => {
+        this.appealBusy.set(false);
+        this.appealError.set(problemMessage(e));
+      },
+    });
+  }
+
+  protected openAppealAttachment(): void {
+    this.api.openAppealAttachment();
   }
 }

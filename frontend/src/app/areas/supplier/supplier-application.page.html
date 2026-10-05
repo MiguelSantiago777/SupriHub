@@ -80,12 +80,90 @@
           <div>
             <h2>Seu requerimento não foi aprovado</h2>
             <blockquote>{{ a.decisionReason }}</blockquote>
-            <p>
-              Você pode corrigir os dados ou documentos e enviar de novo. Se não concordar, pode
-              recorrer em até 3 dias úteis (Edital, item 5.2).
-            </p>
+            @if (currentAppeal()?.status === 'FILED' || currentAppeal()?.status === 'FORWARDED') {
+              <p>Seu recurso está em análise. Aguarde a decisão para alterar o requerimento.</p>
+            } @else if (a.canAppeal) {
+              <p>
+                Você pode <strong>recorrer</strong> desta decisão até
+                <strong>{{ fmtDate(a.appealDeadline) }}</strong> (3 dias úteis, Edital 5.2) ou
+                corrigir os dados e documentos e enviar o requerimento de novo.
+              </p>
+              @if (!appealOpen()) {
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="appeal-btn"
+                  (click)="appealOpen.set(true)"
+                >
+                  <mat-icon aria-hidden="true">gavel</mat-icon> Recorrer da decisão
+                </button>
+              }
+            } @else {
+              <p>
+                Você pode corrigir os dados ou documentos abaixo e enviar o requerimento de novo.
+              </p>
+            }
           </div>
         </section>
+
+        @if (appealOpen() && a.canAppeal) {
+          <form
+            class="card appeal-form"
+            [formGroup]="appealForm"
+            (ngSubmit)="sendAppeal()"
+            novalidate
+            aria-labelledby="t-recurso"
+          >
+            <h2 id="t-recurso">
+              <mat-icon aria-hidden="true">gavel</mat-icon> Formulário de Recurso (Anexo X)
+            </h2>
+            <p class="muted">
+              Explique de forma objetiva por que a decisão deve mudar e, se possível, indique os
+              itens do Edital ou da Política. A Comissão pode reconsiderar ou encaminhar à
+              Diretoria.
+            </p>
+            <mat-form-field class="full">
+              <mat-label>Razões do recurso</mat-label>
+              <textarea matInput formControlName="reasons" rows="6" maxlength="5000"></textarea>
+              @if (appealForm.controls.reasons.hasError('required')) {
+                <mat-error>Escreva as razões do recurso.</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field class="full">
+              <mat-label>Pedido</mat-label>
+              <textarea matInput formControlName="request" rows="2" maxlength="2000"></textarea>
+              @if (appealForm.controls.request.hasError('required')) {
+                <mat-error>Escreva o seu pedido.</mat-error>
+              }
+            </mat-form-field>
+            <div class="appeal-file">
+              <label class="upload-btn secondary">
+                <input
+                  type="file"
+                  [accept]="accept"
+                  (change)="pickAppealFile($event)"
+                  class="visually-hidden"
+                />
+                <mat-icon aria-hidden="true">attach_file</mat-icon>
+                {{ appealFile() ? 'Trocar anexo' : 'Anexar documento (opcional)' }}
+              </label>
+              @if (appealFile(); as f) {
+                <span class="muted">{{ f.name }} · {{ size(f.size) }}</span>
+              }
+            </div>
+            @if (appealError()) {
+              <p class="alert alert-error" role="alert">{{ appealError() }}</p>
+            }
+            <div class="form-actions">
+              <button mat-stroked-button type="button" (click)="appealOpen.set(false)">
+                Cancelar
+              </button>
+              <button mat-flat-button type="submit" [disabled]="appealBusy()">
+                {{ appealBusy() ? 'Enviando…' : 'Enviar recurso' }}
+              </button>
+            </div>
+          </form>
+        }
       }
       @default {
         <section class="status-card intro">
@@ -100,6 +178,56 @@
           </div>
         </section>
       }
+    }
+
+    @if (currentAppeal(); as ap) {
+      <section class="card appeal-card" aria-labelledby="t-meu-recurso">
+        <div class="appeal-head">
+          <h2 id="t-meu-recurso"><mat-icon aria-hidden="true">gavel</mat-icon> Seu recurso</h2>
+          <span class="badge" [class]="appealBadge[ap.status]">{{ ap.statusLabel }}</span>
+        </div>
+        <ol class="appeal-steps">
+          <li class="done">
+            <strong>Recurso apresentado</strong>
+            <span class="muted">Comissão decide até {{ fmtDate(ap.reconsiderationDue) }}</span>
+          </li>
+          @if (
+            ap.status === 'FORWARDED' ||
+            ap.status === 'DENIED' ||
+            (ap.status === 'GRANTED' && ap.boardReason)
+          ) {
+            <li class="done">
+              <strong>Encaminhado à Diretoria</strong>
+              <span class="muted">Decisão até {{ fmtDate(ap.boardDue) }}</span>
+              @if (ap.commissionReason) {
+                <blockquote>{{ ap.commissionReason }}</blockquote>
+              }
+            </li>
+          }
+          @if (ap.status === 'GRANTED') {
+            <li class="done ok">
+              <strong>Recurso aceito — você foi habilitado</strong>
+              <blockquote>{{ ap.boardReason || ap.commissionReason }}</blockquote>
+            </li>
+          } @else if (ap.status === 'DENIED') {
+            <li class="done no">
+              <strong>Recurso não aceito pela Diretoria</strong>
+              <blockquote>{{ ap.boardReason }}</blockquote>
+            </li>
+          } @else {
+            <li class="waiting">
+              <strong>{{
+                ap.status === 'FILED' ? 'Aguardando a Comissão' : 'Aguardando a Diretoria'
+              }}</strong>
+            </li>
+          }
+        </ol>
+        @if (ap.attachment) {
+          <button mat-stroked-button type="button" (click)="openAppealAttachment()">
+            <mat-icon aria-hidden="true">attach_file</mat-icon> {{ ap.attachment.filename }}
+          </button>
+        }
+      </section>
     }
 
     @if (!a.editable) {
@@ -464,6 +592,12 @@
               Este é um negócio liderado por mulher
               <span class="muted">(vale como a Declaração do Anexo IV)</span>
             </mat-checkbox>
+            @if (womanLed()) {
+              <mat-checkbox formControlName="publishWomanLed" class="sub-check">
+                Autorizo divulgar, na lista pública de credenciados, que este negócio é liderado por
+                mulher
+              </mat-checkbox>
+            }
             <div class="row eq">
               <mat-form-field>
                 <mat-label>A titular/administradora se autodeclara</mat-label>
