@@ -215,7 +215,63 @@ Regras comuns:
 - Nas Faixas 2 e 3, o fornecedor pode substituir ou retirar a proposta até o prazo.
 
 O julgamento (empate ficto, preferência local, desempate por equidade, direito de cobrir
-e ata) é a Fase 2, parte B.
+e ata) é a Fase 2, parte B (D-043 a D-048).
+
+**D-043 — Fluxo do julgamento (Faixas 2 e 3)** · Fase 2B · vigente
+Manual 4.2, passos 5 e 6; Edital 7.5; checklist do dossiê, itens 7 e 8.
+- Depois do prazo, a Comissão confere as propostas e clica em **Julgar**. A oportunidade
+  passa a "Em julgamento" e o mapa comparativo é **congelado** (`judgment_entry`, imutável
+  por trigger), com os parâmetros vigentes naquele momento.
+- O motor (`JudgmentEngine`, puro) aplica menor preço → empate ficto (8.2) → preferência
+  local (8.3) → mulher → mulher negra/CadÚnico → MEI → avaliação → menor % acima → sorteio
+  (D-011).
+- **Homologação:** na Faixa 2, a Comissão homologa; na Faixa 3, a **Diretoria aprova a ata**
+  (ou devolve, o que anula o julgamento). Na homologação a ata em PDF é gerada, guardada e
+  o SHA-256 vai para a trilha de auditoria. Antes disso, o PDF sai como minuta.
+- **Anular:** a Comissão pode anular um julgamento em curso (erro, recurso acolhido); as
+  propostas voltam a ficar disponíveis e pode-se julgar de novo. O histórico fica.
+  Cancelar a oportunidade anula o julgamento em curso.
+- O recurso contra o julgamento (Anexo VIII, "seleção/julgamento") ainda não tem tela; por
+  ora, se acolhido, a Comissão anula e julga de novo.
+
+**D-044 — Direito de cobrir, uma convocação por vez** · Fase 2B · vigente
+Edital 8.2 e aba Cotações ("se não cobrir, o próximo da pontuação é convocado").
+- Se a 1ª colocada não é a de menor preço, ela é convocada a oferecer valor **inferior** à
+  menor proposta (D-010) em `cover_deadline_business_days` (1 d.u.).
+- Recusa ou prazo vencido (job de hora em hora) passam a vez à próxima finalista, até chegar
+  à de menor preço, que vence com o próprio valor.
+- O convocado vê o valor a cobrir (é indispensável para cobrir); os demais não veem nada
+  dos concorrentes até o resultado.
+
+**D-045 — Sorteio feito pelo sistema, com semente** · Fase 2B · vigente
+Edital 7.6 fala em "sorteio em sessão registrada, com convite aos empatados". O sistema
+sorteia na hora do julgamento, com semente de `SecureRandom` gravada em `draw_record`
+(imutável). Com a semente, qualquer pessoa reproduz o resultado, e a ata registra a semente
+e a ordem. Empate exato é raro (exige igualdade em todos os critérios, inclusive o preço).
+O sistema ainda não registra sorteio manual: se a Comissão fizer sessão presencial com as
+empatadas, ela guarda a ata da sessão no dossiê. Divergência registrada.
+
+**D-046 — Desclassificação e mínimo de propostas** · Fase 2B · vigente
+- A Comissão desclassifica, com motivo, antes de julgar. É possível desfazer enquanto não
+  houver julgamento em curso.
+- Quem não tem credenciamento vigente na data do julgamento é desclassificado
+  automaticamente, inclusive na Faixa 3 (D-033).
+- Faixa 2 com menos de `band2_min_valid_proposals` (3) propostas válidas: a Comissão
+  escolhe entre cancelar e repetir a cotação, ou **justificar** e julgar (a justificativa vai
+  para a ata). Sem nenhuma proposta válida, não há julgamento.
+
+**D-047 — Avaliação de desempenho ainda não existe** · Fase 2B · provisório
+O critério "melhor avaliação" (8.4) conta como zero para todos até a Fase 3, que registra as
+avaliações. O motor e o mapa já recebem o campo.
+
+**D-048 — LGPD no julgamento** · Fase 2B · vigente
+Política art. 28 e Anexo II, item 5.
+- Só a equipe interna vê, no mapa, o indicador combinado "mulher negra ou CadÚnico". A raça
+  e o NIS nunca saem do requerimento.
+- A ata não tem coluna de raça/CadÚnico. O critério só aparece no motivo, quando foi ele que
+  decidiu.
+- O fornecedor vê só o valor vencedor, um motivo genérico ("empate ficto com desempate por
+  equidade") e a própria posição, sem nomes dos concorrentes.
 
 ## 3. Pontos em aberto do prompt (§12) — padrões adotados
 

@@ -23,6 +23,7 @@ import {
   formatSize,
 } from '../../core/format';
 import { problemMessage, toProblem } from '../../core/http/problem';
+import { SupplierJudgment } from '../judgment/supplier-judgment';
 import { AreaTabs } from '../shared/area-tabs';
 
 interface Method {
@@ -68,6 +69,7 @@ const MAX_MB = 10;
     MatInputModule,
     MatProgressSpinnerModule,
     AreaTabs,
+    SupplierJudgment,
   ],
   templateUrl: './opportunity.page.html',
   styleUrl: './opportunity.page.scss',

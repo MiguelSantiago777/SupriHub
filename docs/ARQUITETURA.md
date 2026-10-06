@@ -49,7 +49,7 @@ Pacote base `org.institutonata.suprihub`. Cada módulo segue a mesma divisão:
 | `tender` | `BandPolicy` (faixas) → DFD/edital, máquina de estados | 0 → 2 |
 | `supplier` | Requerimento, documentos, habilitação, cadastro, certidões, recursos, job diário | 1 |
 | `proposal` | Propostas com sigilo até o prazo | 2 |
-| `judgment` | `TenderJudgmentService` **puro**, mapa comparativo, ata PDF, sorteio, cobertura | 2 |
+| `judgment` | `JudgmentEngine` **puro** (`domain`), entidades em `model`, mapa comparativo, direito de cobrir, sorteio com semente, ata PDF (OpenPDF), homologação Comissão/Diretoria | 2 |
 
 ### Regras transversais
 
@@ -119,7 +119,8 @@ Migrações Flyway em `backend/src/main/resources/db/migration`:
 | V11 | Fase 1 — recurso da inabilitação (e coluna de autorização de divulgação, sem uso — D-027) |
 | V12+ | Fase 1 — certidões e atualização cadastral |
 | V20 | Fase 2A — oportunidades, itens, territórios, convites do rodízio, propostas |
-| V21+ | Fase 2B — julgamento, cobertura, ata (+ tabelas da Fase 3) |
+| V21 | Fase 2B — desclassificação, julgamento, mapa (imutável), sorteio (imutável), direito de cobrir |
+| V22+ | Fase 3 — contratos, avaliações, banco de preços |
 
 ## Testes
 

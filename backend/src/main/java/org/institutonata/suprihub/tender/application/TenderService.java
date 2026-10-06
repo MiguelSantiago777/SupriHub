@@ -61,11 +61,14 @@ public class TenderService {
     private final DomainEvents events;
     private final AuditService audit;
     private final Clock clock;
+    private final List<TenderCancellationListener> cancellationListeners;
 
     public TenderService(TenderRepository tenders, TenderInvitationRepository invitations, SupplyLineRepository lines,
             MunicipalityRepository municipalities, RotationService rotation, EligibleSuppliers eligibleSuppliers,
             SupplierApplicationRepository applications, ParameterService parameters, CalendarService calendar,
-            DomainEvents events, AuditService audit, Clock clock) {
+            DomainEvents events, AuditService audit, Clock clock,
+            List<TenderCancellationListener> cancellationListeners) {
+        this.cancellationListeners = cancellationListeners;
         this.tenders = tenders;
         this.invitations = invitations;
         this.lines = lines;
@@ -163,6 +166,7 @@ public class TenderService {
                     HttpStatus.CONFLICT);
         }
         tender.cancel(reason, clock.instant());
+        cancellationListeners.forEach(l -> l.onCancelled(tender, reason));
         audit.record(TenderEvents.AGGREGATE, id, "CANCEL", null, Map.of("status", "CANCELLED"), reason);
         return tender;
     }

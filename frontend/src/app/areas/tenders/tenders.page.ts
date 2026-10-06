@@ -25,6 +25,13 @@ const TABS: Tab[] = [
     empty: 'Nenhuma oportunidade aberta.',
   },
   {
+    slug: 'julgamento',
+    label: 'Em julgamento',
+    icon: 'balance',
+    statuses: ['JUDGING'],
+    empty: 'Nenhuma oportunidade em julgamento.',
+  },
+  {
     slug: 'rascunhos',
     label: 'Rascunhos',
     icon: 'draw',

@@ -31,6 +31,13 @@ import org.institutonata.suprihub.proposal.infra.ProposalRepository;
 import org.institutonata.suprihub.supplier.infra.AppealRepository;
 import org.institutonata.suprihub.tender.application.EligibleSuppliers;
 import org.institutonata.suprihub.tender.domain.TenderEvents;
+import org.institutonata.suprihub.judgment.application.JudgmentService;
+import org.institutonata.suprihub.judgment.domain.JudgmentEvents;
+import org.institutonata.suprihub.judgment.infra.CoverOfferRepository;
+import org.institutonata.suprihub.judgment.infra.JudgmentEntryRepository;
+import org.institutonata.suprihub.judgment.infra.JudgmentRepository;
+import org.institutonata.suprihub.judgment.model.JudgmentEntry;
+import org.institutonata.suprihub.tender.domain.Band;
 import org.institutonata.suprihub.tender.infra.TenderInvitationRepository;
 import org.institutonata.suprihub.tender.infra.TenderRepository;
 import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
@@ -63,14 +70,23 @@ public class NotificationEventListener {
     private final TenderInvitationRepository invitations;
     private final ProposalRepository proposals;
     private final EligibleSuppliers eligibleSuppliers;
+    private final JudgmentRepository judgments;
+    private final JudgmentEntryRepository judgmentEntries;
+    private final CoverOfferRepository coverOffers;
+    private final JudgmentService judgmentService;
     private final Clock clock;
     private final String frontendUrl;
 
     public NotificationEventListener(IdempotentConsumer idempotency, NotificationService notifications,
             AppUserRepository users, VerificationTokenService tokens, SupplierApplicationRepository applications,
             AppealRepository appeals, TenderRepository tenders, TenderInvitationRepository invitations,
-            ProposalRepository proposals, EligibleSuppliers eligibleSuppliers, Clock clock,
-            SupriHubProperties props) {
+            ProposalRepository proposals, EligibleSuppliers eligibleSuppliers, JudgmentRepository judgments,
+            JudgmentEntryRepository judgmentEntries, CoverOfferRepository coverOffers, JudgmentService judgmentService,
+            Clock clock, SupriHubProperties props) {
+        this.judgments = judgments;
+        this.judgmentEntries = judgmentEntries;
+        this.coverOffers = coverOffers;
+        this.judgmentService = judgmentService;
         this.idempotency = idempotency;
         this.notifications = notifications;
         this.users = users;
@@ -193,6 +209,57 @@ public class NotificationEventListener {
                                             Map.of("number", t.getNumber(), "title", t.getTitle(),
                                                     "total", money(pr.getTotalValue()),
                                                     "link", frontendUrl + "/fornecedor/editais/" + t.getId())))));
+            case JudgmentEvents.COVER_OFFERED -> coverOffers.findById(event.payloadLong("coverOfferId"))
+                    .ifPresent(offer -> judgments.findById(offer.getJudgmentId())
+                            .flatMap(j -> tenders.findById(j.getTenderId()).map(t -> Map.entry(j, t)))
+                            .ifPresent(jt -> applications.findById(offer.getApplicationId())
+                                    .flatMap(app -> users.findById(app.getUserId()))
+                                    .filter(AppUser::isEnabled)
+                                    .ifPresent(user -> email(user, "cover-offered",
+                                            "Você pode cobrir o menor preço — " + jt.getValue().getNumber(), event,
+                                            Map.of("number", jt.getValue().getNumber(),
+                                                    "title", jt.getValue().getTitle(),
+                                                    "ceiling", money(offer.getCeiling()),
+                                                    "rule", jt.getKey().rules().coverStrictlyLower()
+                                                            ? "menor que" : "igual ou menor que",
+                                                    "dueDate", date(offer.getDueDate()),
+                                                    "link", frontendUrl + "/fornecedor/editais/"
+                                                            + jt.getValue().getId())))));
+            case JudgmentEvents.DECIDED -> judgments.findById(event.payloadLong("judgmentId"))
+                    .ifPresent(j -> tenders.findById(j.getTenderId()).ifPresent(t -> {
+                        boolean board = t.getBand() == Band.FAIXA_3;
+                        String winner = judgmentEntries.findById(new JudgmentEntry.Key(j.getId(),
+                                j.getWinnerProposalId())).map(JudgmentEntry::getSupplierName).orElse("");
+                        Map<String, Object> vars = Map.of("number", t.getNumber(), "title", t.getTitle(),
+                                "winner", winner, "value", money(j.getAwardedValue()),
+                                "action", board ? "Na Faixa 3 a ata precisa da aprovação da Diretoria."
+                                        : "Confira o mapa e homologue o resultado.",
+                                "link", frontendUrl + (board ? "/diretoria/atas/" + j.getId()
+                                        : "/comissao/editais/" + t.getId()));
+                        notifyRole(board ? AppRole.BOARD : AppRole.COMMISSION, event, "judgment-decided",
+                                (board ? "Ata para aprovar: " : "Resultado para homologar: ") + t.getNumber(), vars);
+                    }));
+            case JudgmentEvents.HOMOLOGATED -> judgments.findById(event.payloadLong("judgmentId"))
+                    .ifPresent(j -> tenders.findById(j.getTenderId()).ifPresent(t -> {
+                        for (JudgmentEntry e : judgmentEntries.findByJudgment(j.getId())) {
+                            boolean winner = e.getProposalId().equals(j.getWinnerProposalId());
+                            String reason = judgmentService.forSupplier(t.getId(), e.getApplicationId())
+                                    .map(v -> v.publicReason()).orElse("");
+                            String position = e.isDisqualified()
+                                    ? "Sua proposta foi desclassificada: " + e.getDisqualifiedReason()
+                                    : "Sua proposta ficou em " + e.getPosition() + "º lugar.";
+                            applications.findById(e.getApplicationId())
+                                    .flatMap(app -> users.findById(app.getUserId()))
+                                    .filter(AppUser::isEnabled)
+                                    .ifPresent(user -> email(user, "judgment-result",
+                                            (winner ? "Sua proposta foi selecionada — " : "Resultado da oportunidade ")
+                                                    + t.getNumber(), event,
+                                            Map.of("number", t.getNumber(), "title", t.getTitle(),
+                                                    "winner", winner, "value", money(j.getAwardedValue()),
+                                                    "reason", reason, "position", position,
+                                                    "link", frontendUrl + "/fornecedor/editais/" + t.getId())));
+                        }
+                    }));
             default -> log.debug("Evento {} sem notificação associada", event.type());
         }
     }

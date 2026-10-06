@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{mail/fragments :: head}"></head>
+<body style="margin:0;background:#f4f4f4;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;">
+    <div th:replace="~{mail/fragments :: header}"></div>
+    <div style="padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.6;color:#1a1a1a;">
+        <p>Olá, <strong th:text="${name}">Maria</strong>!</p>
+        <p>Boa notícia: a sua proposta para <strong th:text="${title}">Cadeiras de plástico</strong>
+            (nº <span th:text="${number}">OP-2026-0001</span>) ficou <strong>empatada</strong> com a de menor preço,
+            e você tem prioridade (item 8.2 do Edital).</p>
+        <p>Para ficar com a oportunidade, ofereça um valor <strong th:text="${rule}">menor que</strong>
+            <strong th:text="${ceiling}">R$ 3.850,00</strong> até <strong th:text="${dueDate}">08/10/2026</strong>.
+            Se não quiser, ou se o prazo passar, a vez vai para a próxima colocada.</p>
+        <p style="text-align:center;margin:28px 0;">
+            <a th:replace="~{mail/fragments :: button(${link}, 'Responder')}"></a>
+        </p>
+    </div>
+    <div th:replace="~{mail/fragments :: footer}"></div>
+</div>
+</body>
+</html>

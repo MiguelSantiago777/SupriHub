@@ -109,7 +109,7 @@ public final class TenderDtos {
     public record ProposalRow(Long id, Long applicationId, String supplierName, String supplierTypeLabel,
             boolean womanLed, Territory seatTerritory, Mode mode, String modeLabel, BigDecimal totalValue,
             Map<Long, BigDecimal> unitPrices, String executionDeadline, int validityDays, String specialConditions,
-            String notes, String fileName, Instant submittedAt) {
+            String notes, String fileName, Instant submittedAt, String disqualifiedReason) {
 
         static ProposalRow of(Proposal p, SupplierApplication app, Tender t) {
             Territory seat = app == null || app.getMunicipality() == null ? null
@@ -119,7 +119,8 @@ public final class TenderDtos {
                     app == null || app.getSupplierType() == null ? null : app.getSupplierType().label(),
                     app != null && app.isWomanLed(), seat, p.getMode(), p.getMode().label(), p.getTotalValue(),
                     p.getUnitPrices(), p.getExecutionDeadline(), p.getValidityDays(), p.getSpecialConditions(),
-                    p.getNotes(), p.hasFile() ? p.file().name() : null, p.getSubmittedAt());
+                    p.getNotes(), p.hasFile() ? p.file().name() : null, p.getSubmittedAt(),
+                    p.getDisqualifiedReason());
         }
     }
 

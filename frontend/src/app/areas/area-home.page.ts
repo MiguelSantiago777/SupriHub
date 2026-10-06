@@ -8,7 +8,7 @@ const DESCRIPTIONS: Partial<Record<AppRole, string[]>> = {
     'Fila de requerimentos com prazos (10 dias úteis) e diligências',
     'Análise de habilitação com checklist e consulta CEIS/CNEP/CEPIM',
     'Gestão do cadastro de credenciados e alertas de certidões',
-    'Publicação e julgamento de editais',
+    'Publicação e julgamento de editais (empate ficto, preferência local, cobertura e ata)',
   ],
   DEMAND_MANAGER: ['Criação do DFD-NATA (rascunho de edital)', 'Acompanhamento da execução'],
   FINANCE: ['Atesto de previsão orçamentária e saldo no DFD'],

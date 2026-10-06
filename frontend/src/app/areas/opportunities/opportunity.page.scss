@@ -1,3 +1,5 @@
+@use '../shared/status-card';
+
 .back {
   margin: 0 0 0.75rem !important;
 }
@@ -12,62 +14,6 @@
   align-items: center;
   gap: 1rem;
   padding: 2rem 0;
-}
-
-.status-card {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1.1rem 1.4rem;
-  margin-bottom: 1.5rem;
-  border-radius: var(--sh-radius);
-  border: 1px solid var(--sh-border);
-  background: var(--sh-surface);
-
-  > mat-icon {
-    flex: 0 0 auto;
-    margin-top: 0.2rem;
-  }
-
-  h2 {
-    font-size: 1.2rem;
-    margin: 0 0 0.3rem;
-  }
-
-  p {
-    margin: 0 0 0.5rem;
-  }
-
-  &.info {
-    background: var(--sh-primary-soft);
-    border-color: #b8dcf1;
-    > mat-icon {
-      color: var(--sh-primary);
-    }
-  }
-
-  &.warning {
-    background: var(--sh-amber-soft);
-    border-color: #f0d48f;
-    > mat-icon {
-      color: var(--sh-amber);
-    }
-  }
-
-  &.success {
-    background: var(--sh-green-soft);
-    border-color: #b6e3c4;
-    > mat-icon {
-      color: var(--sh-green);
-    }
-  }
-
-  &.neutral {
-    background: var(--sh-bg);
-    > mat-icon {
-      color: var(--sh-text-muted);
-    }
-  }
 }
 
 .decline {

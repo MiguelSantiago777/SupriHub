@@ -31,7 +31,7 @@
     @let d = t()!;
 
     <!-- Ações ------------------------------------------------------------- -->
-    @if (d.status === 'DRAFT' || d.status === 'OPEN') {
+    @if (d.status === 'DRAFT' || d.status === 'OPEN' || d.status === 'JUDGING') {
       <section class="card actions" aria-label="Ações">
         @if (d.status === 'DRAFT') {
           <div class="publish">
@@ -69,7 +69,10 @@
                 {{ d.eligibleCount }} fornecedor(es) podem participar.
               </span>
             } @else {
-              <span><strong>Prazo encerrado.</strong> As propostas estão abertas abaixo.</span>
+              <span
+                ><strong>Prazo encerrado.</strong> As propostas estão abertas abaixo; julgue na
+                seção "Julgamento".</span
+              >
             }
           </p>
         }
@@ -217,8 +220,8 @@
               <p class="muted">Nenhuma proposta recebida.</p>
             } @else {
               <p class="muted small">
-                Ordenado pelo menor valor. O julgamento com empate ficto, preferência local e
-                desempate por equidade entra na próxima etapa do sistema.
+                Ordenado pelo menor valor. O empate ficto, a preferência local e o desempate por
+                equidade são aplicados no julgamento, logo abaixo.
               </p>
               <div class="table-wrap">
                 <table class="data map">
@@ -242,6 +245,9 @@
                           <span class="muted">{{ p.supplierTypeLabel }}</span>
                           @if (p.womanLed) {
                             <span class="badge badge-info">mulher</span>
+                          }
+                          @if (p.disqualifiedReason) {
+                            <span class="badge badge-error">desclassificada</span>
                           }
                         </td>
                         <td>{{ p.seatTerritory || '—' }}</td>
@@ -327,6 +333,12 @@
               </div>
             }
           </section>
+        }
+
+        @if (
+          d.band !== 'FAIXA_1' && d.status !== 'DRAFT' && !d.proposalsSealed && d.proposals.length
+        ) {
+          <app-judgment-panel [tender]="d" (changed)="reload()" />
         }
       </div>
 

@@ -75,6 +75,13 @@ public class Proposal {
     @Column(name = "file_key")
     private String fileKey;
 
+    @Column(name = "disqualified_reason")
+    private String disqualifiedReason;
+    @Column(name = "disqualified_at")
+    private Instant disqualifiedAt;
+    @Column(name = "disqualified_by")
+    private Long disqualifiedBy;
+
     @Column(name = "submitted_at", nullable = false)
     private Instant submittedAt;
     @Column(name = "updated_at", nullable = false)
@@ -129,6 +136,31 @@ public class Proposal {
         fileSize = null;
         fileSha256 = null;
         fileKey = null;
+    }
+
+    /** A Comissão desclassifica, com motivo, antes de julgar (ex.: proposta fora do pedido). */
+    public void disqualify(String reason, Long userId, Instant now) {
+        this.disqualifiedReason = reason.trim();
+        this.disqualifiedBy = userId;
+        this.disqualifiedAt = now;
+    }
+
+    public void requalify() {
+        this.disqualifiedReason = null;
+        this.disqualifiedBy = null;
+        this.disqualifiedAt = null;
+    }
+
+    public boolean isDisqualified() {
+        return disqualifiedReason != null;
+    }
+
+    public String getDisqualifiedReason() {
+        return disqualifiedReason;
+    }
+
+    public Instant getDisqualifiedAt() {
+        return disqualifiedAt;
     }
 
     public boolean hasFile() {

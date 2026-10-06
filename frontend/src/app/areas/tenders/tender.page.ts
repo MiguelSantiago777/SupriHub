@@ -20,6 +20,7 @@ import {
 } from '../../core/api/tender.api';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../core/format';
 import { problemMessage, toProblem } from '../../core/http/problem';
+import { JudgmentPanel } from '../judgment/judgment-panel';
 import { AreaTabs } from '../shared/area-tabs';
 
 @Component({
@@ -34,6 +35,7 @@ import { AreaTabs } from '../shared/area-tabs';
     MatInputModule,
     MatProgressSpinnerModule,
     AreaTabs,
+    JudgmentPanel,
   ],
   templateUrl: './tender.page.html',
   styleUrl: './tender.page.scss',
@@ -85,6 +87,10 @@ export class TenderPage {
       const id = Number(this.id());
       untracked(() => this.load(id));
     });
+  }
+
+  protected reload(): void {
+    this.load(Number(this.id()));
   }
 
   private load(id: number): void {

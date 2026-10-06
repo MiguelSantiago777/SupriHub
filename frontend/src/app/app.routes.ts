@@ -81,10 +81,8 @@ export const routes: Routes = [
   },
   {
     path: 'diretoria',
-    title: 'Diretoria',
     canMatch: [roleGuard('BOARD')],
-    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
-    data: { area: 'BOARD' },
+    loadChildren: () => import('./areas/board/board.routes').then((m) => m.BOARD_ROUTES),
   },
   {
     path: 'admin',

@@ -106,6 +106,8 @@
             </p>
           </div>
         </section>
+      } @else if (o.proposal && o.status !== 'CANCELLED') {
+        <app-supplier-judgment [tenderId]="o.id" />
       } @else {
         <section class="status-card neutral" role="status">
           <mat-icon aria-hidden="true">lock_clock</mat-icon>

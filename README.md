@@ -8,9 +8,11 @@ mulheres.
 > Estado atual: **Fase 0** concluída (esqueleto, autenticação, catálogo, parâmetros,
 > calendário, auditoria, mensageria). **Fase 1** em andamento: requerimento de
 > credenciamento pelo fornecedor, análise pela Comissão (habilitar, pedir ajuste,
-> inabilitar), recurso à Comissão/Diretoria e cadastro de credenciados (uso interno). A Fase 2
-> (editais) começou: a Comissão publica oportunidades, a Faixa 1 roda por rodízio e o
-> fornecedor envia propostas em "Editais em aberto". O julgamento vem a seguir.
+> inabilitar), recurso à Comissão/Diretoria e cadastro de credenciados (uso interno). **Fase 2**
+> (editais): a Comissão publica oportunidades, a Faixa 1 roda por rodízio, o fornecedor envia
+> propostas em "Editais em aberto" e, nas Faixas 2 e 3, a Comissão julga (empate ficto,
+> preferência local, desempate por equidade, sorteio e direito de cobrir), homologa (a
+> Diretoria aprova a ata da Faixa 3) e a ata sai em PDF.
 
 ## Rodar tudo com Docker
 

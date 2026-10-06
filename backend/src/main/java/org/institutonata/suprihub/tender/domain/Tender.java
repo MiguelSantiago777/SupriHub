@@ -173,10 +173,20 @@ public class Tender {
         this.updatedAt = now;
     }
 
-    /** Faixa 1: seleção confirmada pela Comissão. */
+    /** Faixas 2 e 3: prazo encerrado, a Comissão abre o julgamento (de novo, se o anterior foi anulado). */
+    public void startJudgment(Instant now) {
+        if ((status != Status.OPEN && status != Status.JUDGING) || band == Band.FAIXA_1 || proposalDeadline == null
+                || now.isBefore(proposalDeadline)) {
+            throw new IllegalStateException("Só oportunidade das Faixas 2/3 com prazo encerrado vai a julgamento");
+        }
+        this.status = Status.JUDGING;
+        this.updatedAt = now;
+    }
+
+    /** Faixa 1: seleção confirmada pela Comissão. Faixas 2 e 3: julgamento homologado. */
     public void award(Instant now) {
-        if (status != Status.OPEN) {
-            throw new IllegalStateException("Só oportunidade aberta tem seleção confirmada");
+        if (band == Band.FAIXA_1 ? status != Status.OPEN : status != Status.JUDGING) {
+            throw new IllegalStateException("Oportunidade " + status + " não pode ter seleção confirmada");
         }
         this.status = Status.AWARDED;
         this.updatedAt = now;

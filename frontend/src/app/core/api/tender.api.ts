@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { Page } from '../models';
 import { Territory } from './supplier.api';
 
-export type TenderStatus = 'DRAFT' | 'OPEN' | 'AWARDED' | 'CANCELLED';
+export type TenderStatus = 'DRAFT' | 'OPEN' | 'JUDGING' | 'AWARDED' | 'CANCELLED';
 export type Band = 'FAIXA_1' | 'FAIXA_2' | 'FAIXA_3';
 export type Audience = 'ALL' | 'WOMEN';
 export type InvitationStatus =
@@ -14,6 +14,7 @@ export type ProposalMode = 'ONLINE' | 'MODEL' | 'OWN_FILE';
 export const TENDER_BADGE: Record<TenderStatus, string> = {
   DRAFT: 'badge-neutral',
   OPEN: 'badge-info',
+  JUDGING: 'badge-warning',
   AWARDED: 'badge-success',
   CANCELLED: 'badge-error',
 };
@@ -108,6 +109,7 @@ export interface ProposalRow {
   notes: string | null;
   fileName: string | null;
   submittedAt: string;
+  disqualifiedReason: string | null;
 }
 
 export interface TenderDetail {

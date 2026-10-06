@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{mail/fragments :: head}"></head>
+<body style="margin:0;background:#f4f4f4;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;">
+    <div th:replace="~{mail/fragments :: header}"></div>
+    <div style="padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.6;color:#1a1a1a;">
+        <p>Olá, <strong th:text="${name}">Maria</strong>!</p>
+        <th:block th:if="${winner}">
+            <p>Parabéns! A sua proposta foi a <strong>selecionada</strong> na oportunidade
+                <strong th:text="${number}">OP-2026-0001</strong> — <span th:text="${title}">Cadeiras</span>.</p>
+            <p>Valor: <strong th:text="${value}">R$ 3.800,00</strong>. Em breve o Instituto envia a ordem de
+                fornecimento para assinatura.</p>
+        </th:block>
+        <th:block th:unless="${winner}">
+            <p>Obrigado por participar da oportunidade <strong th:text="${number}">OP-2026-0001</strong> —
+                <span th:text="${title}">Cadeiras</span>.</p>
+            <p>A proposta vencedora foi de <strong th:text="${value}">R$ 3.800,00</strong>
+                (<span th:text="${reason}">menor preço</span>).
+                <span th:text="${position}">Sua proposta ficou em 2º lugar.</span></p>
+            <p>Contamos com você nas próximas oportunidades!</p>
+        </th:block>
+        <p style="text-align:center;margin:28px 0;">
+            <a th:replace="~{mail/fragments :: button(${link}, 'Ver o resultado')}"></a>
+        </p>
+    </div>
+    <div th:replace="~{mail/fragments :: footer}"></div>
+</div>
+</body>
+</html>

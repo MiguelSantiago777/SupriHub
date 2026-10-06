@@ -9,6 +9,8 @@ public final class TenderEnums {
     public enum Status {
         DRAFT("Rascunho"),
         OPEN("Aberto"),
+        /** Faixas 2 e 3: prazo encerrado e julgamento em curso (cobertura, homologação). */
+        JUDGING("Em julgamento"),
         AWARDED("Fornecedor selecionado"),
         CANCELLED("Cancelado");
 
