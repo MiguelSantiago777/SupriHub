@@ -31,4 +31,16 @@ export const SUPPLIER_ROUTES: Routes = [
     loadComponent: () =>
       import('../contracts/supplier-contract.page').then((m) => m.SupplierContractPage),
   },
+  {
+    path: 'sancoes',
+    title: 'Processos',
+    loadComponent: () =>
+      import('../sanctions/supplier-sanctions.page').then((m) => m.SupplierSanctionsPage),
+  },
+  {
+    path: 'sancoes/:id',
+    title: 'Processo',
+    loadComponent: () =>
+      import('../sanctions/supplier-sanction.page').then((m) => m.SupplierSanctionPage),
+  },
 ];

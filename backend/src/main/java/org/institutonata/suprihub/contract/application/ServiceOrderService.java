@@ -552,12 +552,13 @@ public class ServiceOrderService implements TenderAwardListener {
     /** Credenciamento vigente (Edital 9.1 e 10.3: manutenção da habilitação). */
     private void requireRegular(ServiceOrder o, String action) {
         SupplierApplication app = applications.findById(o.getApplicationId()).orElse(null);
-        boolean ok = app != null && app.getStatus() == ApplicationStatus.APPROVED
-                && app.getAccreditationValidUntil() != null
-                && !app.getAccreditationValidUntil().isBefore(calendar.today());
+        boolean ok = app != null && app.isActiveOn(calendar.today());
         if (!ok) {
-            throw new BusinessException("SUPPLIER_IRREGULAR", "O fornecedor está sem credenciamento vigente. "
-                    + "Peça a regularização (Edital 4.4) antes de " + action + ".", HttpStatus.CONFLICT);
+            throw new BusinessException("SUPPLIER_IRREGULAR", app != null && app.isBlockedOn(calendar.today())
+                    ? "O fornecedor está suspenso ou inativado até " + app.getBlockedUntil() + " ("
+                            + app.getBlockReason() + "). Não é possível " + action + "."
+                    : "O fornecedor está sem credenciamento vigente. Peça a regularização (Edital 4.4) antes de "
+                            + action + ".", HttpStatus.CONFLICT);
         }
     }
 

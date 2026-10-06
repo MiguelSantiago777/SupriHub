@@ -18,6 +18,8 @@ import org.institutonata.suprihub.shared.security.CurrentUser;
 import org.institutonata.suprihub.shared.web.PageResponse;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.tender.api.TenderDtos.InvitationDto;
+import org.institutonata.suprihub.tender.api.TenderDtos.ItemReference;
+import org.institutonata.suprihub.tender.application.PriceReferenceSource;
 import org.institutonata.suprihub.tender.api.TenderDtos.ItemDto;
 import org.institutonata.suprihub.tender.api.TenderDtos.LineDto;
 import org.institutonata.suprihub.tender.api.TenderDtos.ProposalRow;
@@ -60,10 +62,13 @@ public class TenderController {
 
     private final TenderService tenders;
     private final ProposalService proposals;
+    private final List<PriceReferenceSource> priceReferences;
 
-    public TenderController(TenderService tenders, ProposalService proposals) {
+    public TenderController(TenderService tenders, ProposalService proposals,
+            List<PriceReferenceSource> priceReferences) {
         this.tenders = tenders;
         this.proposals = proposals;
+        this.priceReferences = priceReferences;
     }
 
     /** Abas: rascunhos, abertas (inclui prazo encerrado), concluídas (selecionadas/canceladas). */
@@ -184,6 +189,20 @@ public class TenderController {
         List<ProposalRow> rows = sealed ? List.of()
                 : props.stream().map(p -> ProposalRow.of(p, apps.get(p.getApplicationId()), t)).toList();
         int eligible = t.getStatus() == Status.DRAFT || t.getStatus() == Status.OPEN ? tenders.eligibleCount(t) : 0;
+        List<ItemReference> refs = new java.util.ArrayList<>();
+        java.math.BigDecimal ceilingTotal = java.math.BigDecimal.ZERO;
+        boolean allPriced = !t.getItems().isEmpty();
+        for (var item : t.getItems()) {
+            var ref = priceReferences.stream()
+                    .map(s -> s.referenceFor(t.getSupplyLine().getId(), item.getDescription(), item.getUnit()))
+                    .flatMap(java.util.Optional::stream).findFirst();
+            if (ref.isPresent()) {
+                refs.add(new ItemReference(item.getId(), ref.get().count(), ref.get().average(), ref.get().ceiling()));
+                ceilingTotal = ceilingTotal.add(ref.get().ceiling().multiply(item.getQuantity()));
+            } else {
+                allPriced = false;
+            }
+        }
         return new TenderDetail(t.getId(), t.getNumber(), t.getStatus(), t.getStatus().label(), t.getTitle(),
                 t.getDescription(), new LineDto(t.getSupplyLine().getCode(), t.getSupplyLine().getShortName()),
                 t.getExecutionMunicipality() == null ? null : t.getExecutionMunicipality().getId(),
@@ -193,6 +212,7 @@ public class TenderController {
                 t.getBand().selectionMode(), t.getProposalDeadline(),
                 t.getProposalDeadline() != null && !now.isBefore(t.getProposalDeadline()), t.getPublishedAt(),
                 t.getCancelReason(), t.getTerritories(), t.getItems().stream().map(ItemDto::of).toList(),
-                invitations, sealed, props.size(), rows, eligible, t.getVersion());
+                invitations, sealed, props.size(), rows, eligible, refs,
+                allPriced ? ceilingTotal.setScale(2, java.math.RoundingMode.HALF_UP) : null, t.getVersion());
     }
 }

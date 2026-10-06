@@ -150,6 +150,11 @@ public class SupplierApplication {
     private LocalDate accreditationValidUntil;
     @Column(name = "appeal_deadline")
     private LocalDate appealDeadline;
+    /** Bloqueio por sanção ou inativação cautelar (Política art. 22, 25 e 26); inclusive. */
+    @Column(name = "blocked_until")
+    private LocalDate blockedUntil;
+    @Column(name = "block_reason")
+    private String blockReason;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -499,6 +504,43 @@ public class SupplierApplication {
 
     public LocalDate getAccreditationValidUntil() {
         return accreditationValidUntil;
+    }
+
+    /**
+     * Credenciado apto a receber oportunidades, ordens e pagamentos: habilitado, com
+     * credenciamento vigente e sem suspensão, descredenciamento ou inativação cautelar.
+     */
+    public boolean isActiveOn(LocalDate day) {
+        return status == ApplicationStatus.APPROVED && accreditationValidUntil != null
+                && !accreditationValidUntil.isBefore(day) && !isBlockedOn(day);
+    }
+
+    public boolean isBlockedOn(LocalDate day) {
+        return blockedUntil != null && !blockedUntil.isBefore(day);
+    }
+
+    /** Aplica (ou estende) o bloqueio; nunca encurta um bloqueio mais longo já vigente. */
+    public void block(LocalDate until, String reason, Instant now) {
+        if (blockedUntil == null || until.isAfter(blockedUntil)) {
+            this.blockedUntil = until;
+            this.blockReason = reason;
+        }
+        this.updatedAt = now;
+    }
+
+    /** Encerra o bloqueio (ex.: inativação cautelar sem sanção ao final do processo). */
+    public void unblock(Instant now) {
+        this.blockedUntil = null;
+        this.blockReason = null;
+        this.updatedAt = now;
+    }
+
+    public LocalDate getBlockedUntil() {
+        return blockedUntil;
+    }
+
+    public String getBlockReason() {
+        return blockReason;
     }
 
     public Instant getCreatedAt() {

@@ -50,7 +50,9 @@ Pacote base `org.institutonata.suprihub`. Cada módulo segue a mesma divisão:
 | `supplier` | Requerimento, documentos, habilitação, cadastro, certidões, recursos, job diário | 1 |
 | `proposal` | Propostas com sigilo até o prazo | 2 |
 | `judgment` | `JudgmentEngine` **puro** (`domain`), entidades em `model`, mapa comparativo, direito de cobrir, sorteio com semente, ata PDF (OpenPDF), homologação Comissão/Diretoria | 2 |
-| `contract` | Ordem de Fornecimento/Serviço (Anexo VIII) com PDF, assinatura eletrônica, Termo de Recebimento e Avaliação (Anexo IX), NF/RPA, pagamento, Banco de Preços; `SupplierRatings` alimenta o desempate | 3 |
+| `contract` | Ordem de Fornecimento/Serviço (Anexo VIII) com PDF, assinatura eletrônica, Termo de Recebimento e Avaliação (Anexo IX), NF/RPA, pagamento, Banco de Preços (consulta e teto do rodízio), dossiê (Anexo XIII); `SupplierRatings` alimenta o desempate | 3 |
+| `sanction` | Processo sancionador (Anexo XII): defesa, decisão, recurso à Diretoria, bloqueio do cadastro e inativação cautelar; job de prazos | 3 |
+| `report` | Indicadores do relatório semestral (metas de inclusão, DFD→OF, avaliação, dossiês) | 3 |
 
 ### Regras transversais
 
@@ -122,7 +124,7 @@ Migrações Flyway em `backend/src/main/resources/db/migration`:
 | V20 | Fase 2A — oportunidades, itens, territórios, convites do rodízio, propostas |
 | V21 | Fase 2B — desclassificação, julgamento, mapa (imutável), sorteio (imutável), direito de cobrir |
 | V22 | Fase 3A — ordem de fornecimento/serviço, itens, termos de recebimento, arquivos, banco de preços |
-| V23+ | Fase 3B — sanções, dossiê, indicadores |
+| V23 | Fase 3B — bloqueio do cadastro, processo sancionador e arquivos, dossiê (itens manuais) e revisões |
 
 ## Testes
 

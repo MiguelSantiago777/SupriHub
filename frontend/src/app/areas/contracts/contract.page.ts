@@ -25,6 +25,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { formatDate, formatMoney } from '../../core/format';
 import { problemMessage, toProblem } from '../../core/http/problem';
 import { AreaTabs } from '../shared/area-tabs';
+import { DossierPanel } from './dossier-panel';
 import { OrderView } from './order-view';
 
 function today(): string {
@@ -48,6 +49,7 @@ function today(): string {
     MatSelectModule,
     AreaTabs,
     OrderView,
+    DossierPanel,
   ],
   template: `
     <header class="page-header">
@@ -386,6 +388,15 @@ function today(): string {
                 {{ d.number ? 'Ordem (PDF)' : 'Minuta (PDF)' }}
               </button>
               <a mat-button [routerLink]="['/comissao/editais', d.tender.id]">Ver a oportunidade</a>
+              @if (canSanction() && d.supplier) {
+                <a
+                  mat-button
+                  class="link-danger"
+                  routerLink="/sancoes/novo"
+                  [queryParams]="{ applicationId: d.supplier.applicationId, orderId: d.id }"
+                  >Abrir processo sancionador</a
+                >
+              }
             </div>
             @if (cancellable() && canPrepare()) {
               <div class="btns">
@@ -420,7 +431,12 @@ function today(): string {
             }
           </div>
 
-          <app-order-view [order]="d" (openFile)="openFile($event)" />
+          <div class="right">
+            <app-order-view [order]="d" (openFile)="openFile($event)" />
+            @if (d.status !== 'DRAFT' && d.status !== 'CANCELLED') {
+              <app-dossier-panel [orderId]="d.id" />
+            }
+          </div>
         </div>
       }
     </div>
@@ -457,6 +473,11 @@ function today(): string {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         align-items: start;
       }
+    }
+    .right {
+      display: grid;
+      gap: 1rem;
+      min-width: 0;
     }
     .actions {
       display: grid;
@@ -588,6 +609,7 @@ export class ContractPage {
   protected readonly canPrepare = computed(() =>
     this.auth.hasRole('COMMISSION', 'DEMAND_MANAGER', 'ADMIN'),
   );
+  protected readonly canSanction = computed(() => this.auth.hasRole('COMMISSION', 'ADMIN'));
   protected readonly canFinance = computed(() => this.auth.hasRole('FINANCE', 'ADMIN'));
   protected readonly closed = computed(() =>
     ['PAID', 'CANCELLED', 'REJECTED'].includes(this.o()?.status ?? ''),

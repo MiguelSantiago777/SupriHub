@@ -300,8 +300,7 @@ Edital 9.5; Anexo IX; Manual 4.2, passo 9.
   `rating_window_months` (24) meses. Sem avaliação, conta como zero.
 - **Edital 9.5:** médias abaixo de `low_rating_threshold` (3) em `low_rating_occurrences`
   (2) contratações em `low_rating_window_months` (12) meses geram alerta por e-mail à
-  Comissão. Abrir o processo de suspensão é decisão da Comissão; as sanções entram na
-  Fase 3B.
+  Comissão. Abrir o processo de suspensão é decisão da Comissão (D-090).
 
 **D-082 — Nota fiscal e pagamento** · Fase 3A · vigente
 Edital 10.1 a 10.4; Manual 4.2, passo 10.
@@ -322,13 +321,72 @@ Manual 4.2, passo 11; aba Banco de Preços da Planilha.
 - Se o valor contratado difere da soma dos itens (ex.: a fornecedora cobriu o menor preço),
   a mesma proporção é aplicada a todos os itens.
 - Proposta sem preço por item: registra só quando há um único item (total ÷ quantidade).
-- A consulta, o lançamento manual de cotações e o teto da Faixa 1 (média + 10%) entram na
-  Fase 3B.
+- A consulta, o lançamento manual e o teto da Faixa 1 estão em D-091.
 
 **D-084 — Áreas do gestor, do Financeiro e da Diretoria** · Fase 3A · vigente
 O gestor da demanda e o Financeiro passam a entrar em "Contratos" (`/contratos`); a
 Diretoria entra em "Atas" (`/diretoria`). O Controle Interno e a Diretoria consultam as
 ordens sem editar.
+
+**D-090 — Processo sancionador** · Fase 3B · vigente
+Edital 11; Anexo XII; Política art. 22 e 24 a 26.
+- A Comissão instaura o processo contra um credenciado, com a infração do Anexo XII e a
+  descrição dos fatos. Essa é a notificação escrita, enviada por e-mail.
+- **Prazos:** defesa em 5 d.u. → decisão motivada em 10 d.u. → recurso à Diretoria em 5
+  d.u. → decisão final em 10 d.u. (parâmetros `sanction_*`).
+- Sem defesa no prazo, o processo segue para decisão. Sem recurso no prazo, vale a decisão
+  da Comissão (job de hora em hora).
+- **Dosimetria (art. 25):** advertência; multa de 2% a 10%, só se prevista na ordem ligada
+  ao processo e até o percentual previsto; suspensão de 1 a 24 meses; descredenciamento com
+  impedimento de 1 a 3 anos; ou arquivamento.
+- **A Diretoria** mantém, reforma ou anula a decisão.
+- **Efeito:** a sanção vale quando o processo se encerra.
+  - Suspensão e descredenciamento bloqueiam o cadastro (`supplier_application.blocked_until`)
+    pelo período da sanção. O fornecedor sai das oportunidades, do rodízio, da lista de
+    credenciados, do julgamento (desclassificado) e não pode receber ordem nem pagamento.
+  - Advertência e multa não bloqueiam; a cobrança da multa fica fora do sistema.
+- **Inativação cautelar (art. 26):** em risco iminente, o bloqueio vale desde a abertura e
+  cai ao final, se a sanção não bloquear.
+- **Reincidência:** sanção anterior nos últimos 5 anos é sinalizada à Comissão.
+- O fornecedor vê só os próprios processos, sem o histórico interno.
+- "Deslocamento ao final do rodízio" (1ª linha do Anexo XII) ainda não é automático.
+
+**D-091 — Banco de Preços: consulta e teto do rodízio** · Fase 3B · vigente
+Manual 4.1; aba Banco de Preços.
+- A consulta agrupa por linha, descrição e unidade (sem diferenciar maiúsculas) e mostra
+  quantidade, menor, média, maior e teto (média + `price_bank_ceiling_margin`).
+- Lançamento manual de cotação, Painel de Preços ou pesquisa de mercado. "Contratação" só
+  entra pelo recebimento definitivo.
+- **Conferência do rodízio:** se todos os itens da oportunidade têm referência (mesma
+  descrição e unidade na mesma linha), a tela mostra o teto total e marca "acima" ou
+  "dentro do teto". A Comissão continua decidindo; o sistema não recusa sozinho.
+
+**D-092 — Dossiê da contratação** · Fase 3B · vigente
+Anexo XIII; Política art. 20.
+- O sistema confere sozinho os itens que conhece (rodízio, publicação, propostas, mapa,
+  ata, habilitação na emissão, ordem assinada, NF/RPA, comprovante, termo com evidências).
+- Confirmação manual: atesto financeiro do DFD (1), estimativa com fonte (2), publicação no
+  sítio na Faixa 3 (5) e justificativa de urgência ou ampliação, quando houver (14).
+- O item 15 (Planilha) é atendido pelo próprio SupriHub.
+- O dossiê é completo quando não há item aplicável pendente.
+
+**D-093 — Revisão por amostragem** · Fase 3B · vigente
+O Controle Interno vê as contratações pagas no semestre e registra a revisão de cada
+dossiê. O sistema grava se o dossiê estava sem pendência naquele momento.
+`dossier_review_sample_share` (10%) define a amostra mínima.
+
+**D-094 — Indicadores do relatório semestral** · Fase 3B · vigente
+Manual item 7; Política art. 27.
+- Base: ordens emitidas no período (padrão: semestre corrente), sem as canceladas e as não
+  assinadas. Metas vindas dos parâmetros `goal_*`.
+- % pequenos negócios = 100% por construção (D-031).
+- % T1 pelo território da sede em relação ao município de execução.
+- **Tempo DFD → OF:** da criação da oportunidade (o DFD, D-040) à emissão da ordem, em dias
+  úteis, por faixa.
+- **Avaliação média:** média dos termos finais no período.
+- **Urgência:** ainda não é registrada (Manual 4.3), por isso aparece 0% com aviso.
+- Também mostra credenciados ativos por linha, com alerta abaixo de 3 em T1.
+- Página imprimível. A publicação no sítio (art. 27) fica com a Comissão.
 
 ## 3. Pontos em aberto do prompt (§12) — padrões adotados
 

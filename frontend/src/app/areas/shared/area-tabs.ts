@@ -48,6 +48,30 @@ const STAFF_TABS: Tab[] = [
     link: '/contratos',
     roles: ['COMMISSION', 'DEMAND_MANAGER', 'FINANCE', 'INTERNAL_CONTROL', 'BOARD', 'ADMIN'],
   },
+  {
+    label: 'Preços',
+    icon: 'price_check',
+    link: '/precos',
+    roles: ['COMMISSION', 'DEMAND_MANAGER', 'FINANCE', 'INTERNAL_CONTROL', 'BOARD', 'ADMIN'],
+  },
+  {
+    label: 'Sanções',
+    icon: 'report',
+    link: '/sancoes',
+    roles: ['COMMISSION', 'BOARD', 'INTERNAL_CONTROL', 'ADMIN'],
+  },
+  {
+    label: 'Dossiês',
+    icon: 'inventory_2',
+    link: '/controle',
+    roles: ['INTERNAL_CONTROL', 'ADMIN'],
+  },
+  {
+    label: 'Indicadores',
+    icon: 'insights',
+    link: '/indicadores',
+    roles: ['COMMISSION', 'BOARD', 'INTERNAL_CONTROL', 'FINANCE', 'ADMIN'],
+  },
   { label: 'Atas', icon: 'verified', link: '/diretoria', exact: true, roles: ['BOARD'] },
   { label: 'Recursos', icon: 'gavel', link: '/recursos', roles: ['COMMISSION', 'BOARD', 'ADMIN'] },
   {

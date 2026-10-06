@@ -144,6 +144,9 @@ export interface TenderDetail {
   proposalCount: number;
   proposals: ProposalRow[];
   eligibleCount: number;
+  /** Banco de Preços: teto (média + margem) por item, para conferir o preço do rodízio. */
+  priceReferences: { itemId: number; count: number; average: number; ceiling: number }[];
+  ceilingTotal: number | null;
   version: number;
 }
 

@@ -119,8 +119,7 @@ public final class OrderDtos {
             if (a == null) {
                 return null;
             }
-            boolean regular = a.getStatus() == ApplicationStatus.APPROVED && a.getAccreditationValidUntil() != null
-                    && !a.getAccreditationValidUntil().isBefore(today);
+            boolean regular = a.isActiveOn(today);
             return new SupplierRef(a.getId(), OrderDtos.name(a), a.getSupplierType() == null ? null : a.getSupplierType().label(),
                     regular);
         }

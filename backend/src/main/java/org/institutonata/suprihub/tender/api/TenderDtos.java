@@ -124,6 +124,10 @@ public final class TenderDtos {
         }
     }
 
+    /** Referência do Banco de Preços para um item (conferência do rodízio — Manual 4.1). */
+    public record ItemReference(Long itemId, int count, BigDecimal average, BigDecimal ceiling) {
+    }
+
     public record TenderDetail(Long id, String number, Status status, String statusLabel, String title,
             String description, LineDto line, Integer executionMunicipalityId, String executionMunicipalityName,
             String location, String schedule, String executionDeadline, String requirements, String paymentTerms,
@@ -131,7 +135,7 @@ public final class TenderDtos {
             String selectionMode, Instant proposalDeadline, boolean deadlinePassed, Instant publishedAt,
             String cancelReason, Set<Territory> territories, List<ItemDto> items, List<InvitationDto> invitations,
             boolean proposalsSealed, long proposalCount, List<ProposalRow> proposals, int eligibleCount,
-            long version) {
+            List<ItemReference> priceReferences, BigDecimal ceilingTotal, long version) {
     }
 
     // ---------------------------------------------------------------- Fornecedor

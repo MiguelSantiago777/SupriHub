@@ -15,7 +15,10 @@ mulheres.
 > Diretoria aprova a ata da Faixa 3) e a ata sai em PDF. **Fase 3** começou: a ordem de
 > fornecimento nasce na adjudicação, é emitida e assinada eletronicamente, o gestor registra o
 > Termo de Recebimento e Avaliação, o fornecedor envia a nota fiscal e o Financeiro registra o
-> pagamento; o Banco de Preços é alimentado no recebimento.
+> pagamento; o Banco de Preços é alimentado no recebimento e confere o teto do rodízio.
+> Controle: processo sancionador com defesa e recurso (suspensão tira o fornecedor das
+> oportunidades), dossiê do Anexo XIII com revisão por amostragem e indicadores do relatório
+> semestral.
 
 ## Rodar tudo com Docker
 

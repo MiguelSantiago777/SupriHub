@@ -35,6 +35,7 @@ public interface SupplierApplicationRepository extends JpaRepository<SupplierApp
             SELECT DISTINCT a FROM SupplierApplication a LEFT JOIN a.lines l
             WHERE a.status = :status
               AND a.accreditationValidUntil >= :today
+              AND (a.blockedUntil IS NULL OR a.blockedUntil < :today)
               AND (:line = '' OR l.code = :line)
               AND (:territory IS NULL OR :territory MEMBER OF a.territories)
               AND (:q = ''

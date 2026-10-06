@@ -69,10 +69,47 @@ export const routes: Routes = [
   { path: 'financeiro', redirectTo: 'contratos', pathMatch: 'full' },
   {
     path: 'controle',
-    title: 'Controle Interno',
-    canMatch: [roleGuard('INTERNAL_CONTROL')],
-    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
-    data: { area: 'INTERNAL_CONTROL' },
+    title: 'Revisão de dossiês',
+    canMatch: [roleGuard('INTERNAL_CONTROL', 'ADMIN')],
+    loadComponent: () => import('./areas/contracts/dossiers.page').then((m) => m.DossiersPage),
+  },
+  {
+    path: 'sancoes',
+    canMatch: [roleGuard('COMMISSION', 'BOARD', 'INTERNAL_CONTROL', 'ADMIN')],
+    children: [
+      {
+        path: '',
+        title: 'Processos sancionadores',
+        loadComponent: () =>
+          import('./areas/sanctions/sanctions.page').then((m) => m.SanctionsPage),
+      },
+      {
+        path: 'novo',
+        title: 'Novo processo sancionador',
+        canMatch: [roleGuard('COMMISSION', 'ADMIN')],
+        loadComponent: () =>
+          import('./areas/sanctions/sanction-new.page').then((m) => m.SanctionNewPage),
+      },
+      {
+        path: ':id',
+        title: 'Processo sancionador',
+        loadComponent: () => import('./areas/sanctions/sanction.page').then((m) => m.SanctionPage),
+      },
+    ],
+  },
+  {
+    path: 'precos',
+    title: 'Banco de Preços',
+    canMatch: [
+      roleGuard('COMMISSION', 'DEMAND_MANAGER', 'FINANCE', 'INTERNAL_CONTROL', 'BOARD', 'ADMIN'),
+    ],
+    loadComponent: () => import('./areas/prices/price-bank.page').then((m) => m.PriceBankPage),
+  },
+  {
+    path: 'indicadores',
+    title: 'Indicadores',
+    canMatch: [roleGuard('COMMISSION', 'BOARD', 'INTERNAL_CONTROL', 'FINANCE', 'ADMIN')],
+    loadComponent: () => import('./areas/indicators/indicators.page').then((m) => m.IndicatorsPage),
   },
   {
     path: 'diretoria',

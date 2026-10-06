@@ -151,6 +151,21 @@
                       >Preço proposto: <strong>{{ money(inv.proposedTotal) }}</strong>
                       <span class="muted">(estimado {{ money(d.estimatedValue) }})</span></span
                     >
+                    @if (d.ceilingTotal !== null) {
+                      <span class="ceiling">
+                        Teto pelo Banco de Preços: <strong>{{ money(d.ceilingTotal) }}</strong>
+                        @if (inv.proposedTotal > d.ceilingTotal) {
+                          <span class="badge badge-error">acima do teto</span>
+                        } @else {
+                          <span class="badge badge-success">dentro do teto</span>
+                        }
+                      </span>
+                    } @else {
+                      <span class="muted small"
+                        >Sem referência no Banco de Preços para todos os itens — confira pela
+                        pesquisa de mercado.</span
+                      >
+                    }
                   }
                   @if (inv.status === 'ACCEPTED') {
                     <div class="btns">

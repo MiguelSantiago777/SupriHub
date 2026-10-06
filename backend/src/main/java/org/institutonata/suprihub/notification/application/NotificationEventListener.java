@@ -42,6 +42,9 @@ import org.institutonata.suprihub.contract.domain.ContractEvents;
 import org.institutonata.suprihub.contract.domain.ServiceOrder;
 import org.institutonata.suprihub.contract.infra.ServiceOrderRepository;
 import org.institutonata.suprihub.tender.domain.Tender;
+import org.institutonata.suprihub.sanction.domain.SanctionEvents;
+import org.institutonata.suprihub.sanction.domain.SanctionProcess;
+import org.institutonata.suprihub.sanction.infra.SanctionProcessRepository;
 import org.institutonata.suprihub.tender.infra.TenderInvitationRepository;
 import org.institutonata.suprihub.tender.infra.TenderRepository;
 import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
@@ -79,6 +82,7 @@ public class NotificationEventListener {
     private final CoverOfferRepository coverOffers;
     private final JudgmentService judgmentService;
     private final ServiceOrderRepository serviceOrders;
+    private final SanctionProcessRepository sanctionProcesses;
     private final Clock clock;
     private final String frontendUrl;
 
@@ -87,8 +91,10 @@ public class NotificationEventListener {
             AppealRepository appeals, TenderRepository tenders, TenderInvitationRepository invitations,
             ProposalRepository proposals, EligibleSuppliers eligibleSuppliers, JudgmentRepository judgments,
             JudgmentEntryRepository judgmentEntries, CoverOfferRepository coverOffers, JudgmentService judgmentService,
-            ServiceOrderRepository serviceOrders, Clock clock, SupriHubProperties props) {
+            ServiceOrderRepository serviceOrders, SanctionProcessRepository sanctionProcesses, Clock clock,
+            SupriHubProperties props) {
         this.serviceOrders = serviceOrders;
+        this.sanctionProcesses = sanctionProcesses;
         this.judgments = judgments;
         this.judgmentEntries = judgmentEntries;
         this.coverOffers = coverOffers;
@@ -312,6 +318,39 @@ public class NotificationEventListener {
                                     + "contratações nos últimos 12 meses.",
                             "Pelo Edital 9.5, cabe abrir processo para suspensão do cadastro.", "Ver a ordem",
                             "/contratos/" + o.getId())));
+            case SanctionEvents.OPENED -> withSanction(event, p -> toApplication(p.getApplicationId(), event,
+                    "Notificação: processo " + p.getNumber(), notice(
+                            "O Instituto abriu o processo " + p.getNumber() + " sobre: " + p.getInfraction().label()
+                                    + ". Fatos: " + p.getFacts(),
+                            "Você tem até " + date(p.getDefenseDue()) + " (5 dias úteis) para apresentar defesa."
+                                    + (p.isInterimBlock()
+                                            ? " Por risco iminente, o seu cadastro fica inativo até a decisão."
+                                            : ""),
+                            "Apresentar defesa", "/fornecedor/sancoes/" + p.getId())));
+            case SanctionEvents.DEFENDED -> withSanction(event, p -> notifyRole(AppRole.COMMISSION, event, "notice",
+                    "Defesa recebida — " + p.getNumber(), notice(
+                            "O fornecedor apresentou defesa no processo " + p.getNumber() + ".",
+                            "Decida de forma motivada até " + date(p.getDecisionDue()) + ".", "Ver o processo",
+                            "/sancoes/" + p.getId())));
+            case SanctionEvents.DECIDED -> withSanction(event, p -> toApplication(p.getApplicationId(), event,
+                    "Decisão do processo " + p.getNumber(), notice(
+                            "A Comissão decidiu o processo " + p.getNumber() + ": " + p.getSanction().label() + ".",
+                            p.getSanction().name().equals("NONE") ? "O processo será arquivado."
+                                    : "Você pode recorrer à Diretoria até " + date(p.getAppealDue())
+                                            + " (5 dias úteis).",
+                            "Ver a decisão", "/fornecedor/sancoes/" + p.getId())));
+            case SanctionEvents.APPEALED -> withSanction(event, p -> notifyRole(AppRole.BOARD, event, "notice",
+                    "Recurso em processo sancionador — " + p.getNumber(), notice(
+                            "O fornecedor recorreu da decisão da Comissão no processo " + p.getNumber() + ".",
+                            "Decisão final da Diretoria até " + date(p.getBoardDue()) + ".", "Ver o recurso",
+                            "/sancoes/" + p.getId())));
+            case SanctionEvents.FINAL -> withSanction(event, p -> toApplication(p.getApplicationId(), event,
+                    "Processo encerrado — " + p.getNumber(), notice(
+                            "O processo " + p.getNumber() + " foi encerrado: " + p.getFinalSanction().label() + ".",
+                            p.getEffectiveUntil() == null ? ""
+                                    : "O seu cadastro fica sem receber oportunidades até "
+                                            + date(p.getEffectiveUntil()) + ".",
+                            "Ver o processo", "/fornecedor/sancoes/" + p.getId())));
             default -> log.debug("Evento {} sem notificação associada", event.type());
         }
     }
@@ -319,6 +358,17 @@ public class NotificationEventListener {
     private void withOrder(EventEnvelope event, BiConsumer<ServiceOrder, Tender> action) {
         serviceOrders.findById(event.payloadLong("serviceOrderId"))
                 .ifPresent(o -> tenders.findById(o.getTenderId()).ifPresent(t -> action.accept(o, t)));
+    }
+
+    private void withSanction(EventEnvelope event, Consumer<SanctionProcess> action) {
+        sanctionProcesses.findById(event.payloadLong("processId")).ifPresent(action);
+    }
+
+    private void toApplication(Long applicationId, EventEnvelope event, String subject, Map<String, Object> vars) {
+        applications.findById(applicationId)
+                .flatMap(app -> users.findById(app.getUserId()))
+                .filter(AppUser::isEnabled)
+                .ifPresent(user -> email(user, "notice", subject, event, vars));
     }
 
     private void toSupplier(ServiceOrder o, EventEnvelope event, String template, String subject,

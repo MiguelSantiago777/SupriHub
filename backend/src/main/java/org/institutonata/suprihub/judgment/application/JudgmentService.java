@@ -238,7 +238,9 @@ public class JudgmentService implements TenderCancellationListener {
             if (p.isDisqualified()) {
                 disqualified.put(p.getId(), p.getDisqualifiedReason());
             } else if (!accredited(app, today)) {
-                disqualified.put(p.getId(), "Sem credenciamento vigente na data do julgamento (Edital 2.1; D-033).");
+                disqualified.put(p.getId(), app != null && app.isBlockedOn(today)
+                        ? "Fornecedor suspenso ou inativado por processo sancionador (Política art. 25 e 26)."
+                        : "Sem credenciamento vigente na data do julgamento (Edital 2.1; D-033).");
             } else {
                 valid.add(p);
             }
@@ -496,8 +498,7 @@ public class JudgmentService implements TenderCancellationListener {
     }
 
     private static boolean accredited(SupplierApplication app, LocalDate today) {
-        return app != null && app.getStatus() == ApplicationStatus.APPROVED
-                && app.getAccreditationValidUntil() != null && !app.getAccreditationValidUntil().isBefore(today);
+        return app != null && app.isActiveOn(today);
     }
 
     /**
