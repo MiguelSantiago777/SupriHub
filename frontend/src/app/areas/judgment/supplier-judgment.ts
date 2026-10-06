@@ -5,6 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { JudgmentApi, MyJudgment } from '../../core/api/judgment.api';
 import { formatDate, formatDateTime, formatMoney } from '../../core/format';
@@ -16,7 +17,14 @@ import { problemMessage, toProblem } from '../../core/http/problem';
  */
 @Component({
   selector: 'app-supplier-judgment',
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule],
+  imports: [
+    FormsModule,
+    RouterLink,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+  ],
   template: `
     @if (mine(); as m) {
       @if (m.result; as r) {
@@ -30,6 +38,7 @@ import { problemMessage, toProblem } from '../../core/http/problem';
                 >. O Instituto vai emitir a Ordem de Fornecimento. Fique atento ao e-mail e ao
                 WhatsApp.
               </p>
+              <a mat-stroked-button routerLink="/fornecedor/contratos">Ver em Meus contratos</a>
             </div>
           </section>
         } @else {

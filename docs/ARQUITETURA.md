@@ -50,6 +50,7 @@ Pacote base `org.institutonata.suprihub`. Cada módulo segue a mesma divisão:
 | `supplier` | Requerimento, documentos, habilitação, cadastro, certidões, recursos, job diário | 1 |
 | `proposal` | Propostas com sigilo até o prazo | 2 |
 | `judgment` | `JudgmentEngine` **puro** (`domain`), entidades em `model`, mapa comparativo, direito de cobrir, sorteio com semente, ata PDF (OpenPDF), homologação Comissão/Diretoria | 2 |
+| `contract` | Ordem de Fornecimento/Serviço (Anexo VIII) com PDF, assinatura eletrônica, Termo de Recebimento e Avaliação (Anexo IX), NF/RPA, pagamento, Banco de Preços; `SupplierRatings` alimenta o desempate | 3 |
 
 ### Regras transversais
 
@@ -120,7 +121,8 @@ Migrações Flyway em `backend/src/main/resources/db/migration`:
 | V12+ | Fase 1 — certidões e atualização cadastral |
 | V20 | Fase 2A — oportunidades, itens, territórios, convites do rodízio, propostas |
 | V21 | Fase 2B — desclassificação, julgamento, mapa (imutável), sorteio (imutável), direito de cobrir |
-| V22+ | Fase 3 — contratos, avaliações, banco de preços |
+| V22 | Fase 3A — ordem de fornecimento/serviço, itens, termos de recebimento, arquivos, banco de preços |
+| V23+ | Fase 3B — sanções, dossiê, indicadores |
 
 ## Testes
 

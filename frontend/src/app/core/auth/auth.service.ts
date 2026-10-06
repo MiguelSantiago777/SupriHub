@@ -8,10 +8,10 @@ import { AppRole, Me, MessageResponse, SessionResponse } from '../models';
 export const ROLE_HOME: [AppRole, string][] = [
   ['ADMIN', '/admin'],
   ['COMMISSION', '/comissao'],
-  ['BOARD', '/recursos'],
+  ['BOARD', '/diretoria'],
   ['INTERNAL_CONTROL', '/controle'],
-  ['FINANCE', '/financeiro'],
-  ['DEMAND_MANAGER', '/gestor'],
+  ['FINANCE', '/contratos'],
+  ['DEMAND_MANAGER', '/contratos'],
   ['SUPPLIER', '/fornecedor'],
 ];
 

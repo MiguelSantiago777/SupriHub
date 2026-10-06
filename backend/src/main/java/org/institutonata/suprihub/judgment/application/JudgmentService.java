@@ -53,6 +53,7 @@ import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierEnums.Race;
 import org.institutonata.suprihub.supplier.domain.SupplierType;
 import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
+import org.institutonata.suprihub.tender.application.TenderAwardListener;
 import org.institutonata.suprihub.tender.application.TenderCancellationListener;
 import org.institutonata.suprihub.tender.domain.Band;
 import org.institutonata.suprihub.tender.domain.Tender;
@@ -103,13 +104,17 @@ public class JudgmentService implements TenderCancellationListener {
     private final AuditService audit;
     private final ObjectMapper json;
     private final Clock clock;
+    private final List<TenderAwardListener> awardListeners;
+    private final SupplierRatingSource ratings;
     private final SecureRandom random = new SecureRandom();
 
     public JudgmentService(JudgmentRepository judgments, JudgmentEntryRepository entries, CoverOfferRepository covers,
             DrawRecordRepository draws, TenderRepository tenders, ProposalRepository proposals,
             SupplierApplicationRepository applications, ParameterService parameters, CalendarService calendar,
             AtaPdf ataPdf, FileStorage storage, DomainEvents events, AuditService audit, ObjectMapper json,
-            Clock clock) {
+            Clock clock, List<TenderAwardListener> awardListeners, SupplierRatingSource ratings) {
+        this.awardListeners = awardListeners;
+        this.ratings = ratings;
         this.judgments = judgments;
         this.entries = entries;
         this.covers = covers;
@@ -258,7 +263,8 @@ public class JudgmentService implements TenderCancellationListener {
         Map<Long, JudgmentEntry.Supplier> profiles = new HashMap<>();
         List<Bid> bids = new ArrayList<>();
         for (Proposal p : all) {
-            JudgmentEntry.Supplier s = profile(apps.get(p.getApplicationId()), tender);
+            JudgmentEntry.Supplier s = profile(apps.get(p.getApplicationId()), tender,
+                    ratings.ratingOf(p.getApplicationId()));
             profiles.put(p.getId(), s);
             if (!disqualified.containsKey(p.getId())) {
                 bids.add(new Bid(p.getId(), p.getTotalValue(), s.smallBusiness(), level(s.territory()), s.womanLed(),
@@ -399,6 +405,9 @@ public class JudgmentService implements TenderCancellationListener {
         j.homologate(userId, note, stored.storageKey(), stored.sha256(), now);
         tender.award(now);
         judgments.flush();
+        JudgmentEntry winner = entryOf(j, j.getWinnerProposalId());
+        awardListeners.forEach(l -> l.onAwarded(tender, winner.getApplicationId(), winner.getProposalId(),
+                j.getAwardedValue(), null));
         audit.record(JudgmentEvents.AGGREGATE, j.getId(), "HOMOLOGATE", Map.of("status", "DECIDED"),
                 Map.of("status", j.getStatus().name(), "ataSha256", stored.sha256(), "byBoard", byBoard), note);
         events.publish(DomainEvent.of(JudgmentEvents.HOMOLOGATED, JudgmentEvents.AGGREGATE, j.getId(),
@@ -494,16 +503,16 @@ public class JudgmentService implements TenderCancellationListener {
     /**
      * Perfil do fornecedor para o julgamento. Todos os tipos aceitos são pequenos negócios
      * (D-031). "Mulher negra ou inscrita no CadÚnico" (Anexo IV; D-016): liderado por mulher e
-     * (preta ou parda, ou CadÚnico). Avaliação de desempenho só existe a partir da Fase 3.
+     * (preta ou parda, ou CadÚnico). Avaliação: média dos Termos de Recebimento no período.
      */
-    static JudgmentEntry.Supplier profile(SupplierApplication app, Tender tender) {
+    static JudgmentEntry.Supplier profile(SupplierApplication app, Tender tender, BigDecimal rating) {
         Territory territory = app.getMunicipality() == null ? Territory.OUT_OF_STATE
                 : TerritoryResolver.resolve(app.getMunicipality().toRef(), tender.getExecutionMunicipality() == null
                         ? null : tender.getExecutionMunicipality().toRef()).territory();
         boolean black = app.getRace() == Race.PRETA || app.getRace() == Race.PARDA;
         return new JudgmentEntry.Supplier(app.getId(), name(app), app.getSupplierType(), territory, true,
                 app.isWomanLed(), app.isWomanLed() && (black || app.isCadUnico()),
-                app.getSupplierType() == SupplierType.MEI, null);
+                app.getSupplierType() == SupplierType.MEI, rating);
     }
 
     static String name(SupplierApplication a) {

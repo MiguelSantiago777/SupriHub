@@ -46,6 +46,7 @@ public class RabbitTopology {
                 bind(notifications, events, "supplier.#"),
                 bind(notifications, events, "tender.#"),
                 bind(notifications, events, "judgment.#"),
+                bind(notifications, events, "contract.#"),
                 bind(notificationsDlq, dlx, "notifications"));
     }
 

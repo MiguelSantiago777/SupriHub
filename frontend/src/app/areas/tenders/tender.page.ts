@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
+import { ContractApi } from '../../core/api/contract.api';
 import { Territory, TERRITORIES } from '../../core/api/supplier.api';
 import {
   INVITATION_BADGE,
@@ -42,6 +43,7 @@ import { AreaTabs } from '../shared/area-tabs';
 })
 export class TenderPage {
   private readonly api = inject(TenderApi);
+  private readonly contracts = inject(ContractApi);
   private readonly snack = inject(MatSnackBar);
 
   /** Parâmetro de rota `:id`. */
@@ -56,6 +58,8 @@ export class TenderPage {
   protected readonly qty = formatQuantity;
 
   protected readonly t = signal<TenderDetail | null>(null);
+  /** Ordem de fornecimento da oportunidade adjudicada. */
+  protected readonly orderId = signal<number | null>(null);
   protected readonly error = signal('');
   protected readonly busy = signal(false);
   protected readonly actionError = signal('');
@@ -95,7 +99,12 @@ export class TenderPage {
 
   private load(id: number): void {
     this.api.get(id).subscribe({
-      next: (t) => this.t.set(t),
+      next: (t) => {
+        this.t.set(t);
+        if (t.status === 'AWARDED') {
+          this.contracts.byTender(t.id).subscribe({ next: (o) => this.orderId.set(o.id) });
+        }
+      },
       error: (e: unknown) => this.error.set(problemMessage(e)),
     });
   }
@@ -108,6 +117,9 @@ export class TenderPage {
       next: (t) => {
         this.busy.set(false);
         this.t.set(t);
+        if (t.status === 'AWARDED') {
+          this.contracts.byTender(t.id).subscribe({ next: (o) => this.orderId.set(o.id) });
+        }
         this.cancelling.set(false);
         this.rejecting.set(null);
         this.addTerritories.set([]);

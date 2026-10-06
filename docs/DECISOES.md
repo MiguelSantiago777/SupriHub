@@ -260,9 +260,8 @@ empatadas, ela guarda a ata da sessão no dossiê. Divergência registrada.
   escolhe entre cancelar e repetir a cotação, ou **justificar** e julgar (a justificativa vai
   para a ata). Sem nenhuma proposta válida, não há julgamento.
 
-**D-047 — Avaliação de desempenho ainda não existe** · Fase 2B · provisório
-O critério "melhor avaliação" (8.4) conta como zero para todos até a Fase 3, que registra as
-avaliações. O motor e o mapa já recebem o campo.
+**D-047 — Avaliação de desempenho no desempate** · Fase 2B · substituído por D-081
+Até a Fase 3A, o critério "melhor avaliação" (8.4) contava como zero para todos.
 
 **D-048 — LGPD no julgamento** · Fase 2B · vigente
 Política art. 28 e Anexo II, item 5.
@@ -272,6 +271,64 @@ Política art. 28 e Anexo II, item 5.
   decidiu.
 - O fornecedor vê só o valor vencedor, um motivo genérico ("empate ficto com desempate por
   equidade") e a própria posição, sem nomes dos concorrentes.
+
+**D-080 — Ordem de Fornecimento/Serviço** · Fase 3A · vigente
+Edital 9.1 e 9.2; Anexo VIII; Manual 4.2, passo 7.
+- A ordem nasce **em preparação** quando a oportunidade é adjudicada (Faixa 1: seleção
+  confirmada; Faixas 2 e 3: julgamento homologado), com os itens, o preço da proposta e o
+  local/data da oportunidade.
+- A Comissão ou o gestor da demanda completa projeto/rubrica, prazo de pagamento (até 30
+  dias), sinal (até 30%, Edital 10.4) e multa (2% a 10%) e **emite**. Antes da emissão, o
+  sistema confere se o credenciamento está vigente.
+- **Faixa 1:** o aceite eletrônico do rodízio vale como assinatura (9.2). A ordem já sai
+  assinada.
+- **Faixas 2 e 3:** o fornecedor assina na área dele em 2 d.u. O sistema guarda data, hora,
+  IP e a confirmação de leitura das cláusulas. Sem assinatura no prazo (job de hora em
+  hora), a ordem fica "não assinada" e a equipe é avisada. A equipe reemite com novo prazo
+  ou cancela. Ainda não há convocação automática do próximo colocado: a Comissão anula o
+  julgamento ou segue o rodízio.
+
+**D-081 — Termo de Recebimento e Avaliação** · Fase 3A · vigente
+Edital 9.5; Anexo IX; Manual 4.2, passo 9.
+- O gestor (ou a Comissão) registra o termo: definitivo, com ressalvas (correções e prazo)
+  ou recusado. Ele traz as 5 notas de 1 a 5 e a média, além das evidências (lista e
+  arquivos).
+- Com ressalvas, um novo termo vem depois. O termo **final** (definitivo ou recusa) fixa a
+  nota da contratação.
+- O fornecedor vê as notas e dá ciência na área dele.
+- **Desempate (8.4):** "melhor avaliação" passa a ser a média dos termos finais nos últimos
+  `rating_window_months` (24) meses. Sem avaliação, conta como zero.
+- **Edital 9.5:** médias abaixo de `low_rating_threshold` (3) em `low_rating_occurrences`
+  (2) contratações em `low_rating_window_months` (12) meses geram alerta por e-mail à
+  Comissão. Abrir o processo de suspensão é decisão da Comissão; as sanções entram na
+  Fase 3B.
+
+**D-082 — Nota fiscal e pagamento** · Fase 3A · vigente
+Edital 10.1 a 10.4; Manual 4.2, passo 10.
+- Depois do recebimento definitivo, o fornecedor envia a NF/RPA (número, data, valor e
+  arquivo). O Financeiro também pode registrá-la, se ela chegou por outro meio.
+- Prazo de pagamento: até `payment_deadline_days` (30) dias corridos depois do recebimento
+  definitivo, ou o prazo menor da ordem.
+- O Financeiro anexa o comprovante e registra o pagamento (Pix ou transferência). O sistema
+  **confere de novo** o credenciamento vigente (10.3). Se ele estiver vencido, bloqueia e
+  orienta a regularização (4.4). A conferência certidão a certidão entra junto com as
+  certidões.
+- O sinal (10.4) fica registrado na ordem, mas ainda não é pago como parcela separada.
+
+**D-083 — Banco de Preços** · Fase 3A · vigente
+Manual 4.2, passo 11; aba Banco de Preços da Planilha.
+- O recebimento definitivo grava o preço unitário de cada item, com fonte "Contratação" e o
+  número da ordem.
+- Se o valor contratado difere da soma dos itens (ex.: a fornecedora cobriu o menor preço),
+  a mesma proporção é aplicada a todos os itens.
+- Proposta sem preço por item: registra só quando há um único item (total ÷ quantidade).
+- A consulta, o lançamento manual de cotações e o teto da Faixa 1 (média + 10%) entram na
+  Fase 3B.
+
+**D-084 — Áreas do gestor, do Financeiro e da Diretoria** · Fase 3A · vigente
+O gestor da demanda e o Financeiro passam a entrar em "Contratos" (`/contratos`); a
+Diretoria entra em "Atas" (`/diretoria`). O Controle Interno e a Diretoria consultam as
+ordens sem editar.
 
 ## 3. Pontos em aberto do prompt (§12) — padrões adotados
 

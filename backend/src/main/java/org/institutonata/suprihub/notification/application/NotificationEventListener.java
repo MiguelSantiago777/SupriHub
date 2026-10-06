@@ -38,6 +38,10 @@ import org.institutonata.suprihub.judgment.infra.JudgmentEntryRepository;
 import org.institutonata.suprihub.judgment.infra.JudgmentRepository;
 import org.institutonata.suprihub.judgment.model.JudgmentEntry;
 import org.institutonata.suprihub.tender.domain.Band;
+import org.institutonata.suprihub.contract.domain.ContractEvents;
+import org.institutonata.suprihub.contract.domain.ServiceOrder;
+import org.institutonata.suprihub.contract.infra.ServiceOrderRepository;
+import org.institutonata.suprihub.tender.domain.Tender;
 import org.institutonata.suprihub.tender.infra.TenderInvitationRepository;
 import org.institutonata.suprihub.tender.infra.TenderRepository;
 import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
@@ -74,6 +78,7 @@ public class NotificationEventListener {
     private final JudgmentEntryRepository judgmentEntries;
     private final CoverOfferRepository coverOffers;
     private final JudgmentService judgmentService;
+    private final ServiceOrderRepository serviceOrders;
     private final Clock clock;
     private final String frontendUrl;
 
@@ -82,7 +87,8 @@ public class NotificationEventListener {
             AppealRepository appeals, TenderRepository tenders, TenderInvitationRepository invitations,
             ProposalRepository proposals, EligibleSuppliers eligibleSuppliers, JudgmentRepository judgments,
             JudgmentEntryRepository judgmentEntries, CoverOfferRepository coverOffers, JudgmentService judgmentService,
-            Clock clock, SupriHubProperties props) {
+            ServiceOrderRepository serviceOrders, Clock clock, SupriHubProperties props) {
+        this.serviceOrders = serviceOrders;
         this.judgments = judgments;
         this.judgmentEntries = judgmentEntries;
         this.coverOffers = coverOffers;
@@ -260,8 +266,71 @@ public class NotificationEventListener {
                                                     "link", frontendUrl + "/fornecedor/editais/" + t.getId())));
                         }
                     }));
+            case ContractEvents.CREATED -> withOrder(event, (o, t) -> notifyRole(AppRole.COMMISSION, event, "notice",
+                    "Ordem de fornecimento para preparar — " + t.getNumber(), notice(
+                            "A oportunidade " + t.getNumber() + " (" + t.getTitle() + ") foi adjudicada por "
+                                    + money(o.getTotalValue()) + ". A ordem de fornecimento está em preparação.",
+                            "Confira projeto, prazos e pagamento e emita a ordem.", "Preparar a ordem",
+                            "/contratos/" + o.getId())));
+            case ContractEvents.ISSUED -> withOrder(event, (o, t) -> toSupplier(o, event, "notice",
+                    (o.isAcceptanceBased() ? "Ordem emitida — " : "Assine a ordem — ") + o.getNumber(), notice(
+                            "O Instituto emitiu a " + o.getKind().label() + " " + o.getNumber() + " para "
+                                    + t.getTitle() + ", no valor de " + money(o.getTotalValue()) + ".",
+                            o.isAcceptanceBased()
+                                    ? "Na Faixa 1 o seu aceite já vale como assinatura. Execute conforme a ordem."
+                                    : "Leia e assine pela sua área até " + date(o.getSignatureDueDate())
+                                            + " (2 dias úteis). Sem assinatura, o próximo pode ser convocado.",
+                            "Ver a ordem", "/fornecedor/contratos/" + o.getId())));
+            case ContractEvents.EXPIRED -> withOrder(event, (o, t) -> notifyRole(AppRole.COMMISSION, event, "notice",
+                    "Ordem não assinada no prazo — " + o.getNumber(), notice(
+                            "O fornecedor não assinou a ordem " + o.getNumber() + " (" + t.getTitle() + ") no prazo.",
+                            "Reemita com novo prazo ou cancele e convoque o próximo (Edital 9.1).", "Ver a ordem",
+                            "/contratos/" + o.getId())));
+            case ContractEvents.RECEIVED -> withOrder(event, (o, t) -> toSupplier(o, event, "notice",
+                    "Termo de recebimento — " + o.getNumber(), notice(
+                            "O Instituto registrou o recebimento da ordem " + o.getNumber() + ": "
+                                    + o.getStatus().label() + ".",
+                            o.getStatus().name().equals("RECEIVED")
+                                    ? "Veja a sua avaliação, dê ciência e envie a nota fiscal ou o RPA pela sua área."
+                                    : "Veja o termo e a avaliação na sua área e dê ciência.",
+                            "Ver o termo", "/fornecedor/contratos/" + o.getId())));
+            case ContractEvents.INVOICED -> withOrder(event, (o, t) -> notifyRole(AppRole.FINANCE, event, "notice",
+                    "Nota fiscal para pagar — " + o.getNumber(), notice(
+                            "Chegou a nota fiscal/RPA da ordem " + o.getNumber() + " (" + money(o.getTotalValue())
+                                    + ").",
+                            "Pagar até " + date(o.getPaymentDueDate()) + ", conferindo de novo a regularidade.",
+                            "Ver a ordem", "/contratos/" + o.getId())));
+            case ContractEvents.PAID -> withOrder(event, (o, t) -> toSupplier(o, event, "notice",
+                    "Pagamento feito — " + o.getNumber(), notice(
+                            "O Instituto pagou " + money(o.getPaidValue()) + " referente à ordem " + o.getNumber()
+                                    + " em " + date(o.getPaidOn()) + ".",
+                            "O comprovante está na sua área. Obrigado!", "Ver o comprovante",
+                            "/fornecedor/contratos/" + o.getId())));
+            case ContractEvents.LOW_RATING_ALERT -> withOrder(event, (o, t) -> notifyRole(AppRole.COMMISSION, event,
+                    "notice", "Avaliações insuficientes — fornecedor da ordem " + o.getNumber(), notice(
+                            "O fornecedor da ordem " + o.getNumber() + " teve avaliações abaixo de 3 em duas "
+                                    + "contratações nos últimos 12 meses.",
+                            "Pelo Edital 9.5, cabe abrir processo para suspensão do cadastro.", "Ver a ordem",
+                            "/contratos/" + o.getId())));
             default -> log.debug("Evento {} sem notificação associada", event.type());
         }
+    }
+
+    private void withOrder(EventEnvelope event, BiConsumer<ServiceOrder, Tender> action) {
+        serviceOrders.findById(event.payloadLong("serviceOrderId"))
+                .ifPresent(o -> tenders.findById(o.getTenderId()).ifPresent(t -> action.accept(o, t)));
+    }
+
+    private void toSupplier(ServiceOrder o, EventEnvelope event, String template, String subject,
+            Map<String, Object> vars) {
+        applications.findById(o.getApplicationId())
+                .flatMap(app -> users.findById(app.getUserId()))
+                .filter(AppUser::isEnabled)
+                .ifPresent(user -> email(user, template, subject, event, vars));
+    }
+
+    private Map<String, Object> notice(String message, String detail, String button, String path) {
+        return Map.of("message", message, "detail", detail, "button", button, "link", frontendUrl + path);
     }
 
     @FunctionalInterface

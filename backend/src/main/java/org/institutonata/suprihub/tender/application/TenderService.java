@@ -22,6 +22,8 @@ import org.institutonata.suprihub.messaging.domain.DomainEvent;
 import org.institutonata.suprihub.parameter.application.CalendarService;
 import org.institutonata.suprihub.parameter.application.ParameterService;
 import org.institutonata.suprihub.parameter.domain.ParameterKey;
+import org.institutonata.suprihub.proposal.domain.Proposal;
+import org.institutonata.suprihub.proposal.infra.ProposalRepository;
 import org.institutonata.suprihub.shared.error.BusinessException;
 import org.institutonata.suprihub.shared.error.NotFoundException;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
@@ -62,13 +64,18 @@ public class TenderService {
     private final AuditService audit;
     private final Clock clock;
     private final List<TenderCancellationListener> cancellationListeners;
+    private final List<TenderAwardListener> awardListeners;
+    private final ProposalRepository proposals;
 
     public TenderService(TenderRepository tenders, TenderInvitationRepository invitations, SupplyLineRepository lines,
             MunicipalityRepository municipalities, RotationService rotation, EligibleSuppliers eligibleSuppliers,
             SupplierApplicationRepository applications, ParameterService parameters, CalendarService calendar,
             DomainEvents events, AuditService audit, Clock clock,
-            List<TenderCancellationListener> cancellationListeners) {
+            List<TenderCancellationListener> cancellationListeners, List<TenderAwardListener> awardListeners,
+            ProposalRepository proposals) {
         this.cancellationListeners = cancellationListeners;
+        this.awardListeners = awardListeners;
+        this.proposals = proposals;
         this.tenders = tenders;
         this.invitations = invitations;
         this.lines = lines;
@@ -195,6 +202,10 @@ public class TenderService {
         Instant now = clock.instant();
         inv.confirm(now);
         tender.award(now);
+        Proposal p = proposals.findByTenderIdAndApplicationId(tender.getId(), inv.getApplicationId())
+                .orElseThrow(() -> new IllegalStateException("Convite aceito sem proposta"));
+        awardListeners.forEach(l -> l.onAwarded(tender, inv.getApplicationId(), p.getId(), p.getTotalValue(),
+                inv.getRespondedAt()));
         audit.record("tender_invitation", invitationId, "CONFIRM", Map.of("status", "ACCEPTED"),
                 Map.of("status", inv.getStatus().name()));
         return tender;

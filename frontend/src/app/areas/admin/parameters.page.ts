@@ -15,6 +15,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   FAIXAS: 'Faixas de valor',
   JULGAMENTO: 'Julgamento e tratamento favorecido',
   PROPOSTAS: 'Propostas',
+  CONTRATACAO: 'Contratação, recebimento e pagamento',
   CREDENCIAMENTO: 'Credenciamento e prazos',
   CALENDARIO: 'Calendário',
   METAS: 'Metas anuais',

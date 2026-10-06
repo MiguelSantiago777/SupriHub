@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Área do fornecedor: credenciamento e editais em aberto. */
+/** Área do fornecedor: credenciamento, editais em aberto e contratos. */
 export const SUPPLIER_ROUTES: Routes = [
   {
     path: '',
@@ -18,5 +18,17 @@ export const SUPPLIER_ROUTES: Routes = [
     path: 'editais/:id',
     title: 'Oportunidade',
     loadComponent: () => import('../opportunities/opportunity.page').then((m) => m.OpportunityPage),
+  },
+  {
+    path: 'contratos',
+    title: 'Meus contratos',
+    loadComponent: () =>
+      import('../contracts/supplier-contracts.page').then((m) => m.SupplierContractsPage),
+  },
+  {
+    path: 'contratos/:id',
+    title: 'Ordem de fornecimento',
+    loadComponent: () =>
+      import('../contracts/supplier-contract.page').then((m) => m.SupplierContractPage),
   },
 ];

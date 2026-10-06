@@ -12,7 +12,10 @@ mulheres.
 > (editais): a Comissão publica oportunidades, a Faixa 1 roda por rodízio, o fornecedor envia
 > propostas em "Editais em aberto" e, nas Faixas 2 e 3, a Comissão julga (empate ficto,
 > preferência local, desempate por equidade, sorteio e direito de cobrir), homologa (a
-> Diretoria aprova a ata da Faixa 3) e a ata sai em PDF.
+> Diretoria aprova a ata da Faixa 3) e a ata sai em PDF. **Fase 3** começou: a ordem de
+> fornecimento nasce na adjudicação, é emitida e assinada eletronicamente, o gestor registra o
+> Termo de Recebimento e Avaliação, o fornecedor envia a nota fiscal e o Financeiro registra o
+> pagamento; o Banco de Preços é alimentado no recebimento.
 
 ## Rodar tudo com Docker
 

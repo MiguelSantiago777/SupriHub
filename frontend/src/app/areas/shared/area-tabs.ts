@@ -26,6 +26,12 @@ const SUPPLIER_TABS: Tab[] = [
     link: '/fornecedor/editais',
     roles: ['SUPPLIER'],
   },
+  {
+    label: 'Meus contratos',
+    icon: 'receipt_long',
+    link: '/fornecedor/contratos',
+    roles: ['SUPPLIER'],
+  },
 ];
 
 const STAFF_TABS: Tab[] = [
@@ -36,6 +42,12 @@ const STAFF_TABS: Tab[] = [
     roles: ['COMMISSION', 'ADMIN'],
   },
   { label: 'Editais', icon: 'campaign', link: '/comissao/editais', roles: ['COMMISSION', 'ADMIN'] },
+  {
+    label: 'Contratos',
+    icon: 'receipt_long',
+    link: '/contratos',
+    roles: ['COMMISSION', 'DEMAND_MANAGER', 'FINANCE', 'INTERNAL_CONTROL', 'BOARD', 'ADMIN'],
+  },
   { label: 'Atas', icon: 'verified', link: '/diretoria', exact: true, roles: ['BOARD'] },
   { label: 'Recursos', icon: 'gavel', link: '/recursos', roles: ['COMMISSION', 'BOARD', 'ADMIN'] },
   {

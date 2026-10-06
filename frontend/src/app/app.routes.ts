@@ -54,24 +54,19 @@ export const routes: Routes = [
       import('./areas/commission/commission.routes').then((m) => m.COMMISSION_ROUTES),
   },
   {
+    path: 'contratos',
+    canMatch: [
+      roleGuard('COMMISSION', 'DEMAND_MANAGER', 'FINANCE', 'INTERNAL_CONTROL', 'BOARD', 'ADMIN'),
+    ],
+    loadChildren: () => import('./areas/contracts/contracts.routes').then((m) => m.CONTRACT_ROUTES),
+  },
+  {
     path: 'recursos',
     canMatch: [roleGuard('COMMISSION', 'BOARD', 'ADMIN')],
     loadChildren: () => import('./areas/appeals/appeals.routes').then((m) => m.APPEAL_ROUTES),
   },
-  {
-    path: 'gestor',
-    title: 'Gestor da demanda',
-    canMatch: [roleGuard('DEMAND_MANAGER')],
-    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
-    data: { area: 'DEMAND_MANAGER' },
-  },
-  {
-    path: 'financeiro',
-    title: 'Financeiro',
-    canMatch: [roleGuard('FINANCE')],
-    loadComponent: () => import('./areas/area-home.page').then((m) => m.AreaHomePage),
-    data: { area: 'FINANCE' },
-  },
+  { path: 'gestor', redirectTo: 'contratos', pathMatch: 'full' },
+  { path: 'financeiro', redirectTo: 'contratos', pathMatch: 'full' },
   {
     path: 'controle',
     title: 'Controle Interno',

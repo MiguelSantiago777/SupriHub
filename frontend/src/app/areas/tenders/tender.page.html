@@ -115,6 +115,13 @@
       </section>
     } @else if (d.status === 'CANCELLED') {
       <p class="alert alert-error">Cancelada: {{ d.cancelReason }}</p>
+    } @else if (d.status === 'AWARDED' && orderId()) {
+      <p class="alert alert-success awarded">
+        <span>Adjudicada. A ordem de fornecimento segue na área de contratação.</span>
+        <a mat-flat-button [routerLink]="['/contratos', orderId()]">
+          <mat-icon aria-hidden="true">receipt_long</mat-icon> Ordem de fornecimento
+        </a>
+      </p>
     }
 
     <div class="layout">
