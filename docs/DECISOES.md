@@ -557,8 +557,10 @@ toda visita anônima.
 **D-055 — Cadastro não revela se o e-mail existe** · Fase 0 · vigente
 O cadastro, o "esqueci a senha" e o reenvio de confirmação respondem sempre igual. Se o
 e-mail já existe, o titular recebe por e-mail o aviso "você já tem cadastro". Login com
-e-mail não confirmado é bloqueado com orientação para reenviar o link. A conta é bloqueada
-por 15 min após 5 senhas erradas.
+e-mail não confirmado é bloqueado com orientação para reenviar o link. Senhas erradas: 5 por
+IP + e-mail bloqueiam aquele IP por 15 min (vale também para e-mail inexistente); 20 de vários
+IPs bloqueiam a conta, e aí a resposta é a mesma de senha errada. Assim um terceiro não trava a
+conta de ninguém e as respostas não revelam quais e-mails existem.
 
 **D-056 — Usuários internos por convite** · Fase 0 · vigente
 O autocadastro cria só SUPPLIER. Os perfis internos são criados pelo ADMIN e recebem um link
