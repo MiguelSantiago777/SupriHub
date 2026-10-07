@@ -1,5 +1,7 @@
 # SupriHub: manual de uso e roteiro de testes
 
+![Logo do SupriHub](img/suprihub-logo.png){width=50%}
+
 Este documento tem duas partes:
 
 - **Parte 1, Manual de uso:** o que cada perfil de acesso faz no sistema e onde fica cada função.
