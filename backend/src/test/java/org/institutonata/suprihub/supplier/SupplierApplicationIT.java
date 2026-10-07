@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
@@ -131,6 +132,7 @@ class SupplierApplicationIT extends IntegrationTest {
         // Só PDF, JPG ou PNG — conferido pelo conteúdo
         mvc.perform(multipart("/api/supplier/application/documents/CCMEI")
                         .file(new MockMultipartFile("file", "ccmei.pdf", "application/pdf", "texto".getBytes()))
+                        .param("validUntil", LocalDate.now().plusDays(90).toString())
                         .header("Authorization", supplier))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("FILE_TYPE_NOT_ALLOWED"));
@@ -141,6 +143,7 @@ class SupplierApplicationIT extends IntegrationTest {
                 String doc = mvc.perform(multipart("/api/supplier/application/documents/" + type.name())
                                 .file(new MockMultipartFile("file", "../../" + type.name() + ".pdf",
                                         "application/pdf", PDF))
+                                .param("validUntil", LocalDate.now().plusDays(90).toString())
                                 .header("Authorization", supplier))
                         .andExpect(status().isCreated())
                         .andExpect(jsonPath("$.contentType").value("application/pdf"))
@@ -214,6 +217,7 @@ class SupplierApplicationIT extends IntegrationTest {
 
         mvc.perform(multipart("/api/supplier/application/documents/FGTS_CERTIFICATE")
                         .file(new MockMultipartFile("file", "fgts-novo.pdf", "application/pdf", PDF))
+                        .param("validUntil", LocalDate.now().plusDays(90).toString())
                         .header("Authorization", supplier))
                 .andExpect(status().isCreated());
         json = mvc.perform(get("/api/supplier/application").header("Authorization", supplier))
@@ -264,6 +268,7 @@ class SupplierApplicationIT extends IntegrationTest {
             if (type.requirementFor(SupplierType.MEI) == DocumentType.Requirement.REQUIRED) {
                 mvc.perform(multipart("/api/supplier/application/documents/" + type.name())
                                 .file(new MockMultipartFile("file", "doc.pdf", "application/pdf", PDF))
+                                .param("validUntil", LocalDate.now().plusDays(90).toString())
                                 .header("Authorization", supplier))
                         .andExpect(status().isCreated());
             }

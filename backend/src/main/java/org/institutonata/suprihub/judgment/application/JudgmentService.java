@@ -240,7 +240,9 @@ public class JudgmentService implements TenderCancellationListener {
             } else if (!accredited(app, today)) {
                 disqualified.put(p.getId(), app != null && app.isBlockedOn(today)
                         ? "Fornecedor suspenso ou inativado por processo sancionador (Política art. 25 e 26)."
-                        : "Sem credenciamento vigente na data do julgamento (Edital 2.1; D-033).");
+                        : app != null && app.isTemporarilyInactive()
+                                ? "Fornecedor inativo temporariamente por certidão vencida (Política art. 22)."
+                                : "Sem credenciamento vigente na data do julgamento (Edital 2.1; D-033).");
             } else {
                 valid.add(p);
             }

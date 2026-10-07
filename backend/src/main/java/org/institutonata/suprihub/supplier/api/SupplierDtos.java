@@ -8,12 +8,17 @@ import java.util.Map;
 import java.util.Set;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import org.institutonata.suprihub.catalog.domain.SupplyLine;
 import org.institutonata.suprihub.catalog.domain.Territory;
 import org.institutonata.suprihub.shared.privacy.DocumentMasker;
+import org.institutonata.suprihub.supplier.application.SupplierMaintenanceService.Maintenance;
 import org.institutonata.suprihub.supplier.domain.Appeal;
+import org.institutonata.suprihub.supplier.domain.CertificateRegularity;
+import org.institutonata.suprihub.supplier.domain.CertificateRegularity.State;
+import org.institutonata.suprihub.supplier.domain.RegistrationData;
 import org.institutonata.suprihub.supplier.domain.ApplicationCompleteness.Issue;
 import org.institutonata.suprihub.supplier.domain.ApplicationData;
 import org.institutonata.suprihub.supplier.domain.ApplicationEvent;
@@ -93,16 +98,123 @@ public final class SupplierDtos {
     }
 
     public record DocumentDto(Long id, DocumentType type, String label, String filename, String contentType,
-            long sizeBytes, Instant uploadedAt) {
+            long sizeBytes, Instant uploadedAt, LocalDate validUntil, Instant verifiedAt) {
         static DocumentDto of(SupplierDocument d) {
             return new DocumentDto(d.getId(), d.getType(), d.getType().label(), d.getOriginalFilename(),
-                    d.getContentType(), d.getSizeBytes(), d.getUploadedAt());
+                    d.getContentType(), d.getSizeBytes(), d.getUploadedAt(), d.getValidUntil(), d.getVerifiedAt());
         }
     }
 
     /** Item do checklist de documentos para o tipo de negócio escolhido. */
     public record ChecklistItem(DocumentType type, String label, DocumentType.Requirement requirement,
-            DocumentDto document) {
+            boolean certificate, DocumentDto document) {
+    }
+
+    // ------------------------------------------------- manutenção do cadastro
+
+    /** Validade de uma certidão (informada pelo fornecedor ou conferida pela Comissão). */
+    public record ValidityRequest(@NotNull(message = "Informe a validade.") LocalDate validUntil) {
+    }
+
+    /** Pedido de renovação com as declarações confirmadas de novo (Anexos III e V). */
+    public record RenewalRequest(boolean declarationsAccepted, long version) {
+    }
+
+    /** Atualização cadastral do credenciado (Anexo V). */
+    public record RegistrationRequest(
+            @Size(max = 200) String street,
+            @Size(max = 20) String addressNumber,
+            @Size(max = 100) String addressComplement,
+            @Size(max = 100) String district,
+            Integer municipalityId,
+            @Size(max = 10) String cep,
+            @Size(max = 20) String phone,
+            @Size(max = 254) String contactEmail,
+            @Size(max = 300) String website,
+            @Size(max = 200) String representativeName,
+            @Size(max = 14) String representativeCpf,
+            @Size(max = 100) String representativeRole,
+            @Size(max = 100) String bankName,
+            @Size(max = 10) String bankBranch,
+            @Size(max = 20) String bankAccount,
+            BankAccountType bankAccountType,
+            @Size(max = 140) String pixKey,
+            @Size(max = 200) String accountHolder,
+            long version) {
+
+        RegistrationData toData() {
+            return new RegistrationData(street, addressNumber, addressComplement, district, municipalityId, cep,
+                    phone, contactEmail, website, representativeName, representativeCpf, representativeRole,
+                    bankName, bankBranch, bankAccount, bankAccountType, pixKey, accountHolder);
+        }
+
+        @Override
+        public String toString() {
+            return "RegistrationRequest[***]";
+        }
+    }
+
+    public record CertificateDto(DocumentType type, String label, Long documentId, LocalDate validUntil,
+            State state, String stateLabel, boolean verified) {
+        static CertificateDto of(CertificateRegularity.Check c, List<SupplierDocument> docs) {
+            SupplierDocument doc = docs.stream().filter(d -> d.getType() == c.type()).findFirst().orElse(null);
+            return new CertificateDto(c.type(), c.type().label(), doc == null ? null : doc.getId(), c.validUntil(),
+                    c.state(), c.state().label(), doc != null && doc.getVerifiedAt() != null);
+        }
+    }
+
+    /** Situação do credenciado: certidões, inativação, reconferência e renovação. */
+    public record MaintenanceDto(
+            List<CertificateDto> certificates,
+            boolean regular,
+            LocalDate irregularSince,
+            LocalDate regularizationDue,
+            LocalDate inactiveSince,
+            boolean deregistrationAlerted,
+            LocalDate lastRecheckOn,
+            LocalDate nextRecheckDue,
+            boolean recheckDue,
+            LocalDate renewalOpensOn,
+            boolean renewalOpen,
+            Instant renewalRequestedAt,
+            String renewalReturnMessage,
+            int alertDays) {
+
+        static MaintenanceDto of(SupplierApplication a, Maintenance m) {
+            if (m == null) {
+                return null;
+            }
+            return new MaintenanceDto(
+                    m.certificates().checks().stream().map(c -> CertificateDto.of(c, m.documents())).toList(),
+                    m.certificates().regular(), a.getIrregularSince(), a.getRegularizationDue(), a.getInactiveSince(),
+                    a.getDeregistrationAlertedAt() != null, a.getLastRecheckOn(), m.nextRecheckDue(),
+                    m.recheckDue(), m.renewalOpensOn(), m.renewalOpen(), a.getRenewalRequestedAt(),
+                    a.getRenewalReturnMessage(), m.alertDays());
+        }
+    }
+
+    /** Linha das filas de manutenção da Comissão. */
+    public record MaintenanceRow(
+            Long id,
+            String protocol,
+            String name,
+            String supplierTypeLabel,
+            String documentMasked,
+            LocalDate accreditationValidUntil,
+            MaintenanceDto maintenance) {
+
+        public static MaintenanceRow of(SupplierApplication a, Maintenance m) {
+            return new MaintenanceRow(a.getId(), a.getProtocol(),
+                    a.getTradeName() != null ? a.getTradeName() : a.getLegalName(),
+                    a.getSupplierType() == null ? null : a.getSupplierType().label(),
+                    a.getDocumentNumber() == null ? null : DocumentMasker.mask(a.getDocumentNumber()),
+                    a.getAccreditationValidUntil(), MaintenanceDto.of(a, m));
+        }
+
+        @Override
+        public String toString() {
+            return "MaintenanceRow#" + id;
+        }
     }
 
     public record HistoryDto(ApplicationStatus status, String statusLabel, String message, String actor,
@@ -182,14 +294,16 @@ public final class SupplierDtos {
             List<ChecklistItem> checklist,
             List<HistoryDto> history,
             List<IssueDto> pendingItems,
+            MaintenanceDto maintenance,
             long version) {
 
         /**
-         * @param appeal recurso mais recente (ou {@code null})
-         * @param today  data de referência para o prazo de recurso
+         * @param appeal      recurso mais recente (ou {@code null})
+         * @param today       data de referência para o prazo de recurso
+         * @param maintenance manutenção do credenciado (só habilitados; senão {@code null})
          */
         static ApplicationDto of(SupplierApplication a, List<SupplierDocument> docs, List<ApplicationEvent> events,
-                List<Issue> pending, Appeal appeal, LocalDate today) {
+                List<Issue> pending, Appeal appeal, LocalDate today, Maintenance maintenance) {
             boolean openAppeal = appeal != null && appeal.getStatus().isOpen();
             boolean appealedThisDecision = appeal != null && a.getDecidedAt() != null
                     && !appeal.getFiledAt().isBefore(a.getDecidedAt());
@@ -200,7 +314,7 @@ public final class SupplierDtos {
                             || byType.containsKey(t))
                     .map(t -> new ChecklistItem(t, t.label(),
                             a.getSupplierType() == null ? DocumentType.Requirement.OPTIONAL
-                                    : t.requirementFor(a.getSupplierType()),
+                                    : t.requirementFor(a.getSupplierType()), t.isCertificate(),
                             byType.containsKey(t) ? DocumentDto.of(byType.get(t)) : null))
                     .toList();
             return new ApplicationDto(a.getId(), a.getStatus(), a.getStatus().label(), a.getProtocol(),
@@ -223,7 +337,9 @@ public final class SupplierDtos {
                     appeal == null ? null : AppealDto.of(appeal),
                     a.getStatus().isEditableBySupplier() && !openAppeal, checklist,
                     events.stream().map(e -> HistoryDto.of(e, a)).toList(),
-                    pending.stream().map(IssueDto::of).toList(), a.getVersion());
+                    pending.stream().map(IssueDto::of).toList(),
+                    a.getStatus() == ApplicationStatus.APPROVED ? MaintenanceDto.of(a, maintenance) : null,
+                    a.getVersion());
         }
 
         @Override

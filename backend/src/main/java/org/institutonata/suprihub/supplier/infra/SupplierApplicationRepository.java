@@ -36,6 +36,7 @@ public interface SupplierApplicationRepository extends JpaRepository<SupplierApp
             WHERE a.status = :status
               AND a.accreditationValidUntil >= :today
               AND (a.blockedUntil IS NULL OR a.blockedUntil < :today)
+              AND a.inactiveSince IS NULL
               AND (:line = '' OR l.code = :line)
               AND (:territory IS NULL OR :territory MEMBER OF a.territories)
               AND (:q = ''
@@ -53,6 +54,9 @@ public interface SupplierApplicationRepository extends JpaRepository<SupplierApp
             """)
     List<SupplierApplication> findByLineAndStatusIn(@Param("line") String line,
             @Param("statuses") java.util.Collection<ApplicationStatus> statuses);
+
+    /** Habilitados (vigentes ou não), para a manutenção do cadastro. */
+    List<SupplierApplication> findByStatus(ApplicationStatus status);
 
     @Query("SELECT a.status, COUNT(a) FROM SupplierApplication a GROUP BY a.status")
     List<Object[]> countByStatus();

@@ -14,4 +14,6 @@ public interface SupplierDocumentRepository extends JpaRepository<SupplierDocume
     Optional<SupplierDocument> findByApplicationIdAndType(Long applicationId, DocumentType type);
 
     Optional<SupplierDocument> findByIdAndApplicationId(Long id, Long applicationId);
+
+    List<SupplierDocument> findByApplicationIdIn(java.util.Collection<Long> applicationIds);
 }

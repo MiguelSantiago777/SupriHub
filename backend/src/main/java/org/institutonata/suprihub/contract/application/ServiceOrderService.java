@@ -44,7 +44,9 @@ import org.institutonata.suprihub.shared.storage.FileScanner;
 import org.institutonata.suprihub.shared.storage.FileStorage;
 import org.institutonata.suprihub.shared.storage.FileStorage.StoredFile;
 import org.institutonata.suprihub.shared.storage.UploadedFiles;
+import org.institutonata.suprihub.supplier.application.SupplierMaintenanceService;
 import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
+import org.institutonata.suprihub.supplier.domain.CertificateRegularity.State;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.infra.SupplierApplicationRepository;
 import org.institutonata.suprihub.tender.application.TenderAwardListener;
@@ -88,6 +90,7 @@ public class ServiceOrderService implements TenderAwardListener {
     private final TenderRepository tenders;
     private final ProposalRepository proposals;
     private final SupplierApplicationRepository applications;
+    private final SupplierMaintenanceService maintenance;
     private final ParameterService parameters;
     private final CalendarService calendar;
     private final FileStorage storage;
@@ -100,7 +103,8 @@ public class ServiceOrderService implements TenderAwardListener {
             ServiceOrderFileRepository files, PriceBankRepository priceBank, TenderRepository tenders,
             ProposalRepository proposals, SupplierApplicationRepository applications, ParameterService parameters,
             CalendarService calendar, FileStorage storage, FileScanner scanner, DomainEvents events,
-            AuditService audit, Clock clock) {
+            AuditService audit, SupplierMaintenanceService maintenance, Clock clock) {
+        this.maintenance = maintenance;
         this.orders = orders;
         this.receipts = receipts;
         this.files = files;
@@ -549,16 +553,32 @@ public class ServiceOrderService implements TenderAwardListener {
 
     // ------------------------------------------------------------------ apoio
 
-    /** Credenciamento vigente (Edital 9.1 e 10.3: manutenção da habilitação). */
+    /**
+     * Credenciamento vigente e certidões em dia, conferidas uma a uma (Edital 9.1 e 10.3;
+     * Política art. 17 e 19, § 2º). Certidão vencida bloqueia mesmo dentro do prazo de
+     * regularização: o pequeno negócio regulariza (5 + 5 d.u., Edital 4.4) e a ação é refeita.
+     */
     private void requireRegular(ServiceOrder o, String action) {
         SupplierApplication app = applications.findById(o.getApplicationId()).orElse(null);
-        boolean ok = app != null && app.isActiveOn(calendar.today());
+        LocalDate today = calendar.today();
+        boolean ok = app != null && app.isActiveOn(today);
         if (!ok) {
-            throw new BusinessException("SUPPLIER_IRREGULAR", app != null && app.isBlockedOn(calendar.today())
+            throw new BusinessException("SUPPLIER_IRREGULAR", app != null && app.isBlockedOn(today)
                     ? "O fornecedor está suspenso ou inativado até " + app.getBlockedUntil() + " ("
                             + app.getBlockReason() + "). Não é possível " + action + "."
-                    : "O fornecedor está sem credenciamento vigente. Peça a regularização (Edital 4.4) antes de "
-                            + action + ".", HttpStatus.CONFLICT);
+                    : app != null && app.isTemporarilyInactive()
+                            ? "O fornecedor está inativo temporariamente por certidão vencida. Peça a regularização "
+                                    + "(Edital 4.4) antes de " + action + "."
+                            : "O fornecedor está sem credenciamento vigente. Peça a regularização (Edital 4.4) antes de "
+                                    + action + ".", HttpStatus.CONFLICT);
+        }
+        List<String> pending = maintenance.certificatesOf(app).checks().stream()
+                .filter(c -> c.state() == State.EXPIRED || c.state() == State.MISSING)
+                .map(c -> c.type().label()).toList();
+        if (!pending.isEmpty()) {
+            throw new BusinessException("SUPPLIER_CERTIFICATE_EXPIRED", "Certidão vencida ou faltando: "
+                    + String.join("; ", pending) + ". Peça a regularização (pequeno negócio: 5 dias úteis, "
+                    + "prorrogáveis por mais 5 — Edital 4.4) antes de " + action + ".", HttpStatus.CONFLICT);
         }
     }
 

@@ -122,7 +122,7 @@ public class AppealController {
     private AppealDetail detail(Appeal appeal) {
         SupplierApplication app = appeals.applicationOf(appeal);
         ApplicationDto dto = ApplicationDto.of(app, applications.documents(app.getId()),
-                applications.history(app.getId()), List.of(), appeal, calendar.today());
+                applications.history(app.getId()), List.of(), appeal, calendar.today(), null);
         return new AppealDetail(AppealDto.of(appeal), dto);
     }
 }

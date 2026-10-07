@@ -43,8 +43,9 @@ public class EligibleSuppliers {
     }
 
     public static boolean eligible(Tender t, SupplierApplication a, LocalDate today) {
-        // Suspenso, descredenciado ou inativado cautelarmente: fora de qualquer oportunidade.
-        return !a.isBlockedOn(today) && TenderEligibility.eligible(opportunity(t), profile(a), today);
+        // Suspenso, descredenciado, inativado cautelarmente ou inativo por certidão vencida:
+        // fora de qualquer oportunidade.
+        return !a.isUnavailableOn(today) && TenderEligibility.eligible(opportunity(t), profile(a), today);
     }
 
     /** Fornecedores que podem receber/ver a oportunidade (para avisos e rodízio). */

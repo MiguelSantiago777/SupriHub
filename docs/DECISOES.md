@@ -57,7 +57,7 @@ O prompt diz que certidões vencidas e não regularizadas levam a INATIVO_TEMPOR
 Política art. 21, § 2º manda primeiro tentar renovar por consulta direta e, não sendo
 possível, **notificar o credenciado para apresentar em 5 dias úteis**, sob pena de inativação.
 O job diário notifica no vencimento e inativa só após o prazo
-(`certificate_regularization_business_days=5`).
+(`certificate_regularization_business_days=5`). Detalhes em D-028.
 
 **D-014 — Descredenciamento por irregularidade (30 dias)** · Fase 1 · vigente
 Política art. 23: perda de habilitação não regularizada em 30 dias leva a descredenciamento.
@@ -88,7 +88,7 @@ julgamento só roda nas Faixas 2 e 3. A **exclusividade** (8.1) vale para as Fai
 Edital 9.1: a OF/OS deve ser assinada em até 2 d.u., sob pena de convocar o próximo.
 O parâmetro `service_order_signature_business_days=2` já existe.
 
-**D-019 — Pessoa física maior de 18 anos** · Fase 1 · a implementar
+**D-019 — Pessoa física maior de 18 anos** · Fase 1 · vigente
 Edital 2.1.3 exige PF autônoma maior de 18 anos. O requerimento de PF vai pedir a data de
 nascimento (usada só nessa validação).
 
@@ -129,7 +129,7 @@ A fila e as decisões ficam com a Comissão de Credenciamento e com o ADMIN
 (`hasAnyRole('COMMISSION','ADMIN')`). Cada envio avisa por e-mail todos os membros ativos
 da Comissão. A habilitação vale por `accreditation_validity_months` (24). A lista pública está
 em D-027. A reconferência semestral de certidões e a atualização de dados do habilitado
-(Edital 6.3) ficam para as próximas entregas da Fase 1.
+(Edital 6.3) estão em D-028 e D-029.
 
 **D-026 — Recurso contra a inabilitação** · Fase 1 · vigente
 Edital 5.2 e Anexo X. O inabilitado recorre em até `appeal_filing_business_days` (3) dias
@@ -166,6 +166,43 @@ Divergência registrada para a Comissão avaliar a publicação por outro meio.
   (art. 28).
 - **Autorização de divulgação:** como não há publicação, a caixa do Anexo II, item 5,
   saiu do formulário. A coluna `publish_woman_led` (V11) ficou sem uso.
+
+**D-028 — Validade das certidões e inativação temporária** · Fase 1 · vigente
+Política art. 21, § 2º e 22; Manual item 3, passo 8; Planilha, aba Cadastro ("Venc. ..." e
+"Alerta certidões"). Detalha D-013.
+- **Quais:** federal (RFB/PGFN), FGTS, CNDT e municipal. As exigidas para o tipo de negócio são
+  acompanhadas sempre; a municipal ("quando exigível"), só se foi enviada.
+- **Validade no envio:** o fornecedor informa "válida até" junto com o arquivo. Não aceita
+  certidão já vencida nem data a mais de um ano (erro de digitação). O requerimento só é
+  enviado com todas as certidões datadas e em dia. Na habilitação, as datas valem como
+  conferidas pela Comissão.
+- **Rotina diária (6h):** aviso "RENOVAR" `certificate_alert_days` (15) dias antes, uma vez por
+  arquivo. Vencida ou faltando: o fornecedor é notificado para apresentar em
+  `certificate_regularization_business_days` (5) d.u., e a Comissão para tentar a consulta
+  direta (ela pode anexar a certidão do site oficial, que já entra conferida). Sem
+  regularização no prazo: **inativo temporário**. Fica fora das oportunidades, do rodízio,
+  do julgamento, da emissão de ordem, do pagamento e do cadastro interno de credenciados.
+- **Reativação:** é automática, assim que as certidões ficam em dia (Política art. 22: "cessará
+  com a regularização").
+- **30 dias irregular:** alerta à Comissão para avaliar o descredenciamento (D-014). O sistema
+  não descredencia sozinho.
+- **Sem validade informada:** cadastros anteriores à V24 não ficam irregulares por isso. A
+  Comissão informa as datas na reconferência, que não é registrada enquanto faltar alguma.
+
+**D-029 — Reconferência semestral, atualização cadastral e renovação** · Fase 1 · vigente
+Manual item 3, passo 8; Política art. 17, § 2º e 22; Anexo V.
+- **Reconferência:** a cada `certificate_recheck_months` (6) meses, contados da habilitação.
+  A Comissão confere as certidões nos sites oficiais, corrige datas e registra a
+  reconferência. A fila fica em "Manutenção" (`/comissao/manutencao`).
+- **Atualização cadastral:** o credenciado atualiza endereço, contato, representante e conta
+  bancária, e troca documentos e certidões, sem novo requerimento. A Comissão é avisada; se a
+  conta mudou, o Financeiro também. Linhas, territórios, tipo de negócio e CNPJ/CPF mudam só
+  com a Comissão. A trilha guarda quais grupos mudaram, sem os valores.
+- **Renovação:** abre `renewal_notice_days` (60) dias antes do fim, com aviso por e-mail. O
+  fornecedor confirma de novo as declarações (Anexos III e V) e pede a renovação, com as
+  certidões em dia. A Comissão renova por `accreditation_validity_months` (24), contados do
+  fim do período atual (ou de hoje, se já venceu), ou devolve com o que falta. Enquanto
+  decide, o credenciamento vale até a data original.
 
 **D-040 — Oportunidades: quem abre e o que o fornecedor vê** · Fase 2A · vigente (decisão do usuário)
 - **Quem abre:** a Comissão (ou o ADMIN) cadastra e publica direto a parte 5 do DFD-NATA
@@ -310,8 +347,9 @@ Edital 10.1 a 10.4; Manual 4.2, passo 10.
   definitivo, ou o prazo menor da ordem.
 - O Financeiro anexa o comprovante e registra o pagamento (Pix ou transferência). O sistema
   **confere de novo** o credenciamento vigente (10.3). Se ele estiver vencido, bloqueia e
-  orienta a regularização (4.4). A conferência certidão a certidão entra junto com as
-  certidões.
+  orienta a regularização (4.4). Também confere as certidões uma a uma, na emissão da ordem e
+  no pagamento. Com alguma vencida ou faltando, bloqueia mesmo dentro do prazo de
+  regularização (D-028) e indica o prazo de 5 + 5 d.u. do pequeno negócio.
 - O sinal (10.4) fica registrado na ordem, mas ainda não é pago como parcela separada.
 
 **D-083 — Banco de Preços** · Fase 3A · vigente

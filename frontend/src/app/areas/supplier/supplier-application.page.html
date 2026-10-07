@@ -61,19 +61,22 @@
         </section>
       }
       @case ('APPROVED') {
-        <section class="status-card success" role="status">
-          <span class="icon-tile green"
-            ><mat-icon aria-hidden="true">workspace_premium</mat-icon></span
-          >
-          <div>
-            <h2>Você está credenciado!</h2>
-            <p>
-              Seu credenciamento vale até <strong>{{ fmtDate(a.accreditationValidUntil) }}</strong
-              >. Você vai receber as oportunidades das linhas e territórios escolhidos. Mantenha
-              telefone, e-mail, conta e certidões em dia.
-            </p>
-          </div>
-        </section>
+        <!-- Inativo temporário: o aviso vem no painel de manutenção. -->
+        @if (!a.maintenance?.inactiveSince) {
+          <section class="status-card success" role="status">
+            <span class="icon-tile green"
+              ><mat-icon aria-hidden="true">workspace_premium</mat-icon></span
+            >
+            <div>
+              <h2>Você está credenciado!</h2>
+              <p>
+                Seu credenciamento vale até <strong>{{ fmtDate(a.accreditationValidUntil) }}</strong
+                >. Você vai receber as oportunidades das linhas e territórios escolhidos. Mantenha
+                telefone, e-mail, conta e certidões em dia.
+              </p>
+            </div>
+          </section>
+        }
       }
       @case ('REJECTED') {
         <section class="status-card error" role="alert">
@@ -229,6 +232,15 @@
           </button>
         }
       </section>
+    }
+
+    @if (a.status === 'APPROVED' && a.maintenance) {
+      <app-supplier-maintenance
+        class="maintenance"
+        [app]="a"
+        [municipalities]="municipalities()"
+        (changed)="reload($event)"
+      />
     }
 
     @if (!a.editable) {
@@ -661,6 +673,21 @@
                         >
                       } @else if (missing) {
                         <small class="field-error">Falta enviar este documento.</small>
+                      }
+                      @if (item.certificate) {
+                        <label class="validity">
+                          <span>Válida até</span>
+                          <input
+                            type="date"
+                            [min]="today"
+                            [value]="validityOf(item)"
+                            (change)="changeValidity(item, $event)"
+                            [attr.aria-label]="'Validade: ' + item.label"
+                          />
+                        </label>
+                        @if (issueFor('documents.' + item.type); as e) {
+                          <small class="field-error">{{ e }}</small>
+                        }
                       }
                     </div>
                     <div class="doc-actions">

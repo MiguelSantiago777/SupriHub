@@ -156,6 +156,26 @@ public class SupplierApplication {
     @Column(name = "block_reason")
     private String blockReason;
 
+    // Manutenção do credenciado (Política art. 21 a 23; Manual item 3, passo 8)
+    @Column(name = "irregular_since")
+    private LocalDate irregularSince;
+    @Column(name = "regularization_due")
+    private LocalDate regularizationDue;
+    @Column(name = "inactive_since")
+    private LocalDate inactiveSince;
+    @Column(name = "deregistration_alerted_at")
+    private Instant deregistrationAlertedAt;
+    @Column(name = "last_recheck_on")
+    private LocalDate lastRecheckOn;
+    @Column(name = "last_recheck_by")
+    private Long lastRecheckBy;
+    @Column(name = "renewal_notice_sent_at")
+    private Instant renewalNoticeSentAt;
+    @Column(name = "renewal_requested_at")
+    private Instant renewalRequestedAt;
+    @Column(name = "renewal_return_message")
+    private String renewalReturnMessage;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
     @Column(name = "updated_at", nullable = false)
@@ -508,11 +528,12 @@ public class SupplierApplication {
 
     /**
      * Credenciado apto a receber oportunidades, ordens e pagamentos: habilitado, com
-     * credenciamento vigente e sem suspensão, descredenciamento ou inativação cautelar.
+     * credenciamento vigente, sem suspensão, descredenciamento ou inativação cautelar e sem
+     * inativação temporária por certidão vencida.
      */
     public boolean isActiveOn(LocalDate day) {
         return status == ApplicationStatus.APPROVED && accreditationValidUntil != null
-                && !accreditationValidUntil.isBefore(day) && !isBlockedOn(day);
+                && !accreditationValidUntil.isBefore(day) && !isUnavailableOn(day);
     }
 
     public boolean isBlockedOn(LocalDate day) {
@@ -533,6 +554,170 @@ public class SupplierApplication {
         this.blockedUntil = null;
         this.blockReason = null;
         this.updatedAt = now;
+    }
+
+    /** Sem receber oportunidades, ordens nem pagamentos: bloqueio por sanção ou inativação temporária. */
+    public boolean isUnavailableOn(LocalDate day) {
+        return isBlockedOn(day) || isTemporarilyInactive();
+    }
+
+    // ------------------------------------------------- manutenção do cadastro
+
+    /** Inativo temporário por certidão vencida não regularizada (Política art. 22). */
+    public boolean isTemporarilyInactive() {
+        return inactiveSince != null;
+    }
+
+    /**
+     * Conferência das certidões concluída (na habilitação, na reconferência semestral ou na
+     * renovação): conta o próximo semestre a partir daqui.
+     */
+    public void recordRecheck(LocalDate today, long reviewerId, Instant now) {
+        requireApproved();
+        lastRecheckOn = today;
+        lastRecheckBy = reviewerId;
+        updatedAt = now;
+    }
+
+    /** Primeiro dia com certidão vencida ou faltando: começa o prazo de regularização. */
+    public void markIrregular(LocalDate today, LocalDate due, Instant now) {
+        requireApproved();
+        if (irregularSince == null) {
+            irregularSince = today;
+            regularizationDue = due;
+            updatedAt = now;
+        }
+    }
+
+    /** Prazo de regularização vencido: inativação temporária. */
+    public void inactivate(LocalDate today, Instant now) {
+        if (irregularSince == null) {
+            throw new IllegalStateException("Inativação sem irregularidade registrada");
+        }
+        if (inactiveSince == null) {
+            inactiveSince = today;
+            updatedAt = now;
+        }
+    }
+
+    /** Certidões em dia de novo: encerra a irregularidade e a inativação, se houver. */
+    public void regularize(Instant now) {
+        irregularSince = null;
+        regularizationDue = null;
+        inactiveSince = null;
+        deregistrationAlertedAt = null;
+        updatedAt = now;
+    }
+
+    public void markDeregistrationAlerted(Instant now) {
+        deregistrationAlertedAt = now;
+    }
+
+    public void markRenewalNoticeSent(Instant now) {
+        renewalNoticeSentAt = now;
+    }
+
+    /** Pedido de renovação aos 24 meses, com documentos e declarações atualizados. */
+    public void requestRenewal(Instant now) {
+        requireApproved();
+        if (renewalRequestedAt != null) {
+            throw new IllegalStateException("Renovação já pedida");
+        }
+        renewalRequestedAt = now;
+        renewalReturnMessage = null;
+        updatedAt = now;
+    }
+
+    /** Renovado por mais um período, contado do fim do atual (ou de hoje, se já venceu). */
+    public void renew(LocalDate newValidUntil, LocalDate today, long reviewerId, Instant now) {
+        requireApproved();
+        if (renewalRequestedAt == null) {
+            throw new IllegalStateException("Não há pedido de renovação");
+        }
+        accreditationValidUntil = newValidUntil;
+        renewalRequestedAt = null;
+        renewalNoticeSentAt = null;
+        renewalReturnMessage = null;
+        recordRecheck(today, reviewerId, now);
+    }
+
+    /** A Comissão devolve o pedido de renovação com o que falta. */
+    public void returnRenewal(String message, Instant now) {
+        requireApproved();
+        if (renewalRequestedAt == null) {
+            throw new IllegalStateException("Não há pedido de renovação");
+        }
+        renewalRequestedAt = null;
+        renewalReturnMessage = message.trim();
+        updatedAt = now;
+    }
+
+    /**
+     * Atualização cadastral do credenciado (Anexo V; Política art. 17, § 2º): contato,
+     * endereço, representante e dados bancários. Linhas, territórios, tipo e documento de
+     * identificação mudam só por novo requerimento.
+     */
+    public void updateRegistration(RegistrationData d, Municipality municipality, Instant now) {
+        requireApproved();
+        this.street = trim(d.street());
+        this.addressNumber = trim(d.addressNumber());
+        this.addressComplement = trim(d.addressComplement());
+        this.district = trim(d.district());
+        this.municipality = municipality;
+        this.cep = digits(d.cep());
+        this.phone = digits(d.phone());
+        this.contactEmail = trim(d.contactEmail());
+        this.website = trim(d.website());
+        if (supplierType != SupplierType.INDIVIDUAL) {
+            this.representativeName = trim(d.representativeName());
+            this.representativeCpf = digits(d.representativeCpf());
+            this.representativeRole = trim(d.representativeRole());
+        }
+        this.bankName = trim(d.bankName());
+        this.bankBranch = trim(d.bankBranch());
+        this.bankAccount = trim(d.bankAccount());
+        this.bankAccountType = d.bankAccountType();
+        this.pixKey = trim(d.pixKey());
+        this.accountHolder = trim(d.accountHolder());
+        this.updatedAt = now;
+    }
+
+    private void requireApproved() {
+        if (status != ApplicationStatus.APPROVED) {
+            throw new IllegalStateException("Só credenciados habilitados; situação: " + status);
+        }
+    }
+
+    public LocalDate getIrregularSince() {
+        return irregularSince;
+    }
+
+    public LocalDate getRegularizationDue() {
+        return regularizationDue;
+    }
+
+    public LocalDate getInactiveSince() {
+        return inactiveSince;
+    }
+
+    public Instant getDeregistrationAlertedAt() {
+        return deregistrationAlertedAt;
+    }
+
+    public LocalDate getLastRecheckOn() {
+        return lastRecheckOn;
+    }
+
+    public Instant getRenewalNoticeSentAt() {
+        return renewalNoticeSentAt;
+    }
+
+    public Instant getRenewalRequestedAt() {
+        return renewalRequestedAt;
+    }
+
+    public String getRenewalReturnMessage() {
+        return renewalReturnMessage;
     }
 
     public LocalDate getBlockedUntil() {

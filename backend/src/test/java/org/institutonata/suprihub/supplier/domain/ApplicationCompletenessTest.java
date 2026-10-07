@@ -41,13 +41,20 @@ class ApplicationCompletenessTest {
                 .collect(Collectors.toCollection(() -> EnumSet.noneOf(DocumentType.class)));
     }
 
+    /** Documentos enviados; certidões válidas por 90 dias. */
+    static List<CertificateRegularity.Uploaded> sent(Set<DocumentType> types) {
+        return types.stream()
+                .map(t -> new CertificateRegularity.Uploaded(t, t.isCertificate() ? TODAY.plusDays(90) : null))
+                .toList();
+    }
+
     static Set<String> fields(List<Issue> issues) {
         return issues.stream().map(Issue::field).collect(Collectors.toSet());
     }
 
     @Test
     void requerimentoCompletoNaoTemPendencias() {
-        assertThat(ApplicationCompleteness.check(mei(), requiredFor(SupplierType.MEI), TODAY)).isEmpty();
+        assertThat(ApplicationCompleteness.check(mei(), sent(requiredFor(SupplierType.MEI)), TODAY)).isEmpty();
     }
 
     @Test
@@ -71,14 +78,30 @@ class ApplicationCompletenessTest {
     void apontaDocumentoFaltante() {
         Set<DocumentType> docs = requiredFor(SupplierType.MEI);
         docs.remove(DocumentType.CCMEI);
-        assertThat(fields(ApplicationCompleteness.check(mei(), docs, TODAY))).containsExactly("documents.CCMEI");
+        assertThat(fields(ApplicationCompleteness.check(mei(), sent(docs), TODAY))).containsExactly("documents.CCMEI");
+    }
+
+    @Test
+    void certidaoPrecisaDeValidadeEmDia() {
+        List<CertificateRegularity.Uploaded> docs = new java.util.ArrayList<>(sent(requiredFor(SupplierType.MEI)));
+        docs.replaceAll(u -> switch (u.type()) {
+            case FGTS_CERTIFICATE -> new CertificateRegularity.Uploaded(u.type(), null);
+            case LABOR_CERTIFICATE -> new CertificateRegularity.Uploaded(u.type(), TODAY.minusDays(1));
+            case FEDERAL_CERTIFICATE -> new CertificateRegularity.Uploaded(u.type(), TODAY);
+            default -> u;
+        });
+        List<Issue> issues = ApplicationCompleteness.check(mei(), docs, TODAY);
+        assertThat(fields(issues)).containsExactlyInAnyOrder("documents.FGTS_CERTIFICATE",
+                "documents.LABOR_CERTIFICATE");
+        assertThat(issues).extracting(Issue::message).anyMatch(m -> m.startsWith("Informe a validade"))
+                .anyMatch(m -> m.startsWith("Certidão vencida"));
     }
 
     @Test
     void rascunhoVazioListaTudoQueFalta() {
         Snapshot empty = new Snapshot(null, null, null, null, null, null, null, false, null, null, null, null,
                 null, List.of(), null, Set.of(), null, null, null, null, false, null, false);
-        assertThat(fields(ApplicationCompleteness.check(empty, Set.of(), TODAY))).contains("supplierType",
+        assertThat(fields(ApplicationCompleteness.check(empty, List.of(), TODAY))).contains("supplierType",
                 "legalName", "documentNumber", "street", "municipalityId", "cep", "phone", "lineCodes",
                 "territories", "bankName", "declarationsAccepted");
     }
@@ -90,24 +113,24 @@ class ApplicationCompletenessTest {
                 s.addressNumber(), s.district(), true, "00000000", "2199999", s.contactEmail(),
                 s.representativeName(), "11111111111", s.lines(), s.linesDescription(), s.territories(),
                 s.bankName(), s.bankBranch(), s.bankAccount(), s.accountHolder(), false, null, true);
-        assertThat(fields(ApplicationCompleteness.check(bad, requiredFor(SupplierType.MEI), TODAY)))
+        assertThat(fields(ApplicationCompleteness.check(bad, sent(requiredFor(SupplierType.MEI)), TODAY)))
                 .containsExactlyInAnyOrder("documentNumber", "cep", "phone", "representativeCpf");
     }
 
     @Test
     void pessoaFisicaPrecisaTer18Anos() {
         Set<DocumentType> docs = requiredFor(SupplierType.INDIVIDUAL);
-        assertThat(ApplicationCompleteness.check(individual(TODAY.minusYears(18), List.of(L07)), docs, TODAY))
+        assertThat(ApplicationCompleteness.check(individual(TODAY.minusYears(18), List.of(L07)), sent(docs), TODAY))
                 .isEmpty();
         assertThat(fields(ApplicationCompleteness.check(
-                individual(TODAY.minusYears(18).plusDays(1), List.of(L07)), docs, TODAY)))
+                individual(TODAY.minusYears(18).plusDays(1), List.of(L07)), sent(docs), TODAY)))
                 .containsExactly("birthDate");
     }
 
     @Test
     void pessoaFisicaSoEmLinhasQueAceitamPf() {
         List<Issue> issues = ApplicationCompleteness.check(individual(LocalDate.of(1980, 1, 1), List.of(L01, L07)),
-                requiredFor(SupplierType.INDIVIDUAL), TODAY);
+                sent(requiredFor(SupplierType.INDIVIDUAL)), TODAY);
         assertThat(issues).singleElement().satisfies(i -> {
             assertThat(i.field()).isEqualTo("lineCodes");
             assertThat(i.message()).contains("L01").contains("não aceita pessoa física");
@@ -121,7 +144,7 @@ class ApplicationCompletenessTest {
                 s.addressNumber(), s.district(), true, s.cep(), s.phone(), s.contactEmail(),
                 s.representativeName(), s.representativeCpf(), s.lines(), s.linesDescription(), s.territories(),
                 s.bankName(), s.bankBranch(), s.bankAccount(), s.accountHolder(), true, null, true);
-        assertThat(fields(ApplicationCompleteness.check(withCad, requiredFor(SupplierType.MEI), TODAY)))
+        assertThat(fields(ApplicationCompleteness.check(withCad, sent(requiredFor(SupplierType.MEI)), TODAY)))
                 .containsExactly("nis");
     }
 

@@ -41,6 +41,12 @@ const STAFF_TABS: Tab[] = [
     link: '/comissao/requerimentos',
     roles: ['COMMISSION', 'ADMIN'],
   },
+  {
+    label: 'Manutenção',
+    icon: 'fact_check',
+    link: '/comissao/manutencao',
+    roles: ['COMMISSION', 'ADMIN'],
+  },
   { label: 'Editais', icon: 'campaign', link: '/comissao/editais', roles: ['COMMISSION', 'ADMIN'] },
   {
     label: 'Contratos',

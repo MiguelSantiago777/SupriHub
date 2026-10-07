@@ -6,9 +6,11 @@ prioridade a MEIs, pequenos negócios, cooperativas, autônomos e negócios lide
 mulheres.
 
 > Estado atual: **Fase 0** concluída (esqueleto, autenticação, catálogo, parâmetros,
-> calendário, auditoria, mensageria). **Fase 1** em andamento: requerimento de
+> calendário, auditoria, mensageria). **Fase 1** concluída: requerimento de
 > credenciamento pelo fornecedor, análise pela Comissão (habilitar, pedir ajuste,
-> inabilitar), recurso à Comissão/Diretoria e cadastro de credenciados (uso interno). **Fase 2**
+> inabilitar), recurso à Comissão/Diretoria, cadastro de credenciados (uso interno) e
+> manutenção do cadastro (validade das certidões com aviso "RENOVAR", inativação temporária
+> e reativação, reconferência semestral, atualização cadastral e renovação aos 24 meses). **Fase 2**
 > (editais): a Comissão publica oportunidades, a Faixa 1 roda por rodízio, o fornecedor envia
 > propostas em "Editais em aberto" e, nas Faixas 2 e 3, a Comissão julga (empate ficto,
 > preferência local, desempate por equidade, sorteio e direito de cobrir), homologa (a
@@ -51,6 +53,8 @@ abra o link de confirmação no MailHog. Depois, preencha e envie o requerimento
 "Minha área". Para analisar, entre como `commission@suprihub.local` (ou como ADMIN) e
 abra **Requerimentos**. Recursos ficam em **/recursos** (Comissão e Diretoria,
 `board@suprihub.local`), e o cadastro de credenciados em **/credenciados** (só equipe interna).
+Certidões, reconferência e renovações ficam em **Manutenção** (`/comissao/manutencao`); o
+credenciado atualiza dados, certidões e pede a renovação na própria área.
 
 ## Desenvolvimento local (sem Docker para app)
 

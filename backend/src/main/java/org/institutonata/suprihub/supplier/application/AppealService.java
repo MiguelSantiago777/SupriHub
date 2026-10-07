@@ -216,6 +216,7 @@ public class AppealService {
         LocalDate validUntil = calendar.today()
                 .plusMonths(parameters.integer(ParameterKey.ACCREDITATION_VALIDITY_MONTHS));
         app.approveOnAppeal(deciderId, message, validUntil, now);
+        app.recordRecheck(calendar.today(), deciderId, now);
         history.save(new ApplicationEvent(app.getId(), ApplicationStatus.APPROVED, message, deciderId, now));
         audit.record(SupplierEvents.AGGREGATE, app.getId(), "APPROVE_ON_APPEAL", Map.of("status", "REJECTED"),
                 Map.of("status", app.getStatus().name(), "validUntil", validUntil.toString()));

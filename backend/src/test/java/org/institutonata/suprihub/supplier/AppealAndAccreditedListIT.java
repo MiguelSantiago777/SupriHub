@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
@@ -110,6 +111,7 @@ class AppealAndAccreditedListIT extends IntegrationTest {
             if (type.requirementFor(SupplierType.MEI) == DocumentType.Requirement.REQUIRED) {
                 mvc.perform(multipart("/api/supplier/application/documents/" + type.name())
                                 .file(new MockMultipartFile("file", "doc.pdf", "application/pdf", PDF))
+                                .param("validUntil", LocalDate.now().plusDays(90).toString())
                                 .header("Authorization", supplier))
                         .andExpect(status().isCreated());
             }

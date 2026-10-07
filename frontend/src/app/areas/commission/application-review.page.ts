@@ -13,6 +13,7 @@ import { Application, ReviewApi, STATUS_BADGE } from '../../core/api/supplier.ap
 import { formatDate, formatDateTime } from '../../core/format';
 import { problemMessage } from '../../core/http/problem';
 import { ApplicationView } from '../supplier/application-view';
+import { MaintenancePanel } from './maintenance-panel';
 
 type Decision = 'approve' | 'adjust' | 'reject';
 
@@ -49,6 +50,7 @@ const DECISIONS: { value: Decision; label: string; icon: string; hint: string }[
     MatInputModule,
     MatProgressSpinnerModule,
     ApplicationView,
+    MaintenancePanel,
   ],
   template: `
     <header class="page-header">
@@ -203,6 +205,9 @@ const DECISIONS: { value: Decision; label: string; icon: string; hint: string }[
                   </p>
                 }
               </div>
+              @if (a.status === 'APPROVED' && a.maintenance) {
+                <app-maintenance-panel class="maint" [app]="a" (changed)="app.set($event)" />
+              }
             }
           </aside>
         </div>
@@ -362,6 +367,10 @@ const DECISIONS: { value: Decision; label: string; icon: string; hint: string }[
     }
     .confirm.reject {
       --mat-button-filled-container-color: var(--sh-error);
+    }
+    .maint {
+      display: block;
+      margin-top: 1rem;
     }
     .appeal-link {
       display: flex;

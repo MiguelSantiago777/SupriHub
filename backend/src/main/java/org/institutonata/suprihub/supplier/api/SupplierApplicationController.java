@@ -1,5 +1,6 @@
 package org.institutonata.suprihub.supplier.api;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import jakarta.validation.Valid;
@@ -14,15 +15,21 @@ import org.institutonata.suprihub.shared.security.CurrentUser;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.ApplicationDto;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.ApplicationRequest;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.DocumentDto;
+import org.institutonata.suprihub.supplier.api.SupplierDtos.RegistrationRequest;
+import org.institutonata.suprihub.supplier.api.SupplierDtos.RenewalRequest;
+import org.institutonata.suprihub.supplier.api.SupplierDtos.ValidityRequest;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.VersionRequest;
 import org.institutonata.suprihub.supplier.application.AppealService;
 import org.institutonata.suprihub.supplier.application.SupplierApplicationService;
+import org.institutonata.suprihub.supplier.application.SupplierMaintenanceService;
 import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.supplier.domain.ApplicationCompleteness.Issue;
+import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
 import org.institutonata.suprihub.supplier.domain.DocumentType;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierDocument;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,9 +57,11 @@ public class SupplierApplicationController {
     private final SupplierApplicationService service;
     private final AppealService appeals;
     private final CalendarService calendar;
+    private final SupplierMaintenanceService maintenance;
 
     public SupplierApplicationController(SupplierApplicationService service, AppealService appeals,
-            CalendarService calendar) {
+            CalendarService calendar, SupplierMaintenanceService maintenance) {
+        this.maintenance = maintenance;
         this.service = service;
         this.appeals = appeals;
         this.calendar = calendar;
@@ -73,8 +82,30 @@ public class SupplierApplicationController {
     @PostMapping(path = "/documents/{type}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Envia (ou substitui) um documento — PDF, JPG ou PNG")
-    public DocumentDto upload(@PathVariable DocumentType type, @RequestParam("file") MultipartFile file) {
-        return DocumentDto.of(service.upload(CurrentUser.requireId(), type, file));
+    public DocumentDto upload(@PathVariable DocumentType type, @RequestParam("file") MultipartFile file,
+            @RequestParam(name = "validUntil", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate validUntil) {
+        return DocumentDto.of(service.upload(CurrentUser.requireId(), type, file, validUntil));
+    }
+
+    @PutMapping("/documents/{id}/validity")
+    @Operation(summary = "Informa ou corrige a validade de uma certidão já enviada")
+    public ApplicationDto validity(@PathVariable long id, @Valid @RequestBody ValidityRequest req) {
+        long userId = CurrentUser.requireId();
+        service.setValidity(userId, id, req.validUntil());
+        return dto(service.getOrCreate(userId));
+    }
+
+    @PutMapping("/registration")
+    @Operation(summary = "Atualização cadastral do credenciado: endereço, contato, representante e conta")
+    public ApplicationDto updateRegistration(@Valid @RequestBody RegistrationRequest req) {
+        return dto(maintenance.updateRegistration(CurrentUser.requireId(), req.toData(), req.version()));
+    }
+
+    @PostMapping("/renewal")
+    @Operation(summary = "Pede a renovação do credenciamento (abre 60 dias antes do fim)")
+    public ApplicationDto requestRenewal(@RequestBody RenewalRequest req) {
+        return dto(maintenance.requestRenewal(CurrentUser.requireId(), req.declarationsAccepted(), req.version()));
     }
 
     @DeleteMapping("/documents/{id}")
@@ -121,6 +152,7 @@ public class SupplierApplicationController {
         boolean editable = app.getStatus().isEditableBySupplier() && !service.hasOpenAppeal(app);
         List<Issue> pending = editable ? service.pendingItems(app) : List.of();
         return ApplicationDto.of(app, service.documents(app.getId()), service.history(app.getId()), pending,
-                appeals.latestFor(app.getId()).orElse(null), calendar.today());
+                appeals.latestFor(app.getId()).orElse(null), calendar.today(),
+                app.getStatus() == ApplicationStatus.APPROVED ? maintenance.of(app) : null);
     }
 }

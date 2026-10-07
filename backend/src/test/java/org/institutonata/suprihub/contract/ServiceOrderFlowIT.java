@@ -111,6 +111,7 @@ class ServiceOrderFlowIT extends IntegrationTest {
             if (doc.requirementFor(SupplierType.MEI) == DocumentType.Requirement.REQUIRED) {
                 mvc.perform(multipart("/api/supplier/application/documents/" + doc.name())
                         .file(new MockMultipartFile("file", "d.pdf", "application/pdf", PDF))
+                        .param("validUntil", LocalDate.now().plusDays(90).toString())
                         .header("Authorization", token)).andExpect(status().isCreated());
             }
         }
@@ -303,6 +304,16 @@ class ServiceOrderFlowIT extends IntegrationTest {
                         .param("kind", "PAYMENT_PROOF")
                         .header("Authorization", finance))
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        // Conferência certidão a certidão antes de pagar (Política art. 19, § 2º — D-082)
+        long supplierAppId = num(order, "$.supplier.applicationId");
+        jdbc.update("UPDATE supplier_document SET valid_until = current_date - 1 "
+                + "WHERE application_id = ? AND doc_type = 'LABOR_CERTIFICATE'", supplierAppId);
+        mvc.perform(post(base + "/payment").header("Authorization", finance).contentType(MediaType.APPLICATION_JSON)
+                        .content(payment.formatted(num(order, "$.version"))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("SUPPLIER_CERTIFICATE_EXPIRED"));
+        jdbc.update("UPDATE supplier_document SET valid_until = current_date + 90 "
+                + "WHERE application_id = ? AND doc_type = 'LABOR_CERTIFICATE'", supplierAppId);
         mvc.perform(post(base + "/payment").header("Authorization", finance).contentType(MediaType.APPLICATION_JSON)
                         .content(payment.formatted(num(order, "$.version"))))
                 .andExpect(jsonPath("$.status").value("PAID"))

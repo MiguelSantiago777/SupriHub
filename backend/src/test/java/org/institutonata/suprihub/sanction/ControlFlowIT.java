@@ -105,6 +105,7 @@ class ControlFlowIT extends IntegrationTest {
             if (doc.requirementFor(SupplierType.MEI) == DocumentType.Requirement.REQUIRED) {
                 mvc.perform(multipart("/api/supplier/application/documents/" + doc.name())
                         .file(new MockMultipartFile("file", "d.pdf", "application/pdf", PDF))
+                        .param("validUntil", LocalDate.now().plusDays(90).toString())
                         .header("Authorization", token)).andExpect(status().isCreated());
             }
         }

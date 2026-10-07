@@ -110,6 +110,11 @@ public class ApplicationReviewService {
         LocalDate validUntil = calendar.today()
                 .plusMonths(parameters.integer(ParameterKey.ACCREDITATION_VALIDITY_MONTHS));
         app.approve(reviewerId, notes, validUntil, now);
+        // As certidões foram conferidas na análise (Manual item 3, passo 3): conta a reconferência daqui.
+        app.recordRecheck(calendar.today(), reviewerId, now);
+        documents.findByApplicationIdOrderByUploadedAt(id).stream()
+                .filter(d -> d.getType().isCertificate() && d.getValidUntil() != null)
+                .forEach(d -> d.setValidity(d.getValidUntil(), reviewerId, now));
         history.save(new ApplicationEvent(app.getId(), app.getStatus(), app.getDecisionReason(), reviewerId, now));
         audit.record(SupplierEvents.AGGREGATE, id, "APPROVE", Map.of("status", "SUBMITTED"),
                 Map.of("status", app.getStatus().name(), "validUntil", validUntil.toString()));

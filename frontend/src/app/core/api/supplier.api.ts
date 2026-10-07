@@ -64,13 +64,91 @@ export interface SupplierDocument {
   contentType: string;
   sizeBytes: number;
   uploadedAt: string;
+  /** Validade da certidão (só certidões). */
+  validUntil: string | null;
+  /** Conferida pela Comissão no sítio oficial. */
+  verifiedAt: string | null;
 }
 
 export interface ChecklistItem {
   type: string;
   label: string;
   requirement: Requirement;
+  /** Certidão com validade (federal, FGTS, CNDT, municipal). */
+  certificate: boolean;
   document: SupplierDocument | null;
+}
+
+export type CertificateState = 'VALID' | 'EXPIRING' | 'EXPIRED' | 'NO_DATE' | 'MISSING';
+
+export const CERTIFICATE_BADGE: Record<CertificateState, string> = {
+  VALID: 'badge-success',
+  EXPIRING: 'badge-warning',
+  EXPIRED: 'badge-error',
+  NO_DATE: 'badge-neutral',
+  MISSING: 'badge-error',
+};
+
+export interface CertificateStatus {
+  type: string;
+  label: string;
+  documentId: number | null;
+  validUntil: string | null;
+  state: CertificateState;
+  stateLabel: string;
+  verified: boolean;
+}
+
+/** Manutenção do credenciado: certidões, inativação, reconferência e renovação. */
+export interface Maintenance {
+  certificates: CertificateStatus[];
+  regular: boolean;
+  irregularSince: string | null;
+  regularizationDue: string | null;
+  inactiveSince: string | null;
+  deregistrationAlerted: boolean;
+  lastRecheckOn: string | null;
+  nextRecheckDue: string | null;
+  recheckDue: boolean;
+  renewalOpensOn: string | null;
+  renewalOpen: boolean;
+  renewalRequestedAt: string | null;
+  renewalReturnMessage: string | null;
+  alertDays: number;
+}
+
+export type MaintenanceView = 'CERTIFICATES' | 'RECHECK' | 'RENEWAL' | 'INACTIVE';
+
+export interface MaintenanceRow {
+  id: number;
+  protocol: string | null;
+  name: string;
+  supplierTypeLabel: string | null;
+  documentMasked: string | null;
+  accreditationValidUntil: string | null;
+  maintenance: Maintenance;
+}
+
+/** Dados que o credenciado atualiza sem novo requerimento (Anexo V). */
+export interface RegistrationForm {
+  street: string | null;
+  addressNumber: string | null;
+  addressComplement: string | null;
+  district: string | null;
+  municipalityId: number | null;
+  cep: string | null;
+  phone: string | null;
+  contactEmail: string | null;
+  website: string | null;
+  representativeName: string | null;
+  representativeCpf: string | null;
+  representativeRole: string | null;
+  bankName: string | null;
+  bankBranch: string | null;
+  bankAccount: string | null;
+  bankAccountType: BankAccountType | null;
+  pixKey: string | null;
+  accountHolder: string | null;
 }
 
 export interface HistoryEntry {
@@ -152,6 +230,8 @@ export interface Application extends Omit<ApplicationForm, 'lineCodes'> {
   checklist: ChecklistItem[];
   history: HistoryEntry[];
   pendingItems: Issue[];
+  /** Só para habilitados. */
+  maintenance: Maintenance | null;
   version: number;
 }
 
@@ -255,10 +335,28 @@ export class SupplierApi {
     return this.http.put<Application>(this.base, { ...form, version });
   }
 
-  upload(type: string, file: File): Observable<SupplierDocument> {
+  /** Certidões vão com a validade (AAAA-MM-DD). */
+  upload(type: string, file: File, validUntil: string | null = null): Observable<SupplierDocument> {
     const body = new FormData();
     body.append('file', file);
+    if (validUntil) {
+      body.append('validUntil', validUntil);
+    }
     return this.http.post<SupplierDocument>(`${this.base}/documents/${type}`, body);
+  }
+
+  setValidity(documentId: number, validUntil: string): Observable<Application> {
+    return this.http.put<Application>(`${this.base}/documents/${documentId}/validity`, {
+      validUntil,
+    });
+  }
+
+  updateRegistration(form: RegistrationForm, version: number): Observable<Application> {
+    return this.http.put<Application>(`${this.base}/registration`, { ...form, version });
+  }
+
+  requestRenewal(declarationsAccepted: boolean, version: number): Observable<Application> {
+    return this.http.post<Application>(`${this.base}/renewal`, { declarationsAccepted, version });
   }
 
   deleteDocument(id: number): Observable<void> {
@@ -330,6 +428,49 @@ export class ReviewApi {
 
   reject(id: number, message: string, version: number): Observable<Application> {
     return this.http.post<Application>(`${this.base}/${id}/reject`, { message, version });
+  }
+
+  // --- Manutenção do cadastro ----------------------------------------------
+
+  maintenance(view: MaintenanceView): Observable<MaintenanceRow[]> {
+    return this.http.get<MaintenanceRow[]>('/api/commission/maintenance', {
+      params: new HttpParams().set('view', view),
+    });
+  }
+
+  maintenanceCounts(): Observable<Record<MaintenanceView, number>> {
+    return this.http.get<Record<MaintenanceView, number>>('/api/commission/maintenance/counts');
+  }
+
+  /** Certidão obtida pela Comissão no sítio oficial (entra conferida). */
+  uploadCertificate(
+    id: number,
+    type: string,
+    file: File,
+    validUntil: string,
+  ): Observable<Application> {
+    const body = new FormData();
+    body.append('file', file);
+    body.append('validUntil', validUntil);
+    return this.http.post<Application>(`${this.base}/${id}/documents/${type}`, body);
+  }
+
+  setValidity(id: number, documentId: number, validUntil: string): Observable<Application> {
+    return this.http.put<Application>(`${this.base}/${id}/documents/${documentId}/validity`, {
+      validUntil,
+    });
+  }
+
+  recheck(id: number, message: string, version: number): Observable<Application> {
+    return this.http.post<Application>(`${this.base}/${id}/recheck`, { message, version });
+  }
+
+  renew(id: number, message: string, version: number): Observable<Application> {
+    return this.http.post<Application>(`${this.base}/${id}/renew`, { message, version });
+  }
+
+  returnRenewal(id: number, message: string, version: number): Observable<Application> {
+    return this.http.post<Application>(`${this.base}/${id}/return-renewal`, { message, version });
   }
 }
 

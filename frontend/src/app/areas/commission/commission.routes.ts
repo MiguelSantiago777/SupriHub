@@ -13,6 +13,11 @@ export const COMMISSION_ROUTES: Routes = [
     loadComponent: () => import('./applications.page').then((m) => m.ApplicationsPage),
   },
   {
+    path: 'manutencao',
+    title: 'Manutenção do cadastro',
+    loadComponent: () => import('./maintenance.page').then((m) => m.MaintenancePage),
+  },
+  {
     path: 'editais',
     title: 'Editais',
     loadComponent: () => import('../tenders/tenders.page').then((m) => m.TendersPage),

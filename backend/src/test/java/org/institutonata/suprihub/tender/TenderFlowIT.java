@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -113,6 +114,7 @@ class TenderFlowIT extends IntegrationTest {
             if (type.requirementFor(SupplierType.MEI) == DocumentType.Requirement.REQUIRED) {
                 mvc.perform(multipart("/api/supplier/application/documents/" + type.name())
                         .file(new MockMultipartFile("file", "d.pdf", "application/pdf", PDF))
+                        .param("validUntil", LocalDate.now().plusDays(90).toString())
                         .header("Authorization", token)).andExpect(status().isCreated());
             }
         }

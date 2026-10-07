@@ -47,7 +47,7 @@ Pacote base `org.institutonata.suprihub`. Cada módulo segue a mesma divisão:
 | `messaging` | Transactional outbox, relay, topologia RabbitMQ, idempotência | 0 |
 | `notification` | `MessageChannel` (e-mail; WhatsApp previsto), templates Thymeleaf pt-BR | 0 |
 | `tender` | `BandPolicy` (faixas) → DFD/edital, máquina de estados | 0 → 2 |
-| `supplier` | Requerimento, documentos, habilitação, cadastro, certidões, recursos, job diário | 1 |
+| `supplier` | Requerimento, documentos, habilitação, cadastro, recursos; manutenção do credenciado: validade das certidões (`CertificateRegularity` puro), job diário de aviso e inativação temporária, reconferência semestral, atualização cadastral e renovação | 1 |
 | `proposal` | Propostas com sigilo até o prazo | 2 |
 | `judgment` | `JudgmentEngine` **puro** (`domain`), entidades em `model`, mapa comparativo, direito de cobrir, sorteio com semente, ata PDF (OpenPDF), homologação Comissão/Diretoria | 2 |
 | `contract` | Ordem de Fornecimento/Serviço (Anexo VIII) com PDF, assinatura eletrônica, Termo de Recebimento e Avaliação (Anexo IX), NF/RPA, pagamento, Banco de Preços (consulta e teto do rodízio), dossiê (Anexo XIII); `SupplierRatings` alimenta o desempate | 3 |
@@ -120,11 +120,11 @@ Migrações Flyway em `backend/src/main/resources/db/migration`:
 | V5 | Feriados 2026–2027 (nacionais, RJ, Mesquita) |
 | V10 | Fase 1 — requerimento (Anexo II), linhas, territórios, documentos e andamento |
 | V11 | Fase 1 — recurso da inabilitação (e coluna de autorização de divulgação, sem uso — D-027) |
-| V12+ | Fase 1 — certidões e atualização cadastral |
 | V20 | Fase 2A — oportunidades, itens, territórios, convites do rodízio, propostas |
 | V21 | Fase 2B — desclassificação, julgamento, mapa (imutável), sorteio (imutável), direito de cobrir |
 | V22 | Fase 3A — ordem de fornecimento/serviço, itens, termos de recebimento, arquivos, banco de preços |
 | V23 | Fase 3B — bloqueio do cadastro, processo sancionador e arquivos, dossiê (itens manuais) e revisões |
+| V24 | Fase 1 — validade das certidões, inativação temporária, reconferência semestral e renovação (numerada depois da V23 porque o Flyway não aplica versões fora de ordem) |
 
 ## Testes
 

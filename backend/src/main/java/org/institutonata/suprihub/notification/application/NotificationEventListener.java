@@ -25,6 +25,7 @@ import org.institutonata.suprihub.notification.application.NotificationService.R
 import org.institutonata.suprihub.notification.domain.MessageChannel.ChannelType;
 import org.institutonata.suprihub.shared.config.SupriHubProperties;
 import org.institutonata.suprihub.supplier.domain.Appeal;
+import org.institutonata.suprihub.supplier.domain.DocumentType;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierEvents;
 import org.institutonata.suprihub.proposal.infra.ProposalRepository;
@@ -190,6 +191,87 @@ public class NotificationEventListener {
                     email(user, "appeal-denied", "Decisão do seu recurso — " + app.getProtocol(), event,
                             Map.of("protocol", app.getProtocol(), "reason", nz(appeal.getBoardReason()),
                                     "link", frontendUrl + "/fornecedor")));
+            case SupplierEvents.CERTIFICATE_EXPIRING -> withApplication(event, (user, app) ->
+                    email(user, "notice", "Certidão perto do vencimento — renove", event, notice(
+                            "Sua certidão vence em breve: " + certificates(event) + ".",
+                            "Emita a nova certidão no site do órgão e envie pela sua área, com a data de validade. "
+                                    + "Assim você continua recebendo oportunidades.",
+                            "Enviar a certidão", "/fornecedor")));
+            case SupplierEvents.CERTIFICATE_EXPIRED -> withApplication(event, (user, app) -> {
+                email(user, "notice", "Certidão vencida: envie até " + date(app.getRegularizationDue()), event,
+                        notice("Venceu (ou falta) a certidão: " + certificates(event) + ".",
+                                "Envie a certidão atualizada até " + date(app.getRegularizationDue())
+                                        + " (5 dias úteis). Sem ela, o seu cadastro fica inativo temporariamente "
+                                        + "e deixa de receber oportunidades (Política art. 21, § 2º).",
+                                "Enviar a certidão", "/fornecedor"));
+                notifyRole(AppRole.COMMISSION, event, "notice", "Certidão vencida: " + nz(app.getLegalName()),
+                        notice("O credenciado " + nz(app.getLegalName()) + " está com certidão vencida ou faltando: "
+                                        + certificates(event) + ". Ele foi notificado para apresentar até "
+                                        + date(app.getRegularizationDue()) + ".",
+                                "Sempre que possível, renove por consulta direta no site oficial e anexe a certidão "
+                                        + "na tela do credenciado (Política art. 21, § 2º).",
+                                "Ver o credenciado", "/comissao/requerimentos/" + app.getId()));
+            });
+            case SupplierEvents.INACTIVATED -> withApplication(event, (user, app) -> {
+                email(user, "notice", "Seu cadastro está inativo temporariamente", event, notice(
+                        "A certidão " + certificates(event) + " não foi regularizada no prazo. O seu cadastro "
+                                + "ficou inativo temporariamente e não recebe oportunidades (Política art. 22).",
+                        "Envie a certidão atualizada pela sua área: a reativação é automática.",
+                        "Regularizar", "/fornecedor"));
+                notifyRole(AppRole.COMMISSION, event, "notice", "Credenciado inativado: " + nz(app.getLegalName()),
+                        notice("O credenciado " + nz(app.getLegalName()) + " ficou inativo temporariamente: "
+                                        + certificates(event) + " sem regularização no prazo.",
+                                "Ele volta a ficar ativo assim que a certidão for regularizada.",
+                                "Ver o credenciado", "/comissao/requerimentos/" + app.getId()));
+            });
+            case SupplierEvents.REACTIVATED -> withApplication(event, (user, app) ->
+                    email(user, "notice", "Seu cadastro está ativo de novo", event, notice(
+                            "As certidões foram regularizadas e o seu cadastro voltou a ficar ativo.",
+                            "Você volta a receber as oportunidades das suas linhas e territórios.",
+                            "Ver meu credenciamento", "/fornecedor")));
+            case SupplierEvents.DEREGISTRATION_ALERT -> withApplication(event, (user, app) ->
+                    notifyRole(AppRole.COMMISSION, event, "notice",
+                            "Irregular há 30 dias: " + nz(app.getLegalName()), notice(
+                                    "O credenciado " + nz(app.getLegalName()) + " está com certidão irregular desde "
+                                            + date(app.getIrregularSince()) + ".",
+                                    "Pela Política (art. 23), a perda de habilitação não regularizada em 30 dias leva "
+                                            + "ao descredenciamento, por decisão motivada da Comissão.",
+                                    "Ver o credenciado", "/comissao/requerimentos/" + app.getId())));
+            case SupplierEvents.REGISTRATION_UPDATED -> withApplication(event, (user, app) -> {
+                String changes = nz(event.payloadString("changes"));
+                Map<String, Object> vars = notice(nz(app.getLegalName()) + " atualizou o cadastro: " + changes + ".",
+                        "Confira as alterações na tela do credenciado.", "Ver o credenciado",
+                        "/comissao/requerimentos/" + app.getId());
+                notifyRole(AppRole.COMMISSION, event, "notice", "Cadastro atualizado: " + nz(app.getLegalName()),
+                        vars);
+                if (changes.contains("Dados bancários")) {
+                    notifyRole(AppRole.FINANCE, event, "notice",
+                            "Conta bancária alterada: " + nz(app.getLegalName()), vars);
+                }
+            });
+            case SupplierEvents.RENEWAL_DUE -> withApplication(event, (user, app) ->
+                    email(user, "notice", "Renove o seu credenciamento", event, notice(
+                            "O seu credenciamento vale até " + date(app.getAccreditationValidUntil()) + ".",
+                            "Atualize as certidões e os dados e peça a renovação pela sua área "
+                                    + "(Política art. 22).",
+                            "Renovar", "/fornecedor")));
+            case SupplierEvents.RENEWAL_REQUESTED -> withApplication(event, (user, app) ->
+                    notifyRole(AppRole.COMMISSION, event, "notice", "Renovação para analisar: "
+                            + nz(app.getLegalName()), notice(
+                                    nz(app.getLegalName()) + " pediu a renovação do credenciamento (vale até "
+                                            + date(app.getAccreditationValidUntil()) + ").",
+                                    "Confira as certidões e os dados e renove ou devolva com o que falta.",
+                                    "Analisar", "/comissao/requerimentos/" + app.getId())));
+            case SupplierEvents.RENEWED -> withApplication(event, (user, app) ->
+                    email(user, "notice", "Credenciamento renovado", event, notice(
+                            "O seu credenciamento foi renovado até " + date(app.getAccreditationValidUntil()) + ".",
+                            "Mantenha as certidões, o contato e a conta em dia.", "Ver meu credenciamento",
+                            "/fornecedor")));
+            case SupplierEvents.RENEWAL_RETURNED -> withApplication(event, (user, app) ->
+                    email(user, "notice", "Renovação: a Comissão pediu ajustes", event, notice(
+                            "A Comissão devolveu o seu pedido de renovação: " + nz(app.getRenewalReturnMessage()),
+                            "Faça os ajustes pela sua área e peça a renovação de novo.", "Ver meu credenciamento",
+                            "/fornecedor")));
             case TenderEvents.PUBLISHED -> tenders.findById(event.payloadLong("tenderId")).ifPresent(t -> {
                 Map<String, Object> vars = Map.of("number", t.getNumber(), "title", t.getTitle(),
                         "line", t.getSupplyLine().getCode() + " · " + t.getSupplyLine().getShortName(),
@@ -404,6 +486,17 @@ public class NotificationEventListener {
 
     private static String nz(String s) {
         return s == null ? "" : s;
+    }
+
+    /** Nomes das certidões do evento (tipos separados por vírgula no payload). */
+    private static String certificates(EventEnvelope event) {
+        String names = event.payloadString("certificates");
+        if (names == null || names.isBlank()) {
+            return "";
+        }
+        return java.util.Arrays.stream(names.split(","))
+                .map(n -> DocumentType.valueOf(n.trim()).label())
+                .collect(java.util.stream.Collectors.joining("; "));
     }
 
     private void withApplication(EventEnvelope event, BiConsumer<AppUser, SupplierApplication> action) {

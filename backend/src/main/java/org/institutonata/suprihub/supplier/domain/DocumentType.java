@@ -27,14 +27,14 @@ public enum DocumentType {
     ADDRESS_PROOF("Comprovante de residência ou de endereço da sede (até 90 dias)",
             all(REQUIRED)),
     FEDERAL_CERTIFICATE("Certidão de débitos federais e dívida ativa da União (RFB/PGFN)",
-            all(REQUIRED)),
+            all(REQUIRED), true),
     FGTS_CERTIFICATE("Certificado de Regularidade do FGTS (CRF)",
             Map.of(SupplierType.MEI, REQUIRED, SupplierType.ME, REQUIRED, SupplierType.EPP, REQUIRED,
-                    SupplierType.COOPERATIVE, REQUIRED)),
+                    SupplierType.COOPERATIVE, REQUIRED), true),
     LABOR_CERTIFICATE("Certidão Negativa de Débitos Trabalhistas (CNDT)",
-            all(REQUIRED)),
+            all(REQUIRED), true),
     MUNICIPAL_CERTIFICATE("Certidão de regularidade com a Fazenda Municipal (quando exigível)",
-            all(OPTIONAL)),
+            all(OPTIONAL), true),
     LICENSE("Alvará, licença sanitária ou autorização específica (se a atividade exigir)",
             all(OPTIONAL)),
     INSS_REGISTRATION("NIT/PIS e comprovante de inscrição como contribuinte individual do INSS",
@@ -48,10 +48,24 @@ public enum DocumentType {
 
     private final String label;
     private final Map<SupplierType, Requirement> requirements;
+    private final boolean certificate;
 
     DocumentType(String label, Map<SupplierType, Requirement> requirements) {
+        this(label, requirements, false);
+    }
+
+    DocumentType(String label, Map<SupplierType, Requirement> requirements, boolean certificate) {
         this.label = label;
         this.requirements = requirements;
+        this.certificate = certificate;
+    }
+
+    /**
+     * Certidão com prazo de validade (federal, FGTS, CNDT e municipal): a data é informada no
+     * envio e acompanhada durante o credenciamento (Política art. 21, § 2º).
+     */
+    public boolean isCertificate() {
+        return certificate;
     }
 
     public String label() {

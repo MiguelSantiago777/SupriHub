@@ -16,6 +16,7 @@ import {
   formatDocument,
   formatPhone,
   formatSize,
+  todayIso,
 } from '../../core/format';
 
 /** Requerimento em modo leitura: dados do Anexo II, documentos e andamento. */
@@ -182,6 +183,18 @@ import {
                   >{{ item.document.filename }} · {{ size(item.document.sizeBytes) }} · enviado em
                   {{ dateTime(item.document.uploadedAt) }}</small
                 >
+                @if (item.certificate) {
+                  <small [class.expired]="isExpired(item.document.validUntil)">
+                    @if (item.document.validUntil) {
+                      Válida até <strong>{{ fmtDate(item.document.validUntil) }}</strong>
+                      @if (item.document.verifiedAt) {
+                        · conferida pela Comissão
+                      }
+                    } @else {
+                      Validade não informada
+                    }
+                  </small>
+                }
               } @else {
                 <small class="muted">{{
                   item.requirement === 'REQUIRED' ? 'Não enviado' : 'Opcional — não enviado'
@@ -308,6 +321,10 @@ import {
       min-width: 0;
       overflow-wrap: anywhere;
     }
+    .expired {
+      color: var(--sh-error);
+      font-weight: 700;
+    }
     .declared {
       display: flex;
       align-items: center;
@@ -387,4 +404,8 @@ export class ApplicationView {
   );
 
   protected readonly reversedHistory = computed(() => [...this.app().history].reverse());
+
+  protected isExpired(validUntil: string | null): boolean {
+    return !!validUntil && validUntil < todayIso();
+  }
 }

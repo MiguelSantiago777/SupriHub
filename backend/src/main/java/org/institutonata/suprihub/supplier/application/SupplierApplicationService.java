@@ -6,11 +6,11 @@ import java.io.UncheckedIOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.institutonata.suprihub.audit.application.AuditService;
 import org.institutonata.suprihub.auth.domain.AppUser;
@@ -35,6 +35,7 @@ import org.institutonata.suprihub.supplier.domain.ApplicationCompleteness.Issue;
 import org.institutonata.suprihub.supplier.domain.ApplicationData;
 import org.institutonata.suprihub.supplier.domain.ApplicationEvent;
 import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
+import org.institutonata.suprihub.supplier.domain.CertificateRegularity;
 import org.institutonata.suprihub.supplier.domain.DocumentType;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierDocument;
@@ -68,13 +69,15 @@ public class SupplierApplicationService {
     private final DomainEvents events;
     private final AuditService audit;
     private final AppealRepository appeals;
+    private final SupplierMaintenanceService maintenance;
     private final Clock clock;
 
     public SupplierApplicationService(SupplierApplicationRepository applications, SupplierDocumentRepository documents,
             ApplicationEventRepository history, AppUserRepository users, MunicipalityRepository municipalities,
             SupplyLineRepository supplyLines, FileStorage storage, FileScanner scanner, ParameterService parameters,
             CalendarService calendar, DomainEvents events, AuditService audit, AppealRepository appeals,
-            Clock clock) {
+            SupplierMaintenanceService maintenance, Clock clock) {
+        this.maintenance = maintenance;
         this.applications = applications;
         this.documents = documents;
         this.history = history;
@@ -119,13 +122,60 @@ public class SupplierApplicationService {
         return app;
     }
 
+    /**
+     * Envia (ou substitui) um documento. Certidões exigem a validade. Com o requerimento em
+     * edição vale como rascunho; já credenciado, é a atualização documental (Anexo V) e a
+     * Comissão é avisada.
+     */
     @Transactional
-    public SupplierDocument upload(long userId, DocumentType type, MultipartFile file) {
-        SupplierApplication app = editable(userId, null);
+    public SupplierDocument upload(long userId, DocumentType type, MultipartFile file, LocalDate validUntil) {
+        SupplierApplication app = getOrCreate(userId);
+        boolean accredited = app.getStatus() == ApplicationStatus.APPROVED;
+        if (!accredited) {
+            editable(userId, null);
+        }
         if (app.getSupplierType() != null && !type.appliesTo(app.getSupplierType())) {
             throw new BusinessException("DOCUMENT_NOT_APPLICABLE",
                     "Este documento não se aplica ao tipo de negócio escolhido.");
         }
+        if (type.isCertificate()) {
+            maintenance.requireValidityInRange(validUntil, true);
+        }
+        SupplierDocument doc = store(app, type, file, type.isCertificate() ? validUntil : null, null);
+        if (accredited) {
+            maintenance.documentReplaced(app, doc, userId, true);
+        }
+        return doc;
+    }
+
+    /**
+     * Certidão obtida pela própria Comissão no sítio oficial (Política art. 21, § 2º: "renovadas
+     * pelo Instituto por consulta direta"). Já entra conferida.
+     */
+    @Transactional
+    public SupplierDocument uploadByCommission(long applicationId, DocumentType type, MultipartFile file,
+            LocalDate validUntil, long reviewerId) {
+        SupplierApplication app = applications.findById(applicationId)
+                .orElseThrow(() -> new NotFoundException("Requerimento"));
+        if (!type.isCertificate()) {
+            throw new BusinessException("NOT_A_CERTIFICATE",
+                    "A Comissão anexa só certidões. Os demais documentos são do fornecedor.");
+        }
+        if (app.getStatus() != ApplicationStatus.APPROVED && app.getStatus() != ApplicationStatus.SUBMITTED) {
+            throw new BusinessException("APPLICATION_NOT_UNDER_COMMISSION",
+                    "Só é possível anexar certidões em requerimentos em análise ou de credenciados.",
+                    HttpStatus.CONFLICT);
+        }
+        maintenance.requireValidityInRange(validUntil, true);
+        SupplierDocument doc = store(app, type, file, validUntil, reviewerId);
+        if (app.getStatus() == ApplicationStatus.APPROVED) {
+            maintenance.documentReplaced(app, doc, reviewerId, false);
+        }
+        return doc;
+    }
+
+    private SupplierDocument store(SupplierApplication app, DocumentType type, MultipartFile file,
+            LocalDate validUntil, Long verifierId) {
         if (file == null || file.isEmpty()) {
             throw new BusinessException("FILE_EMPTY", "Escolha um arquivo.");
         }
@@ -153,9 +203,27 @@ public class SupplierApplicationService {
         SupplierDocument doc = documents.save(new SupplierDocument(app.getId(), type,
                 UploadedFiles.safeFilename(file.getOriginalFilename()), contentType, stored.sizeBytes(), stored.sha256(),
                 stored.storageKey(), clock.instant()));
-        audit.record("supplier_document", doc.getId(), "UPLOAD", null,
+        if (validUntil != null) {
+            doc.setValidity(validUntil, verifierId, clock.instant());
+        }
+        Map<String, Object> after = new HashMap<>(
                 Map.of("applicationId", app.getId(), "type", type.name(), "sha256", stored.sha256()));
+        if (validUntil != null) {
+            after.put("validUntil", validUntil.toString());
+        }
+        audit.record("supplier_document", doc.getId(), verifierId == null ? "UPLOAD" : "UPLOAD_BY_COMMISSION", null,
+                after);
         return doc;
+    }
+
+    /** Validade de uma certidão já enviada (cadastros antigos ou correção de digitação). */
+    @Transactional
+    public SupplierDocument setValidity(long userId, long documentId, LocalDate validUntil) {
+        SupplierApplication app = getOrCreate(userId);
+        if (app.getStatus() != ApplicationStatus.APPROVED) {
+            editable(userId, null);
+        }
+        return maintenance.setValidity(app, documentId, validUntil, userId, false);
     }
 
     @Transactional
@@ -195,8 +263,8 @@ public class SupplierApplicationService {
     /** Pendências do requerimento atual (vazia = pronto para enviar). */
     @Transactional(readOnly = true)
     public List<Issue> pendingItems(SupplierApplication app) {
-        Set<DocumentType> uploaded = documents.findByApplicationIdOrderByUploadedAt(app.getId()).stream()
-                .map(SupplierDocument::getType).collect(Collectors.toSet());
+        List<CertificateRegularity.Uploaded> uploaded =
+                CertificateRegularity.Uploaded.of(documents.findByApplicationIdOrderByUploadedAt(app.getId()));
         return ApplicationCompleteness.check(ApplicationCompleteness.Snapshot.of(app), uploaded, calendar.today());
     }
 
@@ -239,7 +307,7 @@ public class SupplierApplicationService {
         }
         if (!app.getStatus().isEditableBySupplier()) {
             throw new BusinessException("APPLICATION_LOCKED", app.getStatus() == ApplicationStatus.APPROVED
-                    ? "Seu credenciamento já foi aprovado. Para atualizar dados, fale com a Comissão."
+                    ? "Seu credenciamento já foi aprovado. Use \"Atualizar dados\" na sua área."
                     : "Seu requerimento está em análise e não pode ser alterado agora.", HttpStatus.CONFLICT);
         }
         if (hasOpenAppeal(app)) {

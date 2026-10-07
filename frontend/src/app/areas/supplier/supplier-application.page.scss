@@ -97,6 +97,11 @@
   }
 }
 
+.maintenance {
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
 // --- Layout com etapas ------------------------------------------------------
 .layout {
   display: grid;
@@ -428,6 +433,28 @@ fieldset {
   align-items: center;
   gap: 0.25rem;
   margin-left: auto;
+}
+
+.validity {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--sh-text-muted);
+
+  input {
+    min-height: 40px;
+    padding: 0 0.6rem;
+    border: 1px solid var(--sh-border-strong, var(--sh-border));
+    border-radius: var(--sh-radius-sm);
+    font: inherit;
+    font-weight: 400;
+    color: var(--sh-text);
+    background: var(--sh-surface);
+  }
 }
 
 .upload-btn {

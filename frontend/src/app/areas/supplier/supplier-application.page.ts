@@ -40,10 +40,12 @@ import {
   formatDocument,
   formatPhone,
   formatSize,
+  todayIso,
 } from '../../core/format';
 import { problemMessage, toProblem } from '../../core/http/problem';
 import { Municipality, SupplyLine } from '../../core/models';
 import { ApplicationView } from './application-view';
+import { SupplierMaintenance } from './supplier-maintenance';
 
 interface Section {
   id: string;
@@ -113,6 +115,7 @@ const ACCEPT = '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png';
     MatRadioModule,
     MatSelectModule,
     ApplicationView,
+    SupplierMaintenance,
   ],
   templateUrl: './supplier-application.page.html',
   styleUrls: ['./supplier-application.page.scss', './supplier-appeal.scss'],
@@ -265,6 +268,10 @@ export class SupplierApplicationPage implements OnInit {
           this.save(true);
         }
       });
+  }
+
+  protected reload(app: Application): void {
+    this.load(app);
   }
 
   private load(app: Application): void {
@@ -516,6 +523,35 @@ export class SupplierApplicationPage implements OnInit {
 
   // --- Documentos ----------------------------------------------------------
 
+  // --- Validade das certidões ---------------------------------------------
+
+  protected readonly today = todayIso();
+  /** Datas digitadas antes de escolher o arquivo. */
+  private readonly validityDraft = signal<Record<string, string>>({});
+
+  protected validityOf(item: ChecklistItem): string {
+    return this.validityDraft()[item.type] ?? item.document?.validUntil ?? '';
+  }
+
+  protected changeValidity(item: ChecklistItem, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.validityDraft.update((d) => ({ ...d, [item.type]: value }));
+    // Certidão já enviada: grava a data na hora.
+    if (item.document && value && value !== item.document.validUntil) {
+      this.uploading.set(item.type);
+      this.api.setValidity(item.document.id, value).subscribe({
+        next: (app) => {
+          this.uploading.set(null);
+          this.load(app);
+        },
+        error: (e: unknown) => {
+          this.uploading.set(null);
+          this.snack.open(problemMessage(e), 'OK', { duration: 6000 });
+        },
+      });
+    }
+  }
+
   protected upload(item: ChecklistItem, event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -527,10 +563,15 @@ export class SupplierApplicationPage implements OnInit {
       this.snack.open(`O arquivo tem mais de ${MAX_UPLOAD_MB} MB.`, 'OK', { duration: 5000 });
       return;
     }
+    const validUntil = item.certificate ? this.validityOf(item) : null;
+    if (item.certificate && !validUntil) {
+      this.snack.open('Informe primeiro até quando a certidão é válida.', 'OK', { duration: 5000 });
+      return;
+    }
     this.uploading.set(item.type);
     this.persist()
       .pipe(
-        switchMap(() => this.api.upload(item.type, file)),
+        switchMap(() => this.api.upload(item.type, file, validUntil)),
         switchMap(() => this.api.get()),
       )
       .subscribe({

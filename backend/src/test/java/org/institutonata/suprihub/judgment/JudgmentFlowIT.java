@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
@@ -110,6 +111,7 @@ class JudgmentFlowIT extends IntegrationTest {
             if (doc.requirementFor(type) == DocumentType.Requirement.REQUIRED) {
                 mvc.perform(multipart("/api/supplier/application/documents/" + doc.name())
                         .file(new MockMultipartFile("file", "d.pdf", "application/pdf", PDF))
+                        .param("validUntil", LocalDate.now().plusDays(90).toString())
                         .header("Authorization", token)).andExpect(status().isCreated());
             }
         }

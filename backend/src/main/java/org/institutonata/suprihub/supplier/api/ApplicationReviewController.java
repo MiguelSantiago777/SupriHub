@@ -15,24 +15,31 @@ import org.institutonata.suprihub.supplier.api.SupplierDtos.ApplicationDto;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.ApplicationSummary;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.DecisionRequest;
 import org.institutonata.suprihub.supplier.api.SupplierDtos.RequiredMessageRequest;
+import org.institutonata.suprihub.supplier.api.SupplierDtos.ValidityRequest;
 import org.institutonata.suprihub.supplier.application.AppealService;
 import org.institutonata.suprihub.supplier.application.ApplicationReviewService;
 import org.institutonata.suprihub.supplier.application.SupplierApplicationService;
+import org.institutonata.suprihub.supplier.application.SupplierMaintenanceService;
 import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
+import org.institutonata.suprihub.supplier.domain.DocumentType;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierDocument;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/commission/applications")
@@ -44,9 +51,11 @@ public class ApplicationReviewController {
     private final SupplierApplicationService applications;
     private final CalendarService calendar;
     private final AppealService appeals;
+    private final SupplierMaintenanceService maintenance;
 
     public ApplicationReviewController(ApplicationReviewService review, SupplierApplicationService applications,
-            CalendarService calendar, AppealService appeals) {
+            CalendarService calendar, AppealService appeals, SupplierMaintenanceService maintenance) {
+        this.maintenance = maintenance;
         this.review = review;
         this.applications = applications;
         this.calendar = calendar;
@@ -104,8 +113,46 @@ public class ApplicationReviewController {
         return dto(review.reject(id, CurrentUser.requireId(), req.message(), req.version()));
     }
 
+    // ------------------------------------------------- manutenção do cadastro
+
+    @PostMapping(path = "/{id}/documents/{type}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Anexa certidão obtida pela Comissão no sítio oficial (já conferida)")
+    public ApplicationDto uploadCertificate(@PathVariable long id, @PathVariable DocumentType type,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("validUntil") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate validUntil) {
+        applications.uploadByCommission(id, type, file, validUntil, CurrentUser.requireId());
+        return dto(review.get(id));
+    }
+
+    @PutMapping("/{id}/documents/{documentId}/validity")
+    @Operation(summary = "Confere (e corrige, se preciso) a validade de uma certidão")
+    public ApplicationDto validity(@PathVariable long id, @PathVariable long documentId,
+            @Valid @RequestBody ValidityRequest req) {
+        maintenance.setValidity(review.get(id), documentId, req.validUntil(), CurrentUser.requireId(), true);
+        return dto(review.get(id));
+    }
+
+    @PostMapping("/{id}/recheck")
+    @Operation(summary = "Registra a reconferência semestral das certidões")
+    public ApplicationDto recheck(@PathVariable long id, @Valid @RequestBody DecisionRequest req) {
+        return dto(maintenance.recheck(id, CurrentUser.requireId(), req.message(), req.version()));
+    }
+
+    @PostMapping("/{id}/renew")
+    @Operation(summary = "Renova o credenciamento por mais 24 meses")
+    public ApplicationDto renew(@PathVariable long id, @Valid @RequestBody DecisionRequest req) {
+        return dto(maintenance.renew(id, CurrentUser.requireId(), req.message(), req.version()));
+    }
+
+    @PostMapping("/{id}/return-renewal")
+    @Operation(summary = "Devolve o pedido de renovação com o que falta")
+    public ApplicationDto returnRenewal(@PathVariable long id, @Valid @RequestBody RequiredMessageRequest req) {
+        return dto(maintenance.returnRenewal(id, CurrentUser.requireId(), req.message(), req.version()));
+    }
+
     private ApplicationDto dto(SupplierApplication app) {
         return ApplicationDto.of(app, applications.documents(app.getId()), applications.history(app.getId()),
-                List.of(), appeals.latestFor(app.getId()).orElse(null), calendar.today());
+                List.of(), appeals.latestFor(app.getId()).orElse(null), calendar.today(),
+                app.getStatus() == ApplicationStatus.APPROVED ? maintenance.of(app) : null);
     }
 }

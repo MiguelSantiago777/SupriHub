@@ -3,6 +3,7 @@ package org.institutonata.suprihub.supplier.domain;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -66,7 +67,8 @@ public final class ApplicationCompleteness {
         }
     }
 
-    public static List<Issue> check(Snapshot s, Set<DocumentType> uploaded, LocalDate today) {
+    /** Conferência com os documentos enviados (tipo e validade das certidões). */
+    public static List<Issue> check(Snapshot s, List<CertificateRegularity.Uploaded> uploaded, LocalDate today) {
         List<Issue> issues = new ArrayList<>();
         SupplierType type = s.supplierType();
         if (type == null) {
@@ -148,11 +150,26 @@ public final class ApplicationCompleteness {
         }
 
         // Documentos (Edital 4.1)
+        Set<DocumentType> sent = EnumSet.noneOf(DocumentType.class);
+        uploaded.forEach(u -> sent.add(u.type()));
         if (type != null) {
             for (DocumentType doc : DocumentType.values()) {
-                if (doc.requirementFor(type) == DocumentType.Requirement.REQUIRED && !uploaded.contains(doc)) {
+                if (doc.requirementFor(type) == DocumentType.Requirement.REQUIRED && !sent.contains(doc)) {
                     issues.add(new Issue("documents." + doc.name(), "Envie: " + doc.label() + "."));
                 }
+            }
+        }
+        // Certidões: validade informada e em dia (Política art. 21, § 2º)
+        for (CertificateRegularity.Uploaded u : uploaded) {
+            if (!u.type().isCertificate()) {
+                continue;
+            }
+            if (u.validUntil() == null) {
+                issues.add(new Issue("documents." + u.type().name(),
+                        "Informe a validade de: " + u.type().label() + "."));
+            } else if (u.validUntil().isBefore(today)) {
+                issues.add(new Issue("documents." + u.type().name(),
+                        "Certidão vencida: " + u.type().label() + ". Envie uma certidão válida."));
             }
         }
 
