@@ -1,0 +1,68 @@
+# SupriHub — produção (sobrepõe o docker-compose.yml).
+#
+#   1) Gere os segredos uma vez:   ./scripts/gerar-env-producao.sh   (ou .ps1 no Windows)
+#   2) Revise o .env.prod gerado (URL pública, SMTP, captcha).
+#   3) Suba:  docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Diferenças em relação ao dev: perfil prod (a aplicação recusa subir com segredos de exemplo),
+# nenhum valor padrão para segredos, só o frontend exposto, sem MailHog e com antivírus (ClamAV).
+# O HTTPS fica num proxy/LB na frente do frontend (o cookie de sessão exige HTTPS).
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?defina DB_PASSWORD (scripts/gerar-env-producao)}"
+    ports: !reset []
+    restart: unless-stopped
+
+  rabbitmq:
+    environment:
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?defina RABBITMQ_PASSWORD (scripts/gerar-env-producao)}"
+    ports: !reset []
+    restart: unless-stopped
+
+  mailhog:
+    # Só para desenvolvimento: em produção o e-mail sai pelo SMTP real.
+    profiles: ["dev-only"]
+
+  clamav:
+    image: clamav/clamav:stable
+    volumes:
+      - clamdb:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      start_period: 300s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_PASSWORD: "${DB_PASSWORD:?defina DB_PASSWORD}"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD:?defina RABBITMQ_PASSWORD}"
+      JWT_SECRET: "${JWT_SECRET:?defina JWT_SECRET (scripts/gerar-env-producao)}"
+      JWT_SECURE_COOKIE: ${JWT_SECURE_COOKIE:-true}
+      FRONTEND_URL: "${FRONTEND_URL:?defina FRONTEND_URL (ex.: https://suprihub.institutonata.org.br)}"
+      BOOTSTRAP_ADMIN_EMAIL: "${BOOTSTRAP_ADMIN_EMAIL:?defina BOOTSTRAP_ADMIN_EMAIL}"
+      BOOTSTRAP_ADMIN_PASSWORD: "${BOOTSTRAP_ADMIN_PASSWORD:?defina BOOTSTRAP_ADMIN_PASSWORD}"
+      DEMO_USERS: "false"
+      MAIL_HOST: "${MAIL_HOST:?defina MAIL_HOST (SMTP)}"
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-true}
+      CAPTCHA_SITE_KEY: ${CAPTCHA_SITE_KEY:-}
+      CAPTCHA_SECRET_KEY: ${CAPTCHA_SECRET_KEY:-}
+      CLAMAV_HOST: clamav
+      SWAGGER_ENABLED: "false"
+    ports: !reset []
+    restart: unless-stopped
+
+  frontend:
+    restart: unless-stopped
+
+volumes:
+  clamdb:

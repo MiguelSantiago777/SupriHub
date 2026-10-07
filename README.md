@@ -87,10 +87,36 @@ npm run lint && npm run format:check && npm run test:ci && npm run build
 
 ## Configuração
 
-Todas as variáveis estão em [`.env.example`](.env.example). Em produção
-(`SPRING_PROFILES_ACTIVE=prod`): troque `JWT_SECRET` (≥ 32 caracteres aleatórios), as
-senhas do banco e do RabbitMQ, configure o SMTP real e use `DEMO_USERS=false`. O Swagger
-fica desligado em produção (`SWAGGER_ENABLED=true` para ligar).
+Todas as variáveis estão em [`.env.example`](.env.example). Em desenvolvimento só o
+frontend fica aberto na rede; banco, RabbitMQ, MailHog e backend escutam em `127.0.0.1`
+(`DEV_BIND=0.0.0.0` para abrir).
+
+### Deploy em produção
+
+```bash
+./scripts/gerar-env-producao.sh --url https://suprihub.institutonata.org.br --admin-email admin@institutonata.org.br
+# (Windows: .\scripts\gerar-env-producao.ps1 -Url ... -AdminEmail ...)
+# preencha no .env.prod: SMTP (MAIL_*) e captcha (CAPTCHA_SITE_KEY/CAPTCHA_SECRET_KEY)
+docker compose --env-file .env.prod -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+O script gera senhas do banco/RabbitMQ, o `JWT_SECRET` e a senha inicial do ADMIN (mostrada
+uma vez). O `docker-compose.prod.yml` liga o perfil `prod`, tira as portas internas, remove o
+MailHog e sobe o ClamAV. Com perfil `prod`, a aplicação **não sobe** se encontrar segredo de
+exemplo/dev, `DEMO_USERS=true` ou senha de admin fraca. O HTTPS fica num proxy/LB à frente do
+frontend (o cookie de sessão é `Secure`). O Swagger fica desligado (`SWAGGER_ENABLED=true` liga).
+
+### Segurança da autenticação
+
+- Access token JWT (HS256, 15 min) no header `Authorization: Bearer`, guardado só em memória
+  no navegador; refresh token opaco em cookie `HttpOnly`/`SameSite=Strict`, rotacionado a cada
+  uso (reuso fora da janela de 30 s encerra todas as sessões).
+- Desativar o usuário, trocar seus perfis ou redefinir a senha invalida na hora os access
+  tokens já emitidos.
+- Senha errada: 5 tentativas por IP + e-mail bloqueiam aquele IP por 15 min (sem travar o dono
+  da conta em outro IP); 20 tentativas de vários IPs bloqueiam a conta. As respostas não
+  revelam se o e-mail existe.
+- O nginx sobrescreve `X-Forwarded-For` e o backend só confia nele vindo da rede interna.
 
 Os **parâmetros de negócio** (limites das faixas, margens, prazos, metas) ficam no banco e
 são alterados pela tela **Administração → Parâmetros**, com motivo e histórico. Quando sair o

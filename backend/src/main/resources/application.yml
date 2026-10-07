@@ -61,7 +61,9 @@ spring:
 
 server:
   port: 8080
-  forward-headers-strategy: framework
+  # "native": o Tomcat só aceita X-Forwarded-* vindos de proxies internos (rede privada/Docker).
+  # O nginx sobrescreve o X-Forwarded-For com o IP real, então o cliente não consegue forjá-lo.
+  forward-headers-strategy: native
   error:
     include-stacktrace: never
     include-message: never
@@ -96,6 +98,7 @@ suprihub:
     access-ttl: 15m
     refresh-ttl: 7d
     secure-cookie: ${JWT_SECURE_COOKIE:true}
+    refresh-reuse-grace: 30s
   storage:
     local-path: ${STORAGE_PATH:./data/files}
   messaging:
@@ -109,6 +112,12 @@ suprihub:
     enabled: true
     public-per-minute: 120
     auth-per-minute: 20
+  captcha:
+    site-key: ${CAPTCHA_SITE_KEY:}
+    secret-key: ${CAPTCHA_SECRET_KEY:}
+  antivirus:
+    clamav-host: ${CLAMAV_HOST:}
+    clamav-port: ${CLAMAV_PORT:3310}
   mail:
     from: ${MAIL_FROM:Contrata + NATA <nao-responda@institutonata.org.br>}
   bootstrap:

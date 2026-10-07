@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -15,6 +15,7 @@ import { AuthLayout } from './auth-layout';
 import { AuthService } from '../core/auth/auth.service';
 import { applyServerErrors } from '../core/http/problem';
 import { PASSWORD_PATTERN, PasswordField } from './password-field';
+import { CaptchaWidget } from './captcha-widget';
 
 const samePassword: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
   const confirm = group.get('confirmPassword');
@@ -40,6 +41,7 @@ const samePassword: ValidatorFn = (group: AbstractControl): ValidationErrors | n
     MatInputModule,
     MatButtonModule,
     PasswordField,
+    CaptchaWidget,
   ],
   template: `
     <app-auth-layout variant="register">
@@ -106,6 +108,7 @@ const samePassword: ValidatorFn = (group: AbstractControl): ValidationErrors | n
             NATA, conforme a Lei Geral de Proteção de Dados (LGPD) e o art. 28 da Política de
             Credenciamento.
           </p>
+          <app-captcha />
           <div class="form-actions">
             <button mat-flat-button type="submit" [disabled]="loading()">
               {{ loading() ? 'Enviando…' : 'Criar minha conta' }}
@@ -137,20 +140,26 @@ export class RegisterPage {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly done = signal('');
+  private readonly captcha = viewChild.required(CaptchaWidget);
 
   protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+    if (!this.captcha().valid()) {
+      this.error.set('Conclua a verificação de segurança antes de continuar.');
+      return;
+    }
     this.loading.set(true);
     this.error.set('');
     const { fullName, email, password } = this.form.getRawValue();
-    this.auth.register(fullName.trim(), email.trim(), password).subscribe({
+    this.auth.register(fullName.trim(), email.trim(), password, this.captcha().token()).subscribe({
       next: (r) => this.done.set(r.message),
       error: (e: unknown) => {
         this.error.set(applyServerErrors(this.form, e));
         this.loading.set(false);
+        this.captcha().reset();
       },
     });
   }

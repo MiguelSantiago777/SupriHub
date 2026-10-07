@@ -5,6 +5,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,7 +16,9 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.Cookie;
 
 import com.jayway.jsonpath.JsonPath;
+import org.institutonata.suprihub.auth.application.LoginThrottle;
 import org.institutonata.suprihub.messaging.application.OutboxRelay;
+import org.institutonata.suprihub.support.Auth;
 import org.institutonata.suprihub.support.IntegrationTest;
 import org.institutonata.suprihub.support.Mails;
 import org.junit.jupiter.api.Test;
@@ -35,6 +38,9 @@ class AuthFlowIT extends IntegrationTest {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    LoginThrottle throttle;
 
     @Test
     void cadastroConfirmacaoLoginRefreshLogout() throws Exception {
@@ -91,11 +97,49 @@ class AuthFlowIT extends IntegrationTest {
         Cookie refresh2 = refreshed.getResponse().getCookie("suprihub_rt");
         assertThat(refresh2.getValue()).isNotEqualTo(refresh1.getValue());
 
-        // reuso do token antigo → todas as sessões encerradas (inclusive a nova)
+        // reapresentado logo em seguida (duas abas renovando juntas): tolerado
+        mvc.perform(post("/api/auth/refresh").cookie(refresh1)).andExpect(status().isOk());
+
+        // reuso do token antigo fora da janela de tolerância → todas as sessões encerradas
+        jdbc.update("UPDATE refresh_token SET revoked_at = revoked_at - interval '5 minutes' WHERE replaced_by IS NOT NULL");
         mvc.perform(post("/api/auth/refresh").cookie(refresh1))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("SESSION_EXPIRED"));
         mvc.perform(post("/api/auth/refresh").cookie(refresh2)).andExpect(status().isUnauthorized());
+        // ...inclusive o access token já emitido
+        mvc.perform(get("/api/me").header("Authorization", "Bearer " + access)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void trocaDePerfilInvalidaOAccessTokenNaHora() throws Exception {
+        String admin = Auth.admin(mvc);
+        String email = "financeiro.perfil@institutonata.org.br";
+        String created = mvc.perform(post("/api/admin/users").header("Authorization", admin)
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                                {"email":"%s","fullName":"Pessoa do Financeiro","roles":["FINANCE"]}"""
+                                .formatted(email)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        mvc.perform(post("/api/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"" + Mails.token(awaitMail(email)) + "\",\"newPassword\":\"Financa2026\"}"))
+                .andExpect(status().isOk());
+        String finance = Auth.bearer(mvc, email, "Financa2026");
+        mvc.perform(get("/api/me").header("Authorization", finance)).andExpect(status().isOk());
+
+        long id = ((Number) JsonPath.read(created, "$.id")).longValue();
+        int version = JsonPath.read(
+                mvc.perform(get("/api/admin/users").param("q", "financeiro.perfil").header("Authorization", admin))
+                        .andReturn().getResponse().getContentAsString(), "$.content[0].version");
+        mvc.perform(put("/api/admin/users/" + id).header("Authorization", admin)
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                                {"fullName":"Pessoa do Financeiro","roles":["DEMAND_MANAGER"],"enabled":true,"version":%d}"""
+                                .formatted(version)))
+                .andExpect(status().isOk());
+
+        // token antigo (com o perfil FINANCE) recusado; um novo login traz o perfil atual
+        mvc.perform(get("/api/me").header("Authorization", finance)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/me").header("Authorization", Auth.bearer(mvc, email, "Financa2026")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.roles[0]").value("DEMAND_MANAGER"));
     }
 
     @Test
@@ -124,18 +168,39 @@ class AuthFlowIT extends IntegrationTest {
     }
 
     @Test
-    void bloqueiaContaAposCincoSenhasErradas() throws Exception {
-        String body = """
-                {"email":"admin@teste.local","password":"errada123"}""";
-        for (int i = 0; i < 5; i++) {
-            mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(body))
-                    .andExpect(status().isUnauthorized());
+    void bloqueiaOIpAposCincoSenhasErradasSemTravarAContaParaOutros() throws Exception {
+        try {
+            String body = """
+                    {"email":"admin@teste.local","password":"errada123"}""";
+            for (int i = 0; i < 5; i++) {
+                mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(body))
+                        .andExpect(status().isUnauthorized());
+            }
+            mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("""
+                            {"email":"admin@teste.local","password":"Admin@12345"}"""))
+                    .andExpect(status().isLocked())
+                    .andExpect(jsonPath("$.code").value("ACCOUNT_LOCKED"));
+
+            // o dono da conta, em outro IP, continua entrando
+            mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                            .with(r -> { r.setRemoteAddr("203.0.113.7"); return r; })
+                            .content("""
+                                    {"email":"admin@teste.local","password":"Admin@12345"}"""))
+                    .andExpect(status().isOk());
+
+            // e-mail inexistente recebe a mesma resposta (não revela quais contas existem)
+            String ghost = """
+                    {"email":"ninguem@teste.local","password":"errada123"}""";
+            for (int i = 0; i < 5; i++) {
+                mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(ghost))
+                        .andExpect(status().isUnauthorized());
+            }
+            mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(ghost))
+                    .andExpect(status().isLocked());
+        } finally {
+            throttle.clear();
+            jdbc.update("UPDATE app_user SET locked_until = NULL, failed_logins = 0 WHERE email = 'admin@teste.local'");
         }
-        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("""
-                        {"email":"admin@teste.local","password":"Admin@12345"}"""))
-                .andExpect(status().isLocked())
-                .andExpect(jsonPath("$.code").value("ACCOUNT_LOCKED"));
-        jdbc.update("UPDATE app_user SET locked_until = NULL, failed_logins = 0 WHERE email = 'admin@teste.local'");
     }
 
     @Test

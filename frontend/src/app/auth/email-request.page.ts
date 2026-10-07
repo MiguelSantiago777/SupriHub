@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 import { AuthLayout } from './auth-layout';
 import { AuthService } from '../core/auth/auth.service';
 import { problemMessage } from '../core/http/problem';
+import { CaptchaWidget } from './captcha-widget';
 
 export type EmailRequestMode = 'forgot-password' | 'resend-confirmation';
 
@@ -33,6 +34,7 @@ const TEXTS: Record<EmailRequestMode, { heading: string; intro: string; action: 
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    CaptchaWidget,
   ],
   template: `
     <app-auth-layout variant="default">
@@ -60,6 +62,9 @@ const TEXTS: Record<EmailRequestMode, { heading: string; intro: string; action: 
               <mat-error>E-mail inválido.</mat-error>
             }
           </mat-form-field>
+          @if (mode() === 'forgot-password') {
+            <app-captcha />
+          }
           <div class="form-actions">
             <button mat-flat-button type="submit" [disabled]="loading()">
               {{ texts().action }}
@@ -84,10 +89,16 @@ export class EmailRequestPage {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly done = signal('');
+  private readonly captcha = viewChild(CaptchaWidget);
 
   protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    const captcha = this.captcha();
+    if (captcha && !captcha.valid()) {
+      this.error.set('Conclua a verificação de segurança antes de continuar.');
       return;
     }
     this.loading.set(true);
@@ -95,13 +106,14 @@ export class EmailRequestPage {
     const email = this.form.getRawValue().email.trim();
     const request =
       this.mode() === 'forgot-password'
-        ? this.auth.forgotPassword(email)
+        ? this.auth.forgotPassword(email, captcha?.token())
         : this.auth.resendConfirmation(email);
     request.subscribe({
       next: (r) => this.done.set(r.message),
       error: (e: unknown) => {
         this.error.set(problemMessage(e));
         this.loading.set(false);
+        captcha?.reset();
       },
     });
   }

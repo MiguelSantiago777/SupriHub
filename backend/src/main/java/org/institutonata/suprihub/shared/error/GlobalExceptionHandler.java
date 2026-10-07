@@ -48,7 +48,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
         return handleBusiness(new BusinessException("INVALID_CREDENTIALS",
-                "E-mail ou senha incorretos.", HttpStatus.UNAUTHORIZED));
+                "E-mail ou senha incorretos. Depois de várias tentativas sem sucesso, o acesso fica bloqueado "
+                        + "por 15 minutos.", HttpStatus.UNAUTHORIZED));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

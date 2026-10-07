@@ -1,6 +1,7 @@
 package org.institutonata.suprihub.auth.infra;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
@@ -8,6 +9,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import org.institutonata.suprihub.auth.application.JwtService;
+import org.institutonata.suprihub.auth.application.SessionRevocations;
 import org.institutonata.suprihub.shared.config.SupriHubProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +25,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
@@ -97,10 +106,25 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(SecretKey key, SupriHubProperties props) {
+    public JwtDecoder jwtDecoder(SecretKey key, SupriHubProperties props, SessionRevocations revocations) {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
-        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(props.jwt().issuer()));
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefaultWithIssuer(props.jwt().issuer()), notRevoked(revocations)));
         return decoder;
+    }
+
+    /** Recusa tokens emitidos antes de uma revogação (desativação, troca de perfis, nova senha). */
+    private static OAuth2TokenValidator<Jwt> notRevoked(SessionRevocations revocations) {
+        OAuth2Error revoked = new OAuth2Error(OAuth2ErrorCodes.INVALID_TOKEN, "Sessão encerrada.", null);
+        return jwt -> {
+            String subject = jwt.getSubject();
+            Object millis = jwt.getClaim(JwtService.ISSUED_AT_MILLIS);
+            Instant issuedAt = millis instanceof Number n ? Instant.ofEpochMilli(n.longValue()) : jwt.getIssuedAt();
+            if (subject == null || revocations.isRevoked(Long.parseLong(subject), issuedAt)) {
+                return OAuth2TokenValidatorResult.failure(revoked);
+            }
+            return OAuth2TokenValidatorResult.success();
+        };
     }
 
     private JwtAuthenticationConverter jwtAuthenticationConverter() {

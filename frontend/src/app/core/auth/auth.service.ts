@@ -57,17 +57,31 @@ export class AuthService {
     return firstValueFrom(this.refresh().pipe(map(() => undefined)));
   }
 
-  login(email: string, password: string): Observable<Me> {
+  login(email: string, password: string, captchaToken?: string): Observable<Me> {
     return this.http
-      .post<SessionResponse>('/api/auth/login', { email, password }, { withCredentials: true })
+      .post<SessionResponse>(
+        '/api/auth/login',
+        { email, password, captchaToken },
+        { withCredentials: true },
+      )
       .pipe(
         tap((s) => this.setSession(s)),
         map((s) => s.user),
       );
   }
 
-  register(fullName: string, email: string, password: string): Observable<MessageResponse> {
-    return this.http.post<MessageResponse>('/api/auth/register', { fullName, email, password });
+  register(
+    fullName: string,
+    email: string,
+    password: string,
+    captchaToken?: string,
+  ): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>('/api/auth/register', {
+      fullName,
+      email,
+      password,
+      captchaToken,
+    });
   }
 
   confirmEmail(token: string): Observable<MessageResponse> {
@@ -78,8 +92,8 @@ export class AuthService {
     return this.http.post<MessageResponse>('/api/auth/resend-confirmation', { email });
   }
 
-  forgotPassword(email: string): Observable<MessageResponse> {
-    return this.http.post<MessageResponse>('/api/auth/forgot-password', { email });
+  forgotPassword(email: string, captchaToken?: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>('/api/auth/forgot-password', { email, captchaToken });
   }
 
   resetPassword(token: string, newPassword: string): Observable<MessageResponse> {

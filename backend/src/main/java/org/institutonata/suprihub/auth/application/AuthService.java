@@ -48,6 +48,8 @@ public class AuthService {
     private final DomainEvents events;
     private final AuditService audit;
     private final CaptchaVerifier captcha;
+    private final LoginThrottle throttle;
+    private final SessionRevocations revocations;
     private final SupriHubProperties.Jwt jwtConfig;
     private final Clock clock;
     /** Hash válido usado para igualar o tempo de resposta quando o e-mail não existe. */
@@ -55,7 +57,8 @@ public class AuthService {
 
     public AuthService(AppUserRepository users, RoleRepository roles, RefreshTokenRepository refreshTokens,
             VerificationTokenRepository verificationTokens, PasswordEncoder passwordEncoder, JwtService jwtService,
-            DomainEvents events, AuditService audit, CaptchaVerifier captcha, SupriHubProperties props, Clock clock) {
+            DomainEvents events, AuditService audit, CaptchaVerifier captcha, LoginThrottle throttle,
+            SessionRevocations revocations, SupriHubProperties props, Clock clock) {
         this.users = users;
         this.roles = roles;
         this.refreshTokens = refreshTokens;
@@ -65,6 +68,8 @@ public class AuthService {
         this.events = events;
         this.audit = audit;
         this.captcha = captcha;
+        this.throttle = throttle;
+        this.revocations = revocations;
         this.jwtConfig = props.jwt();
         this.clock = clock;
         this.dummyHash = passwordEncoder.encode(TokenHasher.newToken());
@@ -117,19 +122,25 @@ public class AuthService {
     public Session login(String email, String password, String captchaToken, String remoteIp) {
         checkCaptcha(captchaToken, remoteIp);
         Instant now = clock.instant();
-        AppUser user = users.findByEmail(email.trim()).orElse(null);
-        if (user == null) {
-            passwordEncoder.matches(password, dummyHash);
-            throw new BadCredentialsException("invalid");
-        }
-        if (user.isLocked(now)) {
+        // Bloqueio por IP + e-mail: mesma resposta exista a conta ou não.
+        if (throttle.isBlocked(email, remoteIp, now)) {
             throw new BusinessException("ACCOUNT_LOCKED",
                     "Muitas tentativas sem sucesso. Aguarde 15 minutos e tente novamente.", HttpStatus.LOCKED);
         }
-        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
-            user.registerFailedLogin(now);
+        AppUser user = users.findByEmail(email.trim()).orElse(null);
+        // Conta bloqueada (tentativas vindas de vários IPs): a senha nem é conferida e a resposta é
+        // a mesma de senha errada, para não revelar a conta nem confirmar um palpite certo.
+        if (user == null || user.isLocked(now)) {
+            passwordEncoder.matches(password, dummyHash);
+            throttle.registerFailure(email, remoteIp, now);
             throw new BadCredentialsException("invalid");
         }
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            user.registerFailedLogin(now);
+            throttle.registerFailure(email, remoteIp, now);
+            throw new BadCredentialsException("invalid");
+        }
+        throttle.reset(email, remoteIp);
         if (!user.isEnabled()) {
             throw new BusinessException("ACCOUNT_DISABLED",
                     "Sua conta está desativada. Fale com a Comissão do Contrata + NATA.", HttpStatus.FORBIDDEN);
@@ -148,22 +159,23 @@ public class AuthService {
             throw sessionExpired();
         }
         Instant now = clock.instant();
-        RefreshToken current = refreshTokens.findByTokenHash(TokenHasher.sha256(rawRefreshToken))
+        RefreshToken current = refreshTokens.findByTokenHashForUpdate(TokenHasher.sha256(rawRefreshToken))
                 .orElseThrow(this::sessionExpired);
-        if (current.getRevokedAt() != null && current.getReplacedBy() != null) {
+        if (current.isRotated()) {
+            if (current.getRevokedAt().plus(jwtConfig.refreshReuseGrace()).isAfter(now)) {
+                // Rotacionado há instantes: duas abas renovando ao mesmo tempo com o mesmo cookie.
+                // Emite outra sessão em vez de tratar como roubo.
+                return newSession(activeUser(current.getUserId(), now), now).session();
+            }
             // Token já rotacionado foi reapresentado: possível roubo. Encerra todas as sessões.
             log.warn("Reuso de refresh token detectado para usuário #{}", current.getUserId());
-            refreshTokens.revokeAllForUser(current.getUserId(), now);
+            endAllSessions(current.getUserId(), now);
             throw sessionExpired();
         }
         if (!current.isActive(now)) {
             throw sessionExpired();
         }
-        AppUser user = users.findById(current.getUserId()).orElseThrow(this::sessionExpired);
-        if (!user.isEnabled()) {
-            refreshTokens.revokeAllForUser(user.getId(), now);
-            throw sessionExpired();
-        }
+        AppUser user = activeUser(current.getUserId(), now);
         IssuedSession issued = newSession(user, now);
         current.revoke(now, issued.refreshTokenId());
         return issued.session();
@@ -195,7 +207,23 @@ public class AuthService {
         // Definir senha pelo link prova a posse do e-mail.
         user.confirmEmail(now);
         refreshTokens.revokeAllForUser(user.getId(), now);
+        revocations.revoke(user, now);
         audit.record("app_user", user.getId(), "PASSWORD_RESET", null, null);
+    }
+
+    private AppUser activeUser(Long userId, Instant now) {
+        AppUser user = users.findById(userId).orElseThrow(this::sessionExpired);
+        if (!user.isEnabled()) {
+            refreshTokens.revokeAllForUser(user.getId(), now);
+            throw sessionExpired();
+        }
+        return user;
+    }
+
+    /** Encerra refresh tokens e access tokens já emitidos. */
+    private void endAllSessions(Long userId, Instant now) {
+        refreshTokens.revokeAllForUser(userId, now);
+        users.findById(userId).ifPresent(u -> revocations.revoke(u, now));
     }
 
     private record IssuedSession(Session session, Long refreshTokenId) {

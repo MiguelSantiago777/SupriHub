@@ -1,5 +1,7 @@
 package org.institutonata.suprihub.auth.infra;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.institutonata.suprihub.auth.domain.AppRole;
@@ -14,6 +16,10 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     @Query("SELECT u FROM AppUser u WHERE lower(u.email) = lower(:email)")
     Optional<AppUser> findByEmail(@Param("email") String email);
+
+    /** Pares (id, sessions_revoked_at) com revogação posterior a {@code since}. */
+    @Query("SELECT u.id, u.sessionsRevokedAt FROM AppUser u WHERE u.sessionsRevokedAt > :since")
+    List<Object[]> findSessionRevocationsSince(@Param("since") Instant since);
 
     @Query("SELECT COUNT(u) > 0 FROM AppUser u JOIN u.roles r WHERE r.code = :role")
     boolean existsWithRole(@Param("role") AppRole role);

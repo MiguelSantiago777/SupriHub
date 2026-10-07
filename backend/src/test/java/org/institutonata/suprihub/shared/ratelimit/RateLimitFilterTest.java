@@ -11,7 +11,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 class RateLimitFilterTest {
 
     private final SupriHubProperties props = new SupriHubProperties("http://localhost", "America/Sao_Paulo",
-            null, null, null, new SupriHubProperties.RateLimit(true, 3, 2), null, null);
+            null, null, null, new SupriHubProperties.RateLimit(true, 3, 2), null, null, null, null);
 
     @Test
     void bloqueiaAposOLimiteNoLogin() throws Exception {

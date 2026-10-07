@@ -97,6 +97,8 @@ class AccessControlIT extends IntegrationTest {
                         .content("{\"email\":\"%s\",\"password\":\"Comissao2026\"}".formatted(email)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("ACCOUNT_DISABLED"));
+        // o access token já emitido deixa de valer na hora (sem esperar os 15 minutos)
+        mvc.perform(get("/api/me").header("Authorization", commission)).andExpect(status().isUnauthorized());
     }
 
     @Test

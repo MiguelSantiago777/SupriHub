@@ -1,5 +1,7 @@
 # SupriHub — ambiente completo: docker compose up --build
 # Acesse: http://localhost:4200 (app) · http://localhost:8025 (MailHog) · http://localhost:15672 (RabbitMQ)
+# Só o frontend fica aberto na rede; banco, RabbitMQ, MailHog e backend escutam apenas em
+# 127.0.0.1 (DEV_BIND=0.0.0.0 abre para a rede). Produção: veja docker-compose.prod.yml.
 name: suprihub
 
 services:
@@ -13,7 +15,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DEV_BIND:-127.0.0.1}:${DB_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -28,8 +30,8 @@ services:
     volumes:
       - rabbitdata:/var/lib/rabbitmq
     ports:
-      - "${RABBITMQ_PORT:-5672}:5672"
-      - "${RABBITMQ_UI_PORT:-15672}:15672"
+      - "${DEV_BIND:-127.0.0.1}:${RABBITMQ_PORT:-5672}:5672"
+      - "${DEV_BIND:-127.0.0.1}:${RABBITMQ_UI_PORT:-15672}:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -39,7 +41,7 @@ services:
   mailhog:
     image: mailhog/mailhog:v1.0.1
     ports:
-      - "${MAILHOG_UI_PORT:-8025}:8025"
+      - "${DEV_BIND:-127.0.0.1}:${MAILHOG_UI_PORT:-8025}:8025"
 
   backend:
     build: ./backend
@@ -62,7 +64,7 @@ services:
     volumes:
       - files:/app/data/files
     ports:
-      - "${BACKEND_PORT:-8080}:8080"
+      - "${DEV_BIND:-127.0.0.1}:${BACKEND_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy

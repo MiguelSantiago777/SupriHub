@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtService {
 
+    public static final String ISSUED_AT_MILLIS = "iat_ms";
+
     private final JwtEncoder encoder;
     private final SupriHubProperties.Jwt config;
     private final Clock clock;
@@ -40,6 +42,8 @@ public class JwtService {
                 .subject(String.valueOf(user.getId()))
                 .issuedAt(now)
                 .expiresAt(exp)
+                // iat do JWT é em segundos; a revogação precisa de precisão maior (SessionRevocations).
+                .claim(ISSUED_AT_MILLIS, now.toEpochMilli())
                 .claim("roles", user.roleCodes().stream().map(Enum::name).sorted().toList())
                 .build();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

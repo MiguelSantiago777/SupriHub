@@ -57,6 +57,11 @@ public class RefreshToken {
         }
     }
 
+    /** Já rotacionado (não apenas encerrado por logout ou revogação). */
+    public boolean isRotated() {
+        return revokedAt != null && replacedBy != null;
+    }
+
     public Long getId() {
         return id;
     }

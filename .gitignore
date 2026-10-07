@@ -1,5 +1,7 @@
 # Segredos
 .env
+.env.*
+!.env.example
 
 # Backend
 backend/target/

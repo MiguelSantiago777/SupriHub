@@ -22,7 +22,12 @@ import jakarta.persistence.Version;
 @Table(name = "app_user")
 public class AppUser {
 
-    public static final int MAX_FAILED_LOGINS = 5;
+    /**
+     * Bloqueio da conta inteira, contra tentativas distribuídas (vários IPs). O limite por
+     * IP + conta, bem menor, fica no {@code LoginThrottle}: assim um terceiro não consegue
+     * bloquear a conta de alguém só errando a senha algumas vezes.
+     */
+    public static final int MAX_FAILED_LOGINS = 20;
     public static final Duration LOCK_DURATION = Duration.ofMinutes(15);
 
     @Id
@@ -49,6 +54,9 @@ public class AppUser {
 
     @Column(name = "locked_until")
     private Instant lockedUntil;
+
+    @Column(name = "sessions_revoked_at")
+    private Instant sessionsRevokedAt;
 
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
@@ -124,6 +132,12 @@ public class AppUser {
         updatedAt = now;
     }
 
+    /** Invalida os access tokens emitidos antes de {@code now}. */
+    public void revokeSessions(Instant now) {
+        sessionsRevokedAt = now;
+        updatedAt = now;
+    }
+
     public void setEnabled(boolean enabled, Instant now) {
         this.enabled = enabled;
         this.updatedAt = now;
@@ -156,6 +170,10 @@ public class AppUser {
 
     public boolean isEmailVerified() {
         return emailVerified;
+    }
+
+    public Instant getSessionsRevokedAt() {
+        return sessionsRevokedAt;
     }
 
     public Instant getLastLoginAt() {

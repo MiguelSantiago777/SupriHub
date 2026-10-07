@@ -1,4 +1,4 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, inject, input, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,7 @@ import { AuthLayout } from './auth-layout';
 import { AuthService } from '../core/auth/auth.service';
 import { toProblem } from '../core/http/problem';
 import { PasswordField } from './password-field';
+import { CaptchaWidget } from './captcha-widget';
 
 @Component({
   selector: 'app-login-page',
@@ -19,6 +20,7 @@ import { PasswordField } from './password-field';
     MatInputModule,
     MatButtonModule,
     PasswordField,
+    CaptchaWidget,
   ],
   template: `
     <app-auth-layout variant="login">
@@ -54,6 +56,7 @@ import { PasswordField } from './password-field';
           }
         </mat-form-field>
         <app-password-field [control]="form.controls.password" />
+        <app-captcha />
         <div class="form-actions">
           <button mat-flat-button type="submit" [disabled]="loading()">
             {{ loading() ? 'Entrando…' : 'Entrar' }}
@@ -79,16 +82,21 @@ export class LoginPage {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly notVerified = signal(false);
+  private readonly captcha = viewChild.required(CaptchaWidget);
 
   protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+    if (!this.captcha().valid()) {
+      this.error.set('Conclua a verificação de segurança antes de continuar.');
+      return;
+    }
     this.loading.set(true);
     this.error.set('');
     const { email, password } = this.form.getRawValue();
-    this.auth.login(email, password).subscribe({
+    this.auth.login(email, password, this.captcha().token()).subscribe({
       next: () => {
         const target = this.voltar();
         const url = target && target.startsWith('/') ? target : this.auth.homeRoute();
@@ -103,6 +111,7 @@ export class LoginPage {
         this.notVerified.set(problem.code === 'EMAIL_NOT_VERIFIED');
         this.error.set(problem.detail ?? 'Não foi possível entrar.');
         this.loading.set(false);
+        this.captcha().reset();
       },
     });
   }

@@ -31,16 +31,19 @@ public class UserAdminService {
     private final AppUserRepository users;
     private final RoleRepository roles;
     private final RefreshTokenRepository refreshTokens;
+    private final SessionRevocations revocations;
     private final PasswordEncoder passwordEncoder;
     private final DomainEvents events;
     private final AuditService audit;
     private final Clock clock;
 
     public UserAdminService(AppUserRepository users, RoleRepository roles, RefreshTokenRepository refreshTokens,
-            PasswordEncoder passwordEncoder, DomainEvents events, AuditService audit, Clock clock) {
+            SessionRevocations revocations, PasswordEncoder passwordEncoder, DomainEvents events, AuditService audit,
+            Clock clock) {
         this.users = users;
         this.roles = roles;
         this.refreshTokens = refreshTokens;
+        this.revocations = revocations;
         this.passwordEncoder = passwordEncoder;
         this.events = events;
         this.audit = audit;
@@ -92,11 +95,17 @@ public class UserAdminService {
         Map<String, Object> before = Map.of("fullName", user.getFullName(), "roles", user.roleCodes(),
                 "enabled", user.isEnabled());
         Instant now = clock.instant();
+        boolean rolesChanged = !user.roleCodes().equals(roleCodes);
         user.rename(fullName, now);
         user.replaceRoles(roles.findByCodeIn(roleCodes), now);
         user.setEnabled(enabled, now);
         if (!enabled) {
             refreshTokens.revokeAllForUser(id, now);
+        }
+        // O access token carrega os perfis: recusa os já emitidos. Se a conta continua ativa,
+        // o frontend renova a sessão e recebe um token com os perfis novos.
+        if (!enabled || rolesChanged) {
+            revocations.revoke(user, now);
         }
         audit.record("app_user", id, "UPDATE", before, Map.of("fullName", user.getFullName(),
                 "roles", user.roleCodes(), "enabled", enabled));

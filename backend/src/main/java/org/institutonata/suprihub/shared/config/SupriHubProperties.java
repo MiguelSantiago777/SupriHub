@@ -22,14 +22,18 @@ public record SupriHubProperties(
         Messaging messaging,
         RateLimit rateLimit,
         Mail mail,
-        Bootstrap bootstrap) {
+        Bootstrap bootstrap,
+        Captcha captcha,
+        Antivirus antivirus) {
 
     public record Jwt(
             @NotBlank String secret,
             @DefaultValue("suprihub") String issuer,
             @DefaultValue("15m") Duration accessTtl,
             @DefaultValue("7d") Duration refreshTtl,
-            @DefaultValue("false") boolean secureCookie) {
+            @DefaultValue("false") boolean secureCookie,
+            /** Janela em que reapresentar um refresh já rotacionado é tratado como corrida entre abas. */
+            @DefaultValue("30s") Duration refreshReuseGrace) {
     }
 
     public record Storage(@DefaultValue("./data/files") String localPath) {
@@ -60,5 +64,24 @@ public record SupriHubProperties(
             String adminPassword,
             @DefaultValue("false") boolean demoUsers,
             @DefaultValue("Senha@123") String demoPassword) {
+    }
+
+    /** Cloudflare Turnstile. Sem a chave secreta, o captcha fica desligado. */
+    public record Captcha(String siteKey, String secretKey) {
+
+        public boolean enabled() {
+            return secretKey != null && !secretKey.isBlank() && siteKey != null && !siteKey.isBlank();
+        }
+    }
+
+    /** ClamAV (clamd via TCP). Sem host, os arquivos não são verificados. */
+    public record Antivirus(
+            String clamavHost,
+            @DefaultValue("3310") int clamavPort,
+            @DefaultValue("30s") Duration timeout) {
+
+        public boolean enabled() {
+            return clamavHost != null && !clamavHost.isBlank();
+        }
     }
 }
