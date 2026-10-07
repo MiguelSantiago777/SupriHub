@@ -44,8 +44,8 @@ const ASIDES: Record<AuthAside, { title: string; items: { icon: string; text: st
       <span class="orb orb-c" aria-hidden="true"></span>
       <div class="wrap">
         <aside class="brand-panel" aria-hidden="true">
-          <span class="logo-card">
-            <img src="img/suprihub-logo.png" alt="" width="220" height="67" />
+          <span class="mark">
+            <img src="img/suprihub-mark.png" alt="" width="40" height="40" />
           </span>
           <h2>{{ aside().title }}</h2>
           <ul>
@@ -141,17 +141,19 @@ const ASIDES: Record<AuthAside, { title: string; items: { icon: string; text: st
         display: flex;
       }
     }
-    .logo-card {
-      align-self: flex-start;
-      padding: 0.75rem 1rem;
-      border-radius: var(--sh-radius);
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
       background: #fff;
       box-shadow: var(--sh-shadow);
     }
-    .logo-card img {
+    .mark img {
       display: block;
-      width: 220px;
-      height: auto;
+      width: 40px;
+      height: 40px;
     }
     .brand-panel h2 {
       color: #fff;
