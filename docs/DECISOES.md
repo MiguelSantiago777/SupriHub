@@ -268,8 +268,7 @@ Manual 4.2, passos 5 e 6; Edital 7.5; checklist do dossiê, itens 7 e 8.
 - **Anular:** a Comissão pode anular um julgamento em curso (erro, recurso acolhido); as
   propostas voltam a ficar disponíveis e pode-se julgar de novo. O histórico fica.
   Cancelar a oportunidade anula o julgamento em curso.
-- O recurso contra o julgamento (Anexo VIII, "seleção/julgamento") ainda não tem tela; por
-  ora, se acolhido, a Comissão anula e julga de novo.
+- O recurso contra o resultado (Anexo X, "seleção/julgamento") está em D-049.
 
 **D-044 — Direito de cobrir, uma convocação por vez** · Fase 2B · vigente
 Edital 8.2 e aba Cotações ("se não cobrir, o próximo da pontuação é convocado").
@@ -297,6 +296,24 @@ empatadas, ela guarda a ata da sessão no dossiê. Divergência registrada.
   escolhe entre cancelar e repetir a cotação, ou **justificar** e julgar (a justificativa vai
   para a ata). Sem nenhuma proposta válida, não há julgamento.
 
+**D-049 — Recurso contra o resultado do julgamento** · Fase 2B · vigente
+Anexo X, etapa "seleção/julgamento". O Edital (5.2) só fixa prazos para o recurso de
+habilitação; uso os mesmos.
+- **Quem e quando:** o proponente que não venceu (inclusive o desclassificado) recorre em
+  `appeal_filing_business_days` (3) d.u. da homologação, que é quando o resultado é comunicado.
+  Cabe um recurso por proponente e resultado, com razões, pedido e anexo opcional.
+- **Rito:** o mesmo do recurso de habilitação (D-026). A Comissão reconsidera em 3 d.u. ou
+  encaminha, com motivação, à Diretoria, que decide em 5 d.u. Fica na mesma fila
+  (`/recursos`), com a etapa indicada.
+- **Efeito:** enquanto há recurso em análise, a ordem da oportunidade não é emitida. A
+  janela de 3 d.u. sozinha não bloqueia, para não atrasar eventos.
+- **Provido:** o julgamento homologado é anulado (a ata fica no histórico), a ordem ainda não
+  executada é cancelada e a oportunidade volta a "Em julgamento". A Comissão corrige o que
+  motivou o recurso e julga de novo. Se já houver recebimento ou sinal registrado, o
+  provimento é recusado: a reparação é tratada fora do sistema.
+- Fica fora do escopo o recurso contra a seleção do rodízio da Faixa 1, em que não há
+  julgamento comparativo.
+
 **D-047 — Avaliação de desempenho no desempate** · Fase 2B · substituído por D-081
 Até a Fase 3A, o critério "melhor avaliação" (8.4) contava como zero para todos.
 
@@ -322,8 +339,7 @@ Edital 9.1 e 9.2; Anexo VIII; Manual 4.2, passo 7.
 - **Faixas 2 e 3:** o fornecedor assina na área dele em 2 d.u. O sistema guarda data, hora,
   IP e a confirmação de leitura das cláusulas. Sem assinatura no prazo (job de hora em
   hora), a ordem fica "não assinada" e a equipe é avisada. A equipe reemite com novo prazo
-  ou cancela. Ainda não há convocação automática do próximo colocado: a Comissão anula o
-  julgamento ou segue o rodízio.
+  ou cancela. Também pode convocar o próximo classificado (D-085).
 
 **D-081 — Termo de Recebimento e Avaliação** · Fase 3A · vigente
 Edital 9.5; Anexo IX; Manual 4.2, passo 9.
@@ -350,7 +366,38 @@ Edital 10.1 a 10.4; Manual 4.2, passo 10.
   orienta a regularização (4.4). Também confere as certidões uma a uma, na emissão da ordem e
   no pagamento. Com alguma vencida ou faltando, bloqueia mesmo dentro do prazo de
   regularização (D-028) e indica o prazo de 5 + 5 d.u. do pequeno negócio.
-- O sinal (10.4) fica registrado na ordem, mas ainda não é pago como parcela separada.
+- O sinal (10.4) é pago como parcela separada (D-086); o pagamento final cobre só o saldo.
+
+**D-085 — Convocação do próximo classificado** · Fase 3 · vigente
+Edital 9.1: sem assinatura em 2 d.u., convoca-se o próximo classificado.
+- Na ordem "não assinada" (Faixas 2 e 3), a Comissão ou o gestor clica em **Convocar o
+  próximo classificado**. A ordem é cancelada e nasce outra, em preparação, para o próximo do
+  mapa homologado. O próximo é a menor posição ainda não convocada, sem desclassificação e
+  com o credenciado ativo hoje. O preço é o da proposta dele; as condições (projeto, prazos,
+  sinal, multa) são copiadas, e a equipe confere e emite.
+- É um clique da equipe, não um job automático: a equipe ainda pode preferir reemitir a ordem
+  (ex.: o fornecedor teve problema técnico). A recusa em assinar pode virar processo
+  sancionador (Anexo XII), por decisão da Comissão.
+- Pode haver várias ordens por oportunidade, mas só uma viva; as anteriores ficam canceladas,
+  com o vínculo `replaces_order_id`.
+
+**D-086 — Sinal como parcela separada** · Fase 3 · vigente
+Edital 10.4; Manual (FAQ): "só para eventos e alimentação, quando previsto na ordem, até 30%".
+- Com a ordem assinada e antes do recebimento definitivo, o Financeiro registra o sinal
+  (data, valor até o previsto, Pix ou transferência) com o comprovante próprio. O sistema
+  confere a regularidade, como em qualquer pagamento.
+- O pagamento final, depois da nota fiscal do valor total, não pode passar do saldo (total
+  menos sinal). O fornecedor é avisado nos dois pagamentos.
+
+**D-087 — Contratação de urgência** · Fase 3 · vigente
+Política art. 13, § 3º; Manual 4.3.
+- O gestor da demanda (ou a Comissão) registra o DFD resumido, escolhe um credenciado
+  **ativo da linha**, informa o valor e justifica (mínimo de 20 caracteres). Ao salvar, a
+  oportunidade já nasce numerada e adjudicada, e a ordem fica em preparação. A assinatura é
+  obrigatória, mesmo em valor da Faixa 1, porque não houve aceite de rodízio.
+- A Comissão é avisada e toma ciência em `urgency_acknowledgement_business_days` (2) d.u. na
+  própria ordem; as pendentes aparecem no alto de "Contratos".
+- O indicador "Contratações de urgência" (D-094) passa a contar essas ordens.
 
 **D-083 — Banco de Preços** · Fase 3A · vigente
 Manual 4.2, passo 11; aba Banco de Preços da Planilha.
@@ -387,7 +434,7 @@ Edital 11; Anexo XII; Política art. 22 e 24 a 26.
   cai ao final, se a sanção não bloquear.
 - **Reincidência:** sanção anterior nos últimos 5 anos é sinalizada à Comissão.
 - O fornecedor vê só os próprios processos, sem o histórico interno.
-- "Deslocamento ao final do rodízio" (1ª linha do Anexo XII) ainda não é automático.
+- "Deslocamento ao final do rodízio" (1ª linha do Anexo XII) é automático (D-095).
 
 **D-091 — Banco de Preços: consulta e teto do rodízio** · Fase 3B · vigente
 Manual 4.1; aba Banco de Preços.
@@ -422,9 +469,21 @@ Manual item 7; Política art. 27.
 - **Tempo DFD → OF:** da criação da oportunidade (o DFD, D-040) à emissão da ordem, em dias
   úteis, por faixa.
 - **Avaliação média:** média dos termos finais no período.
-- **Urgência:** ainda não é registrada (Manual 4.3), por isso aparece 0% com aviso.
+- **Urgência:** conta as ordens de contratações de urgência (D-087) sobre o total do período.
 - Também mostra credenciados ativos por linha, com alerta abaixo de 3 em T1.
 - Página imprimível. A publicação no sítio (art. 27) fica com a Comissão.
+
+**D-095 — Deslocamento ao final do rodízio** · Fase 3 · vigente
+Política art. 13, § 4º; Anexo XII ("recusa injustificada de duas oportunidades consecutivas na
+Faixa 1: deslocamento ao final do rodízio; advertência na reincidência; comunicação prévia da
+indisponibilidade afasta a infração").
+- **Recusa injustificada:** deixar o convite vencer ou recusar sem informar motivo. Recusar
+  informando a indisponibilidade não conta.
+- Com `rotation_unjustified_refusals` (2) recusas injustificadas seguidas, o credenciado vai
+  para o final da fila: o deslocamento conta como uma seleção naquela data (D-034). As recusas
+  já usadas num deslocamento não contam de novo.
+- O fornecedor e a Comissão são avisados. Na reincidência, a Comissão é alertada de que cabe
+  advertência; abrir o processo continua sendo decisão dela (D-090).
 
 ## 3. Pontos em aberto do prompt (§12) — padrões adotados
 

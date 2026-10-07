@@ -48,10 +48,11 @@ const TABS: Tab[] = [
     <header class="page-header">
       <div class="container">
         <span class="eyebrow">Edital, item 5.2</span>
-        <h1>Recursos contra inabilitação</h1>
+        <h1>Recursos</h1>
         <p>
           A Comissão reconsidera em até 3 dias úteis ou encaminha o recurso, com sua motivação, à
-          Diretoria, que decide em até 5 dias úteis. Recurso aceito habilita o fornecedor.
+          Diretoria, que decide em até 5 dias úteis. Contra a inabilitação, o recurso aceito
+          habilita o fornecedor; contra o resultado de um julgamento, reabre o julgamento.
         </p>
         <p class="links">
           @if (auth.hasRole('COMMISSION', 'ADMIN')) {
@@ -98,7 +99,8 @@ const TABS: Tab[] = [
                   <div class="main">
                     <strong>{{ a.legalName || 'Sem nome' }}</strong>
                     <span class="muted">
-                      {{ a.protocol }} · {{ a.supplierTypeLabel }} · recurso em
+                      <span class="badge badge-neutral">{{ a.kindLabel }}</span>
+                      {{ a.subject || a.protocol }} · {{ a.supplierTypeLabel }} · recurso em
                       {{ dateTime(a.filedAt) }}
                     </span>
                   </div>

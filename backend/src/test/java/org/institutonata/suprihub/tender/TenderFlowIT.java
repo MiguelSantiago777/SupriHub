@@ -309,6 +309,48 @@ class TenderFlowIT extends IntegrationTest {
     }
 
     @Test
+    void duasRecusasInjustificadasDeslocamAoFinalDoRodizio() throws Exception {
+        String commissionEmail = createUser(AppRole.COMMISSION);
+        String commission = Auth.bearer(mvc, commissionEmail, PASSWORD);
+        Supplier first = accredited(commission, "L17", "\"T1\"");
+        Supplier second = accredited(commission, "L17", "\"T1\"");
+
+        // 1ª oportunidade: o primeiro recusa sem motivo; o segundo recusa informando a indisponibilidade
+        String t1 = createTender(commission, "Som do sarau", "L17", "2000", "\"T1\"", null);
+        long id1 = num(t1, "$.id");
+        mvc.perform(post("/api/tenders/" + id1 + "/publish").header("Authorization", commission)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"version\":" + num(t1, "$.version") + "}"))
+                .andExpect(jsonPath("$.invitations[0].applicationId").value(first.applicationId()));
+        mvc.perform(post("/api/supplier/opportunities/" + id1 + "/decline").header("Authorization", first.token())
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/supplier/opportunities/" + id1 + "/decline").header("Authorization", second.token())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Equipamento em manutenção\"}"))
+                .andExpect(status().isOk());
+
+        // 2ª oportunidade: o primeiro não responde no prazo → 2 recusas injustificadas seguidas
+        String t2 = createTender(commission, "Som da festa junina", "L17", "2500", "\"T1\"", null);
+        long id2 = num(t2, "$.id");
+        mvc.perform(post("/api/tenders/" + id2 + "/publish").header("Authorization", commission)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"version\":" + num(t2, "$.version") + "}"))
+                .andExpect(jsonPath("$.invitations[0].applicationId").value(first.applicationId()));
+        jdbc.update("UPDATE tender_invitation SET due_date = current_date - 1 WHERE tender_id = ?", id2);
+        rotation.expireOverdue();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM rotation_displacement WHERE application_id = ?",
+                Integer.class, first.applicationId())).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM rotation_displacement WHERE application_id = ?",
+                Integer.class, second.applicationId())).isZero();
+        assertThat(Mails.html(awaitMail(first.email(), "final do rodízio"))).contains("indisponibilidade");
+        assertThat(Mails.html(awaitMail(commissionEmail, "Deslocado no rodízio"))).contains("primeira vez");
+
+        // Próxima oportunidade: o deslocado vai para o fim da fila
+        String t3 = createTender(commission, "Som do encerramento", "L17", "1500", "\"T1\"", null);
+        mvc.perform(post("/api/tenders/" + num(t3, "$.id") + "/publish").header("Authorization", commission)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"version\":" + num(t3, "$.version") + "}"))
+                .andExpect(jsonPath("$.invitations[0].applicationId").value(second.applicationId()));
+    }
+
+    @Test
     void rodizioFaixa1() throws Exception {
         String commission = Auth.bearer(mvc, createUser(AppRole.COMMISSION), PASSWORD);
         Supplier first = accredited(commission, "L19", "\"T1\"");

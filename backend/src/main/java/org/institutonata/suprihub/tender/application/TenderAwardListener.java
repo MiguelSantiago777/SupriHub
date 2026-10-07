@@ -17,4 +17,11 @@ public interface TenderAwardListener {
      *                   substitui a assinatura da ordem — Edital 9.2); nulo nas demais faixas
      */
     void onAwarded(Tender tender, long applicationId, Long proposalId, BigDecimal value, Instant acceptedAt);
+
+    /**
+     * A adjudicação foi desfeita (recurso provido contra o julgamento — D-049). Recusa com
+     * exceção de negócio se a contratação já está em execução.
+     */
+    default void onAwardRevoked(Tender tender, String reason) {
+    }
 }

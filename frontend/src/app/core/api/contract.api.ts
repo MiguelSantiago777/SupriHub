@@ -17,7 +17,7 @@ export type OrderStatus =
   | 'CANCELLED';
 export type OrderKind = 'SUPPLY' | 'SERVICE';
 export type ReceiptKind = 'DEFINITIVE' | 'WITH_RESERVATIONS' | 'REJECTED';
-export type FileKind = 'EVIDENCE' | 'INVOICE' | 'PAYMENT_PROOF';
+export type FileKind = 'EVIDENCE' | 'INVOICE' | 'PAYMENT_PROOF' | 'UPFRONT_PROOF';
 export type PaymentMethod = 'PIX' | 'TRANSFER';
 
 export const ORDER_BADGE: Record<OrderStatus, string> = {
@@ -94,6 +94,12 @@ export interface OrderDetail {
     bandLabel: string;
     lineCode: string;
     lineName: string;
+    /** Contratação de urgência (Política art. 13, § 3º). */
+    urgent: boolean;
+    urgencyJustification: string | null;
+    urgencyAckDue: string | null;
+    urgencyAcknowledgedAt: string | null;
+    urgencyAckNote: string | null;
   };
   supplier: {
     applicationId: number;
@@ -137,7 +143,42 @@ export interface OrderDetail {
   receipts: Receipt[];
   files: OrderFile[];
   canSign: boolean;
+  /** Sinal (Edital 10.4) pago como parcela separada. */
+  upfrontPaidOn: string | null;
+  upfrontPaidValue: number | null;
+  upfrontPaymentMethodLabel: string | null;
+  canPayUpfront: boolean;
+  /** Total menos o sinal pago. */
+  remainingValue: number;
+  /** Ordem não assinada que esta substitui (convocação do próximo classificado). */
+  replacesOrderId: number | null;
   version: number;
+}
+
+/** Contratação de urgência: DFD resumido + credenciado escolhido + justificativa. */
+export interface UrgentInput {
+  title: string;
+  description: string;
+  lineCode: string;
+  executionMunicipalityId: number | null;
+  location: string | null;
+  schedule: string | null;
+  value: number;
+  applicationId: number;
+  justification: string;
+  items: { description: string; unit: string; quantity: number }[];
+}
+
+export interface UrgencySummary {
+  tenderId: number;
+  number: string;
+  title: string;
+  lineCode: string;
+  value: number;
+  justification: string;
+  ackDue: string | null;
+  overdue: boolean;
+  orderId: number | null;
 }
 
 export interface OrderTerms {
@@ -261,6 +302,38 @@ export class ContractApi {
       method,
       version,
     });
+  }
+
+  payUpfront(
+    id: number,
+    paidOn: string,
+    value: number,
+    method: PaymentMethod,
+    version: number,
+  ): Observable<OrderDetail> {
+    return this.http.post<OrderDetail>(`${this.base}/${id}/upfront-payment`, {
+      paidOn,
+      value,
+      method,
+      version,
+    });
+  }
+
+  /** Ordem não assinada: cancela e convoca o próximo classificado (Edital 9.1). */
+  callNext(id: number, version: number): Observable<OrderDetail> {
+    return this.http.post<OrderDetail>(`${this.base}/${id}/call-next`, { version });
+  }
+
+  createUrgent(input: UrgentInput): Observable<OrderDetail> {
+    return this.http.post<OrderDetail>('/api/urgent-contracts', input);
+  }
+
+  pendingUrgencies(): Observable<UrgencySummary[]> {
+    return this.http.get<UrgencySummary[]>('/api/urgent-contracts/pending');
+  }
+
+  acknowledgeUrgency(tenderId: number, note: string): Observable<OrderDetail> {
+    return this.http.post<OrderDetail>(`/api/urgent-contracts/${tenderId}/acknowledge`, { note });
   }
 
   openFile(id: number, fileId: number): void {

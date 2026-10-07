@@ -42,6 +42,15 @@ const COMMISSION_OPTIONS: Option[] = [
   },
 ];
 
+/** Recurso contra o resultado do julgamento (D-049): provido, o julgamento é reaberto. */
+const JUDGMENT_HINTS: Record<Action, string> = {
+  reconsider:
+    'A Comissão revê o resultado: o julgamento é reaberto e a ordem ainda não executada é cancelada.',
+  forward: 'Mantém o resultado e envia o recurso, com a motivação, para a Diretoria decidir.',
+  grant: 'Recurso aceito: o julgamento é reaberto para a Comissão julgar de novo.',
+  deny: 'O resultado é mantido.',
+};
+
 const BOARD_OPTIONS: Option[] = [
   {
     value: 'grant',
@@ -79,7 +88,10 @@ const BOARD_OPTIONS: Option[] = [
         @if (detail(); as d) {
           <div class="head">
             <div>
-              <span class="eyebrow">Recurso · {{ d.application.protocol }}</span>
+              <span class="eyebrow"
+                >Recurso · {{ d.appeal.kindLabel }} ·
+                {{ d.appeal.subject || d.application.protocol }}</span
+              >
               <h1>{{ d.application.legalName }}</h1>
               <p>
                 {{ d.application.supplierTypeLabel }} · recurso em {{ dateTime(d.appeal.filedAt) }}
@@ -110,10 +122,23 @@ const BOARD_OPTIONS: Option[] = [
               <h2 id="t-recurso">
                 <mat-icon aria-hidden="true">gavel</mat-icon> Recurso (Anexo X)
               </h2>
-              <div class="decision">
-                <span class="muted">Decisão recorrida</span>
-                <blockquote>{{ d.application.decisionReason }}</blockquote>
-              </div>
+              @if (ap.kind === 'JUDGMENT') {
+                <div class="decision">
+                  <span class="muted">Decisão recorrida</span>
+                  <p>
+                    Resultado homologado de <strong>{{ ap.subject }}</strong
+                    >.
+                    @if (auth.hasRole('COMMISSION', 'ADMIN') && ap.tenderId) {
+                      <a [routerLink]="['/comissao/editais', ap.tenderId]">Abrir o julgamento</a>
+                    }
+                  </p>
+                </div>
+              } @else {
+                <div class="decision">
+                  <span class="muted">Decisão recorrida</span>
+                  <blockquote>{{ d.application.decisionReason }}</blockquote>
+                </div>
+              }
               <h3>Razões</h3>
               <p class="pre">{{ ap.reasons }}</p>
               <h3>Pedido</h3>
@@ -164,7 +189,9 @@ const BOARD_OPTIONS: Option[] = [
               </ol>
             </section>
 
-            <app-application-view [app]="d.application" (openDocument)="openDocument($event)" />
+            @if (ap.kind === 'HABILITATION') {
+              <app-application-view [app]="d.application" (openDocument)="openDocument($event)" />
+            }
           </div>
 
           <aside class="panel" aria-labelledby="t-decisao">
@@ -236,14 +263,27 @@ const BOARD_OPTIONS: Option[] = [
                     </p>
                   }
                   @case ('GRANTED') {
-                    <p>
-                      Recurso provido. Fornecedor habilitado até
-                      <strong>{{ date(d.application.accreditationValidUntil) }}</strong
-                      >.
-                    </p>
+                    @if (ap.kind === 'JUDGMENT') {
+                      <p>
+                        Recurso provido. O julgamento foi reaberto para a Comissão julgar de novo.
+                      </p>
+                    } @else {
+                      <p>
+                        Recurso provido. Fornecedor habilitado até
+                        <strong>{{ date(d.application.accreditationValidUntil) }}</strong
+                        >.
+                      </p>
+                    }
                   }
                   @case ('DENIED') {
-                    <p>Recurso negado. A inabilitação foi mantida.</p>
+                    <p>
+                      Recurso negado.
+                      {{
+                        ap.kind === 'JUDGMENT'
+                          ? 'O resultado foi mantido.'
+                          : 'A inabilitação foi mantida.'
+                      }}
+                    </p>
                   }
                 }
                 @if (auth.hasRole('COMMISSION', 'ADMIN')) {
@@ -477,12 +517,14 @@ export class AppealDetailPage {
 
   /** Opções que o perfil logado pode usar na etapa atual. */
   protected readonly options = computed<Option[]>(() => {
-    const status = this.detail()?.appeal.status;
-    if (status === 'FILED' && this.auth.hasRole('COMMISSION', 'ADMIN')) {
-      return COMMISSION_OPTIONS;
+    const ap = this.detail()?.appeal;
+    const forKind = (opts: Option[]) =>
+      ap?.kind === 'JUDGMENT' ? opts.map((o) => ({ ...o, hint: JUDGMENT_HINTS[o.value] })) : opts;
+    if (ap?.status === 'FILED' && this.auth.hasRole('COMMISSION', 'ADMIN')) {
+      return forKind(COMMISSION_OPTIONS);
     }
-    if (status === 'FORWARDED' && this.auth.hasRole('BOARD', 'ADMIN')) {
-      return BOARD_OPTIONS;
+    if (ap?.status === 'FORWARDED' && this.auth.hasRole('BOARD', 'ADMIN')) {
+      return forKind(BOARD_OPTIONS);
     }
     return [];
   });
@@ -567,7 +609,9 @@ export class AppealDetailPage {
             ? 'Recurso encaminhado à Diretoria.'
             : a === 'deny'
               ? 'Recurso negado. O fornecedor foi avisado.'
-              : 'Recurso provido: fornecedor habilitado e avisado por e-mail.',
+              : d.appeal.kind === 'JUDGMENT'
+                ? 'Recurso provido: julgamento reaberto e fornecedor avisado.'
+                : 'Recurso provido: fornecedor habilitado e avisado por e-mail.',
           'OK',
           { duration: 5000 },
         );

@@ -2,6 +2,7 @@ package org.institutonata.suprihub.tender.domain;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -97,6 +98,20 @@ public class Tender {
     @Column(name = "cancel_reason")
     private String cancelReason;
 
+    // Contratação de urgência (Política art. 13, § 3º; Manual 4.3)
+    @Column(nullable = false)
+    private boolean urgent;
+    @Column(name = "urgency_justification")
+    private String urgencyJustification;
+    @Column(name = "urgency_ack_due")
+    private LocalDate urgencyAckDue;
+    @Column(name = "urgency_acknowledged_at")
+    private Instant urgencyAcknowledgedAt;
+    @Column(name = "urgency_acknowledged_by")
+    private Long urgencyAcknowledgedBy;
+    @Column(name = "urgency_ack_note")
+    private String urgencyAckNote;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "tender_territory", joinColumns = @JoinColumn(name = "tender_id"))
     @Enumerated(EnumType.STRING)
@@ -190,6 +205,63 @@ public class Tender {
         }
         this.status = Status.AWARDED;
         this.updatedAt = now;
+    }
+
+    /** Recurso provido contra o julgamento homologado: volta a "Em julgamento" (D-049). */
+    public void reopenForJudgment(Instant now) {
+        if (status != Status.AWARDED || band == Band.FAIXA_1 || urgent) {
+            throw new IllegalStateException("Só oportunidade julgada (Faixas 2/3) pode ser reaberta");
+        }
+        this.status = Status.JUDGING;
+        this.updatedAt = now;
+    }
+
+    /**
+     * Urgência (Política art. 13, § 3º): o gestor contrata direto um credenciado da linha, sem
+     * rodízio nem cotação, com a justificativa no DFD. Numera e adjudica na hora; a Comissão
+     * toma ciência até {@code ackDue}.
+     */
+    public void contractUrgently(String number, String justification, LocalDate ackDue, Instant now) {
+        if (status != Status.DRAFT) {
+            throw new IllegalStateException("Só um DFD novo vira contratação de urgência");
+        }
+        this.number = number;
+        this.urgent = true;
+        this.urgencyJustification = justification.trim();
+        this.urgencyAckDue = ackDue;
+        this.status = Status.AWARDED;
+        this.publishedAt = now;
+        this.updatedAt = now;
+    }
+
+    public void acknowledgeUrgency(Long userId, String note, Instant now) {
+        if (!urgent || urgencyAcknowledgedAt != null) {
+            throw new IllegalStateException("Urgência inexistente ou já com ciência");
+        }
+        this.urgencyAcknowledgedAt = now;
+        this.urgencyAcknowledgedBy = userId;
+        this.urgencyAckNote = note == null || note.isBlank() ? null : note.trim();
+        this.updatedAt = now;
+    }
+
+    public boolean isUrgent() {
+        return urgent;
+    }
+
+    public String getUrgencyJustification() {
+        return urgencyJustification;
+    }
+
+    public LocalDate getUrgencyAckDue() {
+        return urgencyAckDue;
+    }
+
+    public Instant getUrgencyAcknowledgedAt() {
+        return urgencyAcknowledgedAt;
+    }
+
+    public String getUrgencyAckNote() {
+        return urgencyAckNote;
     }
 
     /** Ampliação de território no rodízio quando faltam credenciados (Manual 4.3). */

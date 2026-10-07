@@ -264,10 +264,18 @@ export const APPEAL_BADGE: Record<AppealStatus, string> = {
   DENIED: 'badge-error',
 };
 
+export type AppealKind = 'HABILITATION' | 'JUDGMENT';
+
 export interface Appeal {
   id: number;
   status: AppealStatus;
   statusLabel: string;
+  /** Etapa recorrida (Anexo X): habilitação ou seleção/julgamento. */
+  kind: AppealKind;
+  kindLabel: string;
+  /** Recurso contra o julgamento: "OP-2026-0003 — título". */
+  subject: string | null;
+  tenderId: number | null;
   reasons: string;
   request: string;
   attachment: { filename: string; contentType: string; sizeBytes: number } | null;
@@ -285,6 +293,9 @@ export interface AppealSummary {
   id: number;
   status: AppealStatus;
   statusLabel: string;
+  kind: AppealKind;
+  kindLabel: string;
+  subject: string | null;
   applicationId: number;
   protocol: string | null;
   legalName: string | null;

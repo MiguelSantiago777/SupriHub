@@ -1,8 +1,16 @@
 import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
-import { ContractApi, ORDER_BADGE, OrderStatus, OrderSummary } from '../../core/api/contract.api';
+import {
+  ContractApi,
+  ORDER_BADGE,
+  OrderStatus,
+  OrderSummary,
+  UrgencySummary,
+} from '../../core/api/contract.api';
+import { AuthService } from '../../core/auth/auth.service';
 import { formatDate, formatMoney } from '../../core/format';
 import { problemMessage } from '../../core/http/problem';
 import { AreaTabs } from '../shared/area-tabs';
@@ -56,21 +64,44 @@ const TABS: Tab[] = [
 /** Ordens de Fornecimento/Serviço: gestor, Comissão, Financeiro e consulta. */
 @Component({
   selector: 'app-contracts-page',
-  imports: [RouterLink, MatIconModule, MatProgressSpinnerModule, AreaTabs],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule, AreaTabs],
   template: `
     <header class="page-header">
-      <div class="container">
-        <span class="eyebrow">Contratação</span>
-        <h1>Ordens de fornecimento</h1>
-        <p>
-          Da oportunidade adjudicada ao pagamento: emitir a ordem, acompanhar a assinatura,
-          registrar o recebimento e a avaliação, receber a nota fiscal e pagar.
-        </p>
+      <div class="container head">
+        <div>
+          <span class="eyebrow">Contratação</span>
+          <h1>Ordens de fornecimento</h1>
+          <p>
+            Da oportunidade adjudicada ao pagamento: emitir a ordem, acompanhar a assinatura,
+            registrar o recebimento e a avaliação, receber a nota fiscal e pagar.
+          </p>
+        </div>
+        @if (canUrgent()) {
+          <a mat-stroked-button routerLink="/contratos/urgencia">
+            <mat-icon aria-hidden="true">priority_high</mat-icon> Contratação de urgência
+          </a>
+        }
       </div>
     </header>
     <app-area-tabs />
 
     <div class="container page">
+      @if (urgencies().length) {
+        <section class="alert alert-warning urgencies" aria-labelledby="urg">
+          <strong id="urg">Contratações de urgência aguardando a ciência da Comissão</strong>
+          <ul>
+            @for (u of urgencies(); track u.tenderId) {
+              <li>
+                <a [routerLink]="u.orderId ? ['/contratos', u.orderId] : null">
+                  {{ u.number }} · {{ u.title }}</a
+                >
+                — {{ money(u.value) }} ·
+                <span [class.late]="u.overdue">ciência até {{ date(u.ackDue) }}</span>
+              </li>
+            }
+          </ul>
+        </section>
+      }
       <div class="tabs" role="tablist" aria-label="Situação">
         @for (t of tabs; track t.slug) {
           <button
@@ -128,10 +159,24 @@ const TABS: Tab[] = [
     </div>
   `,
   styleUrl: '../shared/list-page.scss',
+  styles: `
+    .urgencies {
+      margin-bottom: 1rem;
+    }
+    .urgencies ul {
+      margin: 0.5rem 0 0;
+      padding-left: 1.2rem;
+    }
+    .late {
+      color: var(--sh-error);
+      font-weight: 700;
+    }
+  `,
 })
 export class ContractsPage {
   private readonly api = inject(ContractApi);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   /** Query param `?aba=`. */
   readonly aba = input<string>();
@@ -146,8 +191,15 @@ export class ContractsPage {
   protected readonly items = signal<OrderSummary[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal('');
+  protected readonly urgencies = signal<UrgencySummary[]>([]);
+  protected readonly canUrgent = computed(() =>
+    this.auth.hasRole('DEMAND_MANAGER', 'COMMISSION', 'ADMIN'),
+  );
 
   constructor() {
+    if (this.auth.hasRole('COMMISSION', 'ADMIN')) {
+      this.api.pendingUrgencies().subscribe({ next: (u) => this.urgencies.set(u) });
+    }
     effect(() => {
       const tab = this.current();
       untracked(() => this.load(tab));

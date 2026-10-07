@@ -169,6 +169,21 @@ public class ServiceOrder {
     @Column(name = "paid_recorded_by")
     private Long paidRecordedBy;
 
+    /** Sinal (Edital 10.4) pago como parcela separada, antes do recebimento. */
+    @Column(name = "upfront_paid_on")
+    private LocalDate upfrontPaidOn;
+    @Column(name = "upfront_paid_value")
+    private BigDecimal upfrontPaidValue;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "upfront_payment_method")
+    private PaymentMethod upfrontPaymentMethod;
+    @Column(name = "upfront_recorded_by")
+    private Long upfrontRecordedBy;
+
+    /** Ordem anterior não assinada, quando esta convoca o próximo classificado (Edital 9.1). */
+    @Column(name = "replaces_order_id", updatable = false)
+    private Long replacesOrderId;
+
     @Column(name = "cancel_reason")
     private String cancelReason;
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -282,6 +297,32 @@ public class ServiceOrder {
         this.invoicedAt = now;
         this.status = Status.INVOICED;
         this.updatedAt = now;
+    }
+
+    /** O sinal pode ser pago depois da assinatura e antes do recebimento definitivo. */
+    public boolean canPayUpfront() {
+        return upfrontValue != null && upfrontPaidOn == null
+                && (status == Status.SIGNED || status == Status.RECEIVED_WITH_RESERVATIONS);
+    }
+
+    public void payUpfront(LocalDate paidOn, BigDecimal value, PaymentMethod method, Long userId, Instant now) {
+        require(canPayUpfront(), "Esta ordem não tem sinal a pagar agora");
+        require(value.compareTo(upfrontValue) <= 0, "O sinal pago não pode passar do previsto na ordem");
+        this.upfrontPaidOn = paidOn;
+        this.upfrontPaidValue = value;
+        this.upfrontPaymentMethod = method;
+        this.upfrontRecordedBy = userId;
+        this.updatedAt = now;
+    }
+
+    /** Valor que falta pagar depois do sinal (sobre o total da ordem). */
+    public BigDecimal remainingValue() {
+        return upfrontPaidValue == null ? totalValue : totalValue.subtract(upfrontPaidValue);
+    }
+
+    /** Marca esta ordem como a convocação do próximo classificado no lugar de outra. */
+    public void replaces(Long previousOrderId) {
+        this.replacesOrderId = previousOrderId;
     }
 
     public void pay(LocalDate paidOn, BigDecimal value, PaymentMethod method, Long userId, Instant now) {
@@ -446,6 +487,22 @@ public class ServiceOrder {
 
     public PaymentMethod getPaymentMethod() {
         return paymentMethod;
+    }
+
+    public LocalDate getUpfrontPaidOn() {
+        return upfrontPaidOn;
+    }
+
+    public BigDecimal getUpfrontPaidValue() {
+        return upfrontPaidValue;
+    }
+
+    public PaymentMethod getUpfrontPaymentMethod() {
+        return upfrontPaymentMethod;
+    }
+
+    public Long getReplacesOrderId() {
+        return replacesOrderId;
     }
 
     public String getCancelReason() {

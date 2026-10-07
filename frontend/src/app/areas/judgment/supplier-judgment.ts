@@ -57,6 +57,80 @@ import { problemMessage, toProblem } from '../../core/http/problem';
                 }
               </p>
               <p class="muted">Obrigado por participar. Contamos com você nas próximas!</p>
+              @if (r.canAppeal && !appealOpen()) {
+                <p>
+                  Discorda do resultado? Você pode recorrer até
+                  <strong>{{ date(r.appealDeadline) }}</strong> (Anexo X).
+                </p>
+                <button mat-stroked-button type="button" (click)="appealOpen.set(true)">
+                  <mat-icon aria-hidden="true">gavel</mat-icon> Recorrer do resultado
+                </button>
+              }
+            </div>
+          </section>
+          @if (appealOpen() && r.canAppeal) {
+            <section class="card appeal" aria-labelledby="appeal-title">
+              <h2 id="appeal-title">Recurso contra o resultado</h2>
+              <p class="muted">
+                Explique os fatos e indique os itens do Edital ou da Política que fundamentam o
+                pedido. A Comissão reconsidera em 3 dias úteis ou encaminha à Diretoria.
+              </p>
+              <mat-form-field class="full">
+                <mat-label>Razões do recurso</mat-label>
+                <textarea matInput rows="5" maxlength="5000" [(ngModel)]="reasons"></textarea>
+              </mat-form-field>
+              <mat-form-field class="full">
+                <mat-label>Pedido</mat-label>
+                <textarea matInput rows="2" maxlength="2000" [(ngModel)]="request"></textarea>
+              </mat-form-field>
+              <label class="file">
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  (change)="appealFile.set($any($event.target).files?.[0] ?? null)"
+                />
+                <span>{{ appealFile()?.name || 'Anexar documento (opcional)' }}</span>
+              </label>
+              @if (error()) {
+                <p class="alert alert-error" role="alert">{{ error() }}</p>
+              }
+              <div class="row end">
+                <button mat-button type="button" (click)="appealOpen.set(false)">Cancelar</button>
+                <button
+                  mat-flat-button
+                  type="button"
+                  [disabled]="busy() || !reasons.trim() || !request.trim()"
+                  (click)="sendAppeal()"
+                >
+                  Enviar recurso
+                </button>
+              </div>
+            </section>
+          }
+        }
+        @if (m.appeal; as ap) {
+          <section class="status-card info" role="status">
+            <mat-icon aria-hidden="true">gavel</mat-icon>
+            <div>
+              <h2>Seu recurso: {{ ap.statusLabel }}</h2>
+              <p>
+                @switch (ap.status) {
+                  @case ('FILED') {
+                    Enviado em {{ dateTime(ap.filedAt) }}. A Comissão decide até
+                    {{ date(ap.reconsiderationDue) }}.
+                  }
+                  @case ('FORWARDED') {
+                    A Comissão manteve o resultado e encaminhou à Diretoria, que decide até
+                    {{ date(ap.boardDue) }}. Motivação: {{ ap.commissionReason }}
+                  }
+                  @case ('GRANTED') {
+                    Recurso provido: o julgamento foi reaberto e a Comissão vai julgar de novo.
+                  }
+                  @default {
+                    Recurso não provido pela Diretoria: {{ ap.boardReason }}
+                  }
+                }
+              </p>
             </div>
           </section>
         }
@@ -164,6 +238,39 @@ import { problemMessage, toProblem } from '../../core/http/problem';
     .danger {
       --mat-button-filled-container-color: var(--sh-error);
     }
+    .appeal {
+      margin-bottom: 1.5rem;
+    }
+    .appeal h2 {
+      font-size: 1.2rem;
+      margin: 0 0 0.5rem;
+    }
+    .full {
+      width: 100%;
+    }
+    .end {
+      justify-content: flex-end;
+    }
+    .file {
+      display: inline-flex;
+      position: relative;
+      padding: 0.5rem 1rem;
+      border: 1px dashed var(--sh-border-strong);
+      border-radius: var(--sh-radius-sm);
+      cursor: pointer;
+      color: var(--sh-primary);
+      font-weight: 700;
+    }
+    .file input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .file:focus-within {
+      outline: 3px solid var(--sh-focus);
+      outline-offset: 2px;
+    }
   `,
 })
 export class SupplierJudgment {
@@ -181,6 +288,12 @@ export class SupplierJudgment {
   protected readonly error = signal('');
   protected readonly declining = signal(false);
   protected value: number | null = null;
+
+  // Recurso contra o resultado
+  protected readonly appealOpen = signal(false);
+  protected readonly appealFile = signal<File | null>(null);
+  protected reasons = '';
+  protected request = 'Rever o julgamento.';
 
   constructor() {
     effect(() => {
@@ -213,6 +326,25 @@ export class SupplierJudgment {
         'Novo valor enviado. Aguarde a homologação.',
       );
     }
+  }
+
+  protected sendAppeal(): void {
+    this.busy.set(true);
+    this.error.set('');
+    this.api
+      .appeal(this.tenderId(), this.reasons.trim(), this.request.trim(), this.appealFile())
+      .subscribe({
+        next: (m) => {
+          this.busy.set(false);
+          this.mine.set(m);
+          this.appealOpen.set(false);
+          this.snack.open('Recurso enviado à Comissão.', 'OK', { duration: 6000 });
+        },
+        error: (e: unknown) => {
+          this.busy.set(false);
+          this.error.set(toProblem(e).detail ?? problemMessage(e));
+        },
+      });
   }
 
   protected decline(): void {

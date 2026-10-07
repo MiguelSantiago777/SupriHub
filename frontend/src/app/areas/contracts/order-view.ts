@@ -151,7 +151,7 @@ import {
       </section>
     }
 
-    @if (o.invoiceNumber || o.paidOn) {
+    @if (o.invoiceNumber || o.paidOn || o.upfrontPaidOn) {
       <section class="card" aria-labelledby="ov-pay">
         <h2 id="ov-pay">
           <mat-icon aria-hidden="true">payments</mat-icon> Nota fiscal e pagamento
@@ -163,6 +163,20 @@ import {
               <dd>
                 {{ o.invoiceNumber }} de {{ date(o.invoiceDate) }} — {{ money(o.invoiceValue) }}
               </dd>
+            </div>
+          }
+          @if (o.upfrontPaidOn) {
+            <div>
+              <dt>Sinal (Edital 10.4)</dt>
+              <dd>
+                {{ date(o.upfrontPaidOn) }} — {{ money(o.upfrontPaidValue) }} ({{
+                  o.upfrontPaymentMethodLabel
+                }})
+              </dd>
+            </div>
+            <div>
+              <dt>Saldo</dt>
+              <dd>{{ money(o.remainingValue) }}</dd>
             </div>
           }
           @if (o.paymentDueDate) {

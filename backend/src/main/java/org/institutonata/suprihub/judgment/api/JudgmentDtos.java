@@ -23,6 +23,7 @@ import org.institutonata.suprihub.judgment.model.Judgment;
 import org.institutonata.suprihub.judgment.model.JudgmentEntry;
 import org.institutonata.suprihub.judgment.model.JudgmentEnums.CoverStatus;
 import org.institutonata.suprihub.judgment.model.JudgmentEnums.Status;
+import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.tender.domain.Band;
 import org.institutonata.suprihub.tender.domain.Tender;
 
@@ -152,13 +153,27 @@ public final class JudgmentDtos {
     }
 
     public record MyResult(boolean winner, BigDecimal awardedValue, String reason, Integer myPosition,
-            boolean disqualified, String disqualifiedReason, Instant homologatedAt) {
+            boolean disqualified, String disqualifiedReason, Instant homologatedAt, LocalDate appealDeadline,
+            boolean canAppeal) {
+    }
+
+    /** Meu recurso contra o resultado (Anexo X — D-049). */
+    public record MyAppeal(Long id, Appeal.Status status, String statusLabel, Instant filedAt,
+            LocalDate reconsiderationDue, String commissionReason, LocalDate boardDue, String boardReason) {
+        static MyAppeal of(Appeal a) {
+            return a == null ? null : new MyAppeal(a.getId(), a.getStatus(), a.getStatus().label(), a.getFiledAt(),
+                    a.getReconsiderationDue(), a.getCommissionReason(), a.getBoardDue(), a.getBoardReason());
+        }
     }
 
     /** O que o fornecedor vê do julgamento: só a própria convocação e o resultado homologado. */
-    public record MyJudgment(boolean judging, MyCover cover, MyResult result) {
+    public record MyJudgment(boolean judging, MyCover cover, MyResult result, MyAppeal appeal) {
 
-        static MyJudgment of(SupplierView v) {
+        MyJudgment withAppeal(Appeal a) {
+            return new MyJudgment(judging, cover, result, MyAppeal.of(a));
+        }
+
+        static MyJudgment of(SupplierView v, boolean canAppeal) {
             MyCover cover = v.cover() == null ? null : new MyCover(v.cover().getStatus(), v.cover().getStatus().label(),
                     v.cover().getCeiling(), v.cover().getDueDate(), v.coverStrictlyLower(), v.canCover(),
                     v.cover().getOfferedValue());
@@ -168,9 +183,9 @@ public final class JudgmentDtos {
                 result = new MyResult(e != null && e.getProposalId().equals(v.judgment().getWinnerProposalId()),
                         v.judgment().getAwardedValue(), v.publicReason(), e == null ? null : e.getPosition(),
                         e != null && e.isDisqualified(), e == null ? null : e.getDisqualifiedReason(),
-                        v.judgment().getHomologatedAt());
+                        v.judgment().getHomologatedAt(), v.judgment().getAppealDeadline(), canAppeal);
             }
-            return new MyJudgment(true, cover, result);
+            return new MyJudgment(true, cover, result, null);
         }
     }
 }

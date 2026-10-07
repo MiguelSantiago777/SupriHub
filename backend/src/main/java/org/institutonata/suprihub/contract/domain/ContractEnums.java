@@ -84,7 +84,8 @@ public final class ContractEnums {
     public enum FileKind {
         EVIDENCE("Evidência do recebimento"),
         INVOICE("Nota fiscal / RPA"),
-        PAYMENT_PROOF("Comprovante de pagamento");
+        PAYMENT_PROOF("Comprovante de pagamento"),
+        UPFRONT_PROOF("Comprovante do sinal");
 
         private final String label;
 

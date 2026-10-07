@@ -165,6 +165,66 @@ public class TenderService {
         return tender;
     }
 
+    /**
+     * Contratação de urgência (Política art. 13, § 3º; Manual 4.3): o gestor contrata direto um
+     * credenciado ativo da linha, com a justificativa no DFD. A oportunidade já nasce
+     * adjudicada (a ordem é preparada e assinada como nas demais) e a Comissão toma ciência em
+     * {@code urgency_acknowledgement_business_days}.
+     */
+    @Transactional
+    public Tender contractUrgently(long userId, Tender.Data data, String lineCode, Integer municipalityId,
+            long applicationId, String justification) {
+        if (justification == null || justification.trim().length() < 20) {
+            throw new BusinessException("URGENCY_JUSTIFICATION", "Justifique a urgência (risco à segurança, "
+                    + "fornecedor que falhou às vésperas, fato imprevisível...).", HttpStatus.UNPROCESSABLE_ENTITY,
+                    List.of(Map.of("field", "justification",
+                            "message", "Escreva a justificativa (mínimo de 20 caracteres).")));
+        }
+        Tender tender = create(userId, data, lineCode, municipalityId);
+        if (tender.getItems().isEmpty()) {
+            throw new BusinessException("TENDER_INCOMPLETE", "Inclua pelo menos um item.",
+                    HttpStatus.UNPROCESSABLE_ENTITY, List.of(Map.of("field", "items", "message", "Inclua um item.")));
+        }
+        LocalDate today = calendar.today();
+        SupplierApplication app = applications.findById(applicationId)
+                .filter(a -> a.isActiveOn(today))
+                .filter(a -> a.getLines().stream().anyMatch(l -> l.getCode().equals(lineCode)))
+                .orElseThrow(() -> new BusinessException("SUPPLIER_NOT_ELIGIBLE",
+                        "Escolha um credenciado ativo da linha " + lineCode + ".", HttpStatus.UNPROCESSABLE_ENTITY));
+        Instant now = clock.instant();
+        LocalDate ackDue = calendar.calendar().addBusinessDays(today,
+                parameters.integer(ParameterKey.URGENCY_ACKNOWLEDGEMENT_BUSINESS_DAYS));
+        tender.contractUrgently("OP-%d-%04d".formatted(today.getYear(), tenders.nextNumber()), justification,
+                ackDue, now);
+        tenders.flush();
+        awardListeners.forEach(l -> l.onAwarded(tender, app.getId(), null, tender.getEstimatedValue(), null));
+        audit.record(TenderEvents.AGGREGATE, tender.getId(), "CONTRACT_URGENTLY", Map.of("status", "DRAFT"),
+                Map.of("status", tender.getStatus().name(), "number", tender.getNumber(),
+                        "applicationId", app.getId(), "ackDue", ackDue.toString()), justification.trim());
+        events.publish(DomainEvent.of(TenderEvents.URGENT_CONTRACTED, TenderEvents.AGGREGATE, tender.getId(),
+                Map.of("tenderId", tender.getId(), "applicationId", app.getId()), clock));
+        return tender;
+    }
+
+    /** A Comissão toma ciência da contratação de urgência. */
+    @Transactional
+    public Tender acknowledgeUrgency(long tenderId, long userId, String note) {
+        Tender tender = get(tenderId);
+        if (!tender.isUrgent() || tender.getUrgencyAcknowledgedAt() != null) {
+            throw new BusinessException("URGENCY_ALREADY_ACKNOWLEDGED",
+                    "Esta contratação não é de urgência ou já tem a ciência da Comissão.", HttpStatus.CONFLICT);
+        }
+        tender.acknowledgeUrgency(userId, note, clock.instant());
+        audit.record(TenderEvents.AGGREGATE, tenderId, "ACKNOWLEDGE_URGENCY", null,
+                Map.of("acknowledged", true), note);
+        return tender;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Tender> urgenciesAwaitingAcknowledgement() {
+        return tenders.findByUrgentTrueAndUrgencyAcknowledgedAtIsNullOrderByUrgencyAckDueAsc();
+    }
+
     @Transactional
     public Tender cancel(long id, String reason, long version) {
         Tender tender = current(id, version);

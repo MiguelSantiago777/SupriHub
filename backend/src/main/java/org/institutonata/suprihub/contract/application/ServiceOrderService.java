@@ -12,6 +12,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.institutonata.suprihub.audit.application.AuditService;
 import org.institutonata.suprihub.contract.domain.ContractEnums.FileKind;
@@ -91,6 +93,8 @@ public class ServiceOrderService implements TenderAwardListener {
     private final ProposalRepository proposals;
     private final SupplierApplicationRepository applications;
     private final SupplierMaintenanceService maintenance;
+    private final NextRankedSource nextRanked;
+    private final AwardChallenges challenges;
     private final ParameterService parameters;
     private final CalendarService calendar;
     private final FileStorage storage;
@@ -103,7 +107,10 @@ public class ServiceOrderService implements TenderAwardListener {
             ServiceOrderFileRepository files, PriceBankRepository priceBank, TenderRepository tenders,
             ProposalRepository proposals, SupplierApplicationRepository applications, ParameterService parameters,
             CalendarService calendar, FileStorage storage, FileScanner scanner, DomainEvents events,
-            AuditService audit, SupplierMaintenanceService maintenance, Clock clock) {
+            AuditService audit, SupplierMaintenanceService maintenance, NextRankedSource nextRanked,
+            AwardChallenges challenges, Clock clock) {
+        this.nextRanked = nextRanked;
+        this.challenges = challenges;
         this.maintenance = maintenance;
         this.orders = orders;
         this.receipts = receipts;
@@ -125,7 +132,7 @@ public class ServiceOrderService implements TenderAwardListener {
 
     @Override
     public void onAwarded(Tender tender, long applicationId, Long proposalId, BigDecimal value, Instant acceptedAt) {
-        if (orders.findByTenderId(tender.getId()).isPresent()) {
+        if (orders.findFirstByTenderIdAndStatusNot(tender.getId(), Status.CANCELLED).isPresent()) {
             return;
         }
         Proposal proposal = proposalId == null ? null : proposals.findById(proposalId).orElse(null);
@@ -143,11 +150,33 @@ public class ServiceOrderService implements TenderAwardListener {
                 tender.getTitle() + "\n" + tender.getDescription(), tender.getSchedule(), where,
                 parameters.integer(ParameterKey.PAYMENT_DEADLINE_DAYS), null, null, null);
         ServiceOrder order = orders.save(new ServiceOrder(tender.getId(), applicationId, proposalId, value,
-                tender.getBand() == Band.FAIXA_1, terms, items, clock.instant()));
+                tender.getBand() == Band.FAIXA_1 && !tender.isUrgent(), terms, items, clock.instant()));
         audit.record(ContractEvents.AGGREGATE, order.getId(), "CREATE", null,
                 Map.of("tenderId", tender.getId(), "applicationId", applicationId, "value", value));
         events.publish(DomainEvent.of(ContractEvents.CREATED, ContractEvents.AGGREGATE, order.getId(),
                 Map.of("serviceOrderId", order.getId()), clock));
+    }
+
+    /**
+     * Recurso provido contra o julgamento: cancela a ordem viva. Com recebimento ou sinal já
+     * registrados, a contratação está em execução e o julgamento não pode ser reaberto.
+     */
+    @Override
+    public void onAwardRevoked(Tender tender, String reason) {
+        orders.findFirstByTenderIdAndStatusNot(tender.getId(), Status.CANCELLED).ifPresent(o -> {
+            boolean started = o.getUpfrontPaidOn() != null || !(o.getStatus() == Status.DRAFT
+                    || o.getStatus() == Status.ISSUED || o.getStatus() == Status.EXPIRED
+                    || o.getStatus() == Status.SIGNED);
+            if (started || !receipts.findByServiceOrderIdOrderByReceivedAt(o.getId()).isEmpty()) {
+                throw new BusinessException("ORDER_IN_EXECUTION", "A ordem " + o.getNumber()
+                        + " já está em execução (recebimento ou sinal registrados). O recurso não pode reabrir o "
+                        + "julgamento: registre a decisão e trate a reparação fora do sistema.", HttpStatus.CONFLICT);
+            }
+            String before = o.getStatus().name();
+            o.cancel(reason, clock.instant());
+            audit.record(ContractEvents.AGGREGATE, o.getId(), "CANCEL", Map.of("status", before),
+                    Map.of("status", o.getStatus().name()), reason);
+        });
     }
 
     // ------------------------------------------------------------------ leitura
@@ -176,7 +205,7 @@ public class ServiceOrderService implements TenderAwardListener {
 
     @Transactional(readOnly = true)
     public Optional<ServiceOrder> byTender(long tenderId) {
-        return orders.findByTenderId(tenderId);
+        return orders.findFirstByTenderIdOrderByCreatedAtDesc(tenderId);
     }
 
     @Transactional(readOnly = true)
@@ -253,6 +282,10 @@ public class ServiceOrderService implements TenderAwardListener {
         }
         validate(o, new ServiceOrder.Terms(o.getKind(), o.getProject(), o.getObjectDescription(), o.getSchedule(),
                 o.getLocation(), o.getPaymentDays(), o.getUpfrontValue(), o.getPenaltyPct(), o.getNotes()));
+        if (challenges.pending(o.getTenderId())) {
+            throw new BusinessException("JUDGMENT_UNDER_APPEAL",
+                    "Há recurso contra o resultado em análise. Emita a ordem depois da decisão.", HttpStatus.CONFLICT);
+        }
         requireRegular(o, "emitir a ordem");
         Instant now = clock.instant();
         LocalDate due = calendar.calendar().addBusinessDays(calendar.today(),
@@ -524,6 +557,10 @@ public class ServiceOrderService implements TenderAwardListener {
         if (!files.existsByServiceOrderIdAndKind(id, FileKind.PAYMENT_PROOF)) {
             issues.add(Map.of("field", "proof", "message", "Anexe o comprovante do pagamento."));
         }
+        if (value != null && o.getUpfrontPaidValue() != null && value.compareTo(o.remainingValue()) > 0) {
+            issues.add(Map.of("field", "value", "message", "Já foi pago " + o.getUpfrontPaidValue()
+                    + " de sinal: o saldo é " + o.remainingValue() + "."));
+        }
         if (!issues.isEmpty()) {
             throw new BusinessException("PAYMENT_INVALID", "Corrija os dados do pagamento.",
                     HttpStatus.UNPROCESSABLE_ENTITY, issues);
@@ -536,6 +573,103 @@ public class ServiceOrderService implements TenderAwardListener {
         events.publish(DomainEvent.of(ContractEvents.PAID, ContractEvents.AGGREGATE, id,
                 Map.of("serviceOrderId", id), clock));
         return o;
+    }
+
+    /**
+     * Sinal (Edital 10.4): parcela antecipada prevista na ordem, paga depois da assinatura e
+     * antes do recebimento definitivo, com comprovante e conferência da regularidade. O
+     * pagamento final cobre só o saldo.
+     */
+    @Transactional
+    public ServiceOrder payUpfront(long id, LocalDate paidOn, BigDecimal value, PaymentMethod method, long userId,
+            long version) {
+        ServiceOrder o = current(id, version);
+        if (!o.canPayUpfront()) {
+            throw new BusinessException("UPFRONT_NOT_PAYABLE", o.getUpfrontValue() == null
+                    ? "Esta ordem não prevê sinal."
+                    : o.getUpfrontPaidOn() != null ? "O sinal já foi pago."
+                            : "O sinal é pago depois da assinatura e antes do recebimento definitivo.",
+                    HttpStatus.CONFLICT);
+        }
+        List<Map<String, String>> issues = new ArrayList<>();
+        if (paidOn == null || paidOn.isAfter(calendar.today())) {
+            issues.add(Map.of("field", "paidOn", "message", "Informe a data do pagamento."));
+        }
+        if (value == null || value.signum() <= 0 || value.compareTo(o.getUpfrontValue()) > 0) {
+            issues.add(Map.of("field", "value", "message",
+                    "Informe o valor pago, até o sinal previsto (" + o.getUpfrontValue() + ")."));
+        }
+        if (method == null) {
+            issues.add(Map.of("field", "method", "message", "Escolha Pix ou transferência."));
+        }
+        if (!files.existsByServiceOrderIdAndKind(id, FileKind.UPFRONT_PROOF)) {
+            issues.add(Map.of("field", "proof", "message", "Anexe o comprovante do sinal."));
+        }
+        if (!issues.isEmpty()) {
+            throw new BusinessException("PAYMENT_INVALID", "Corrija os dados do sinal.",
+                    HttpStatus.UNPROCESSABLE_ENTITY, issues);
+        }
+        requireRegular(o, "pagar o sinal");
+        o.payUpfront(paidOn, value, method, userId, clock.instant());
+        orders.flush();
+        audit.record(ContractEvents.AGGREGATE, id, "PAY_UPFRONT", null,
+                Map.of("value", value, "method", method.name(), "paidOn", paidOn.toString()));
+        events.publish(DomainEvent.of(ContractEvents.UPFRONT_PAID, ContractEvents.AGGREGATE, id,
+                Map.of("serviceOrderId", id), clock));
+        return o;
+    }
+
+    // ------------------------------------------ convocação do próximo classificado
+
+    /**
+     * Edital 9.1: ordem não assinada no prazo → cancela e convoca o próximo classificado do
+     * julgamento (Faixas 2 e 3), com o preço da proposta dele e as mesmas condições da ordem.
+     * Pula quem já foi convocado nesta oportunidade e quem não está ativo hoje.
+     */
+    @Transactional
+    public ServiceOrder callNext(long id, long userId, long version) {
+        ServiceOrder o = current(id, version);
+        if (o.getStatus() != Status.EXPIRED) {
+            throw new BusinessException("ORDER_NOT_EXPIRED",
+                    "Só a ordem não assinada no prazo permite convocar o próximo classificado.", HttpStatus.CONFLICT);
+        }
+        Tender tender = tender(o.getTenderId());
+        Set<Long> already = orders.findByTenderIdOrderByCreatedAt(tender.getId()).stream()
+                .map(ServiceOrder::getApplicationId).collect(Collectors.toSet());
+        LocalDate today = calendar.today();
+        NextRankedSource.Ranked next = nextRanked.nextAfter(tender.getId(), already, a -> applications.findById(a)
+                .map(app -> app.isActiveOn(today)).orElse(false))
+                .orElseThrow(() -> new BusinessException("NO_NEXT_RANKED",
+                        "Não há outro classificado apto. Cancele a ordem e publique nova oportunidade.",
+                        HttpStatus.CONFLICT));
+        Instant now = clock.instant();
+        String reason = "Não assinada no prazo (Edital 9.1): convocado o próximo classificado.";
+        o.cancel(reason, now);
+        orders.flush();
+        audit.record(ContractEvents.AGGREGATE, id, "CANCEL", Map.of("status", "EXPIRED"),
+                Map.of("status", o.getStatus().name()), reason);
+
+        Proposal proposal = next.proposalId() == null ? null : proposals.findById(next.proposalId()).orElse(null);
+        Map<Long, BigDecimal> prices = proposal == null ? Map.of() : proposal.getUnitPrices();
+        List<ServiceOrder.Item> items = new ArrayList<>();
+        for (TenderItem i : tender.getItems()) {
+            items.add(new ServiceOrder.Item(i.getPosition(), i.getDescription(), i.getUnit(), i.getQuantity(),
+                    prices.get(i.getId())));
+        }
+        ServiceOrder.Terms terms = new ServiceOrder.Terms(o.getKind(), o.getProject(), o.getObjectDescription(),
+                o.getSchedule(), o.getLocation(), o.getPaymentDays(), o.getUpfrontValue(), o.getPenaltyPct(),
+                o.getNotes());
+        ServiceOrder created = new ServiceOrder(tender.getId(), next.applicationId(), next.proposalId(),
+                next.value(), false, terms, items, now);
+        created.replaces(o.getId());
+        created = orders.save(created);
+        // Sinal acima de 30% do novo valor passaria do limite (Edital 10.4): a equipe revê antes de emitir.
+        audit.record(ContractEvents.AGGREGATE, created.getId(), "CREATE_NEXT_RANKED", null,
+                Map.of("tenderId", tender.getId(), "applicationId", next.applicationId(), "value", next.value(),
+                        "replacesOrderId", o.getId(), "position", next.position()));
+        events.publish(DomainEvent.of(ContractEvents.CREATED, ContractEvents.AGGREGATE, created.getId(),
+                Map.of("serviceOrderId", created.getId()), clock));
+        return created;
     }
 
     @Transactional(readOnly = true)

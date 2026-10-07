@@ -128,6 +128,7 @@ public class OpportunityService {
         invitations.flush();
         audit.record("tender_invitation", inv.getId(), "DECLINE", Map.of("status", "INVITED"),
                 Map.of("status", inv.getStatus().name()));
+        rotation.registerRefusal(inv);
         tenders.findById(tenderId).ifPresent(rotation::inviteNext);
     }
 

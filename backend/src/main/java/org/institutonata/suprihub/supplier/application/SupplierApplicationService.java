@@ -30,6 +30,7 @@ import org.institutonata.suprihub.shared.storage.FileScanner;
 import org.institutonata.suprihub.shared.storage.FileStorage;
 import org.institutonata.suprihub.shared.storage.FileStorage.StoredFile;
 import org.institutonata.suprihub.shared.storage.UploadedFiles;
+import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.supplier.domain.ApplicationCompleteness;
 import org.institutonata.suprihub.supplier.domain.ApplicationCompleteness.Issue;
 import org.institutonata.suprihub.supplier.domain.ApplicationData;
@@ -321,7 +322,7 @@ public class SupplierApplicationService {
     /** Com recurso em andamento, o requerimento fica com a Comissão/Diretoria. */
     public boolean hasOpenAppeal(SupplierApplication app) {
         return app.getStatus() == ApplicationStatus.REJECTED
-                && appeals.findFirstByApplicationIdOrderByFiledAtDesc(app.getId())
+                && appeals.findFirstByApplicationIdAndKindOrderByFiledAtDesc(app.getId(), Appeal.Kind.HABILITATION)
                         .map(a -> a.getStatus().isOpen()).orElse(false);
     }
 }

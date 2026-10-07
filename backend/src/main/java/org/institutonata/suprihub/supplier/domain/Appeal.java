@@ -14,7 +14,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
 /**
- * Recurso contra a inabilitação (Edital 5.2; Anexo X). A Comissão não nega o recurso:
+ * Recurso do Anexo X: contra a inabilitação (Edital 5.2) ou contra o resultado do julgamento
+ * (etapa "seleção/julgamento" — D-049). A Comissão não nega o recurso:
  * reconsidera (provido) ou encaminha à Diretoria, com motivação; a Diretoria decide.
  * <pre>
  *  FILED ──reconsiderar──▶ GRANTED
@@ -47,6 +48,22 @@ public class Appeal {
         }
     }
 
+    /** Etapa recorrida (Anexo X). */
+    public enum Kind {
+        HABILITATION("Habilitação"),
+        JUDGMENT("Seleção/julgamento");
+
+        private final String label;
+
+        Kind(String label) {
+            this.label = label;
+        }
+
+        public String label() {
+            return label;
+        }
+    }
+
     /** Anexo enviado com o recurso (opcional). */
     public record Attachment(String filename, String contentType, long sizeBytes, String sha256,
             String storageKey) {
@@ -62,6 +79,18 @@ public class Appeal {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.FILED;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
+    private Kind kind = Kind.HABILITATION;
+
+    /** Recurso contra o julgamento: o julgamento e a oportunidade recorridos. */
+    @Column(name = "judgment_id", updatable = false)
+    private Long judgmentId;
+    @Column(name = "tender_id", updatable = false)
+    private Long tenderId;
+    @Column(updatable = false)
+    private String subject;
 
     @Column(nullable = false, updatable = false)
     private String reasons;
@@ -126,7 +155,19 @@ public class Appeal {
         this.filedAt = now;
     }
 
-    /** Comissão reconsidera a inabilitação: recurso provido. */
+    /** Recurso contra o resultado do julgamento de uma oportunidade (Faixas 2 e 3). */
+    public static Appeal againstJudgment(Long applicationId, Long filedBy, long judgmentId, long tenderId,
+            String subject, String reasons, String request, Attachment attachment, LocalDate reconsiderationDue,
+            Instant now) {
+        Appeal a = new Appeal(applicationId, filedBy, reasons, request, attachment, reconsiderationDue, now);
+        a.kind = Kind.JUDGMENT;
+        a.judgmentId = judgmentId;
+        a.tenderId = tenderId;
+        a.subject = subject;
+        return a;
+    }
+
+    /** Comissão reconsidera a decisão recorrida: recurso provido. */
     public void reconsider(long memberId, String reason, Instant now) {
         require(Status.FILED);
         status = Status.GRANTED;
@@ -178,6 +219,22 @@ public class Appeal {
 
     public Status getStatus() {
         return status;
+    }
+
+    public Kind getKind() {
+        return kind;
+    }
+
+    public Long getJudgmentId() {
+        return judgmentId;
+    }
+
+    public Long getTenderId() {
+        return tenderId;
+    }
+
+    public String getSubject() {
+        return subject;
     }
 
     public String getReasons() {

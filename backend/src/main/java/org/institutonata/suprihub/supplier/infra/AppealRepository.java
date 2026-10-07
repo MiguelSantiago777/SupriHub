@@ -12,7 +12,13 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface AppealRepository extends JpaRepository<Appeal, Long> {
 
-    Optional<Appeal> findFirstByApplicationIdOrderByFiledAtDesc(Long applicationId);
+    Optional<Appeal> findFirstByApplicationIdAndKindOrderByFiledAtDesc(Long applicationId, Appeal.Kind kind);
+
+    Optional<Appeal> findFirstByJudgmentIdAndApplicationIdOrderByFiledAtDesc(Long judgmentId, Long applicationId);
+
+    Optional<Appeal> findFirstByTenderIdAndApplicationIdOrderByFiledAtDesc(Long tenderId, Long applicationId);
+
+    boolean existsByTenderIdAndStatusIn(Long tenderId, Collection<Appeal.Status> statuses);
 
     Page<Appeal> findByStatusIn(Collection<Appeal.Status> statuses, Pageable pageable);
 

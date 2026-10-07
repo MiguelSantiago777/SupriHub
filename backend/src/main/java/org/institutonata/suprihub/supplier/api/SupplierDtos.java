@@ -390,6 +390,10 @@ public final class SupplierDtos {
             Long id,
             Appeal.Status status,
             String statusLabel,
+            Appeal.Kind kind,
+            String kindLabel,
+            String subject,
+            Long tenderId,
             String reasons,
             String request,
             AttachmentDto attachment,
@@ -404,7 +408,8 @@ public final class SupplierDtos {
 
         static AppealDto of(Appeal a) {
             Appeal.Attachment at = a.attachment();
-            return new AppealDto(a.getId(), a.getStatus(), a.getStatus().label(), a.getReasons(), a.getRequest(),
+            return new AppealDto(a.getId(), a.getStatus(), a.getStatus().label(), a.getKind(), a.getKind().label(),
+                    a.getSubject(), a.getTenderId(), a.getReasons(), a.getRequest(),
                     at == null ? null : new AttachmentDto(at.filename(), at.contentType(), at.sizeBytes()),
                     a.getFiledAt(), a.getReconsiderationDue(), a.getCommissionReason(), a.getCommissionDecidedAt(),
                     a.getBoardDue(), a.getBoardReason(), a.getBoardDecidedAt(), a.getVersion());
@@ -415,6 +420,9 @@ public final class SupplierDtos {
             Long id,
             Appeal.Status status,
             String statusLabel,
+            Appeal.Kind kind,
+            String kindLabel,
+            String subject,
             Long applicationId,
             String protocol,
             String legalName,
@@ -426,7 +434,8 @@ public final class SupplierDtos {
         static AppealSummary of(Appeal a, SupplierApplication app, LocalDate today) {
             LocalDate due = a.getStatus() == Appeal.Status.FILED ? a.getReconsiderationDue()
                     : a.getStatus() == Appeal.Status.FORWARDED ? a.getBoardDue() : null;
-            return new AppealSummary(a.getId(), a.getStatus(), a.getStatus().label(), app.getId(),
+            return new AppealSummary(a.getId(), a.getStatus(), a.getStatus().label(), a.getKind(),
+                    a.getKind().label(), a.getSubject(), app.getId(),
                     app.getProtocol(), app.getLegalName(),
                     app.getSupplierType() == null ? null : app.getSupplierType().label(), a.getFiledAt(), due,
                     due != null && due.isBefore(today));

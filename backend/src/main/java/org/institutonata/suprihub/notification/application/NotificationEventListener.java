@@ -164,33 +164,50 @@ public class NotificationEventListener {
                             Map.of("protocol", app.getProtocol(), "reason", app.getDecisionReason(),
                                     "link", frontendUrl + "/fornecedor")));
             case SupplierEvents.APPEAL_FILED -> withAppeal(event, (user, app, appeal) -> {
-                email(user, "appeal-filed", "Recebemos seu recurso — " + app.getProtocol(), event,
-                        Map.of("protocol", app.getProtocol(), "dueDate", date(appeal.getReconsiderationDue()),
-                                "link", frontendUrl + "/fornecedor"));
-                notifyRole(AppRole.COMMISSION, event, "appeal-received", "Recurso a analisar: " + app.getProtocol(),
-                        Map.of("protocol", app.getProtocol(), "supplierName", nz(app.getLegalName()),
+                email(user, "appeal-filed", "Recebemos seu recurso — " + appealRef(app, appeal), event,
+                        Map.of("protocol", appealRef(app, appeal), "dueDate", date(appeal.getReconsiderationDue()),
+                                "link", frontendUrl + supplierAppealPath(appeal)));
+                notifyRole(AppRole.COMMISSION, event, "appeal-received", "Recurso a analisar: "
+                                + appealRef(app, appeal),
+                        Map.of("protocol", appeal.getKind().label() + " — " + appealRef(app, appeal),
+                                "supplierName", nz(app.getLegalName()),
                                 "stage", "Comissão (reconsiderar ou encaminhar à Diretoria)",
                                 "dueDate", date(appeal.getReconsiderationDue()),
                                 "link", frontendUrl + "/recursos/" + appeal.getId()));
             });
             case SupplierEvents.APPEAL_FORWARDED -> withAppeal(event, (user, app, appeal) -> {
                 email(user, "appeal-forwarded", "Seu recurso foi encaminhado à Diretoria", event,
-                        Map.of("protocol", app.getProtocol(), "dueDate", date(appeal.getBoardDue()),
-                                "link", frontendUrl + "/fornecedor"));
-                notifyRole(AppRole.BOARD, event, "appeal-received", "Recurso para decidir: " + app.getProtocol(),
-                        Map.of("protocol", app.getProtocol(), "supplierName", nz(app.getLegalName()),
+                        Map.of("protocol", appealRef(app, appeal), "dueDate", date(appeal.getBoardDue()),
+                                "link", frontendUrl + supplierAppealPath(appeal)));
+                notifyRole(AppRole.BOARD, event, "appeal-received", "Recurso para decidir: " + appealRef(app, appeal),
+                        Map.of("protocol", appeal.getKind().label() + " — " + appealRef(app, appeal),
+                                "supplierName", nz(app.getLegalName()),
                                 "stage", "Diretoria (decisão final)", "dueDate", date(appeal.getBoardDue()),
                                 "link", frontendUrl + "/recursos/" + appeal.getId()));
             });
-            case SupplierEvents.APPEAL_GRANTED -> withAppeal(event, (user, app, appeal) ->
+            case SupplierEvents.APPEAL_GRANTED -> withAppeal(event, (user, app, appeal) -> {
+                if (appeal.getKind() == Appeal.Kind.JUDGMENT) {
+                    email(user, "notice", "Recurso provido — " + appeal.getSubject(), event, notice(
+                            "O seu recurso contra o resultado de " + appeal.getSubject() + " foi provido.",
+                            "O julgamento foi reaberto e a Comissão vai julgar de novo. Você recebe o novo "
+                                    + "resultado por e-mail.",
+                            "Ver a oportunidade", supplierAppealPath(appeal)));
+                    notifyRole(AppRole.COMMISSION, event, "notice", "Julgamento reaberto — " + appeal.getSubject(),
+                            notice("Recurso provido contra o resultado de " + appeal.getSubject()
+                                            + ". O julgamento foi anulado e a ordem ainda não executada, cancelada.",
+                                    "Corrija o que motivou o recurso e julgue de novo.", "Abrir a oportunidade",
+                                    "/comissao/editais/" + appeal.getTenderId()));
+                } else {
                     email(user, "appeal-granted", "Recurso aceito: você está credenciado", event,
                             Map.of("protocol", app.getProtocol(), "reason", nz(app.getDecisionReason()),
                                     "validUntil", date(app.getAccreditationValidUntil()),
-                                    "link", frontendUrl + "/fornecedor")));
+                                    "link", frontendUrl + "/fornecedor"));
+                }
+            });
             case SupplierEvents.APPEAL_DENIED -> withAppeal(event, (user, app, appeal) ->
-                    email(user, "appeal-denied", "Decisão do seu recurso — " + app.getProtocol(), event,
-                            Map.of("protocol", app.getProtocol(), "reason", nz(appeal.getBoardReason()),
-                                    "link", frontendUrl + "/fornecedor")));
+                    email(user, "appeal-denied", "Decisão do seu recurso — " + appealRef(app, appeal), event,
+                            Map.of("protocol", appealRef(app, appeal), "reason", nz(appeal.getBoardReason()),
+                                    "link", frontendUrl + supplierAppealPath(appeal))));
             case SupplierEvents.CERTIFICATE_EXPIRING -> withApplication(event, (user, app) ->
                     email(user, "notice", "Certidão perto do vencimento — renove", event, notice(
                             "Sua certidão vence em breve: " + certificates(event) + ".",
@@ -303,6 +320,32 @@ public class NotificationEventListener {
                                             Map.of("number", t.getNumber(), "title", t.getTitle(),
                                                     "total", money(pr.getTotalValue()),
                                                     "link", frontendUrl + "/fornecedor/editais/" + t.getId())))));
+            case TenderEvents.URGENT_CONTRACTED -> tenders.findById(event.payloadLong("tenderId")).ifPresent(t ->
+                    notifyRole(AppRole.COMMISSION, event, "notice", "Contratação de urgência: " + t.getNumber(),
+                            notice("Foi feita uma contratação de urgência (" + t.getTitle() + ", "
+                                            + money(t.getEstimatedValue()) + "). Justificativa: "
+                                            + t.getUrgencyJustification(),
+                                    "Tome ciência até " + date(t.getUrgencyAckDue()) + " (Política, art. 13, § 3º). "
+                                            + "Urgência não pode virar rotina: acompanhe a frequência por projeto.",
+                                    "Ver a contratação", "/contratos?urgencias=1")));
+            case TenderEvents.ROTATION_DISPLACED -> tenders.findById(event.payloadLong("tenderId")).ifPresent(t -> {
+                boolean recidivism = "true".equals(event.payloadString("recidivism"));
+                Long applicationId = event.payloadLong("applicationId");
+                toApplication(applicationId, event, "Você foi para o final do rodízio", notice(
+                        "Você recusou sem motivo (ou não respondeu) duas oportunidades seguidas do rodízio, a "
+                                + "última sendo " + t.getNumber() + ". Por isso, passou para o final da fila "
+                                + "(Política, art. 13, § 4º).",
+                        "Se não puder atender, recuse o convite informando a indisponibilidade: isso afasta a "
+                                + "infração.",
+                        "Ver oportunidades", "/fornecedor/editais"));
+                applications.findById(applicationId).ifPresent(app -> notifyRole(AppRole.COMMISSION, event, "notice",
+                        "Deslocado no rodízio: " + nz(app.getLegalName()), notice(
+                                nz(app.getLegalName()) + " foi para o final do rodízio por duas recusas "
+                                        + "injustificadas seguidas (última: " + t.getNumber() + ").",
+                                recidivism ? "É reincidência: pelo Anexo XII, cabe advertência em processo "
+                                        + "sancionador." : "É a primeira vez: o deslocamento basta (Anexo XII).",
+                                "Ver o credenciado", "/comissao/requerimentos/" + app.getId())));
+            });
             case JudgmentEvents.COVER_OFFERED -> coverOffers.findById(event.payloadLong("coverOfferId"))
                     .ifPresent(offer -> judgments.findById(offer.getJudgmentId())
                             .flatMap(j -> tenders.findById(j.getTenderId()).map(t -> Map.entry(j, t)))
@@ -372,7 +415,7 @@ public class NotificationEventListener {
             case ContractEvents.EXPIRED -> withOrder(event, (o, t) -> notifyRole(AppRole.COMMISSION, event, "notice",
                     "Ordem não assinada no prazo — " + o.getNumber(), notice(
                             "O fornecedor não assinou a ordem " + o.getNumber() + " (" + t.getTitle() + ") no prazo.",
-                            "Reemita com novo prazo ou cancele e convoque o próximo (Edital 9.1).", "Ver a ordem",
+                            "Reemita com novo prazo ou convoque o próximo classificado (Edital 9.1).", "Ver a ordem",
                             "/contratos/" + o.getId())));
             case ContractEvents.RECEIVED -> withOrder(event, (o, t) -> toSupplier(o, event, "notice",
                     "Termo de recebimento — " + o.getNumber(), notice(
@@ -394,6 +437,13 @@ public class NotificationEventListener {
                                     + " em " + date(o.getPaidOn()) + ".",
                             "O comprovante está na sua área. Obrigado!", "Ver o comprovante",
                             "/fornecedor/contratos/" + o.getId())));
+            case ContractEvents.UPFRONT_PAID -> withOrder(event, (o, t) -> toSupplier(o, event, "notice",
+                    "Sinal pago — " + o.getNumber(), notice(
+                            "O Instituto pagou " + money(o.getUpfrontPaidValue()) + " de sinal referente à ordem "
+                                    + o.getNumber() + " em " + date(o.getUpfrontPaidOn()) + ".",
+                            "O saldo (" + money(o.remainingValue()) + ") é pago depois do recebimento definitivo e "
+                                    + "da nota fiscal do valor total.",
+                            "Ver a ordem", "/fornecedor/contratos/" + o.getId())));
             case ContractEvents.LOW_RATING_ALERT -> withOrder(event, (o, t) -> notifyRole(AppRole.COMMISSION, event,
                     "notice", "Avaliações insuficientes — fornecedor da ordem " + o.getNumber(), notice(
                             "O fornecedor da ordem " + o.getNumber() + " teve avaliações abaixo de 3 em duas "
@@ -482,6 +532,16 @@ public class NotificationEventListener {
         users.searchByRole(role, "", Pageable.unpaged()).stream()
                 .filter(AppUser::isEnabled)
                 .forEach(member -> email(member, template, subject, event, vars));
+    }
+
+    /** Como o recurso aparece nos e-mails: protocolo do requerimento ou a oportunidade recorrida. */
+    private static String appealRef(SupplierApplication app, Appeal appeal) {
+        return appeal.getKind() == Appeal.Kind.JUDGMENT ? nz(appeal.getSubject()) : nz(app.getProtocol());
+    }
+
+    private static String supplierAppealPath(Appeal appeal) {
+        return appeal.getKind() == Appeal.Kind.JUDGMENT ? "/fornecedor/editais/" + appeal.getTenderId()
+                : "/fornecedor";
     }
 
     private static String nz(String s) {

@@ -161,6 +161,21 @@ public class ServiceOrderController {
         return detail(id);
     }
 
+    @PostMapping("/{id}/upfront-payment")
+    @PreAuthorize(FINANCE)
+    @Operation(summary = "Registra o pagamento do sinal (Edital 10.4; exige comprovante do sinal)")
+    public OrderDetail payUpfront(@PathVariable long id, @RequestBody PaymentRequest req) {
+        orders.payUpfront(id, req.paidOn(), req.value(), req.method(), CurrentUser.requireId(), req.version());
+        return detail(id);
+    }
+
+    @PostMapping("/{id}/call-next")
+    @PreAuthorize(PREPARE)
+    @Operation(summary = "Ordem não assinada: cancela e convoca o próximo classificado (Edital 9.1)")
+    public OrderDetail callNext(@PathVariable long id, @RequestBody VersionRequest req) {
+        return detail(orders.callNext(id, CurrentUser.requireId(), req.version()).getId());
+    }
+
     @GetMapping("/{id}/pdf")
     @Operation(summary = "A ordem em PDF (Anexo VIII)")
     public ResponseEntity<byte[]> pdf(@PathVariable long id) {

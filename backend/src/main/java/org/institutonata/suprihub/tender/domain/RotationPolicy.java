@@ -35,6 +35,35 @@ public final class RotationPolicy {
                 .min(ORDER);
     }
 
+    /** Resposta a um convite do rodízio, para contar as recusas. */
+    public record Response(Instant invitedAt, TenderEnums.InvitationStatus status, String declineReason) {
+
+        /**
+         * Recusa injustificada: não respondeu no prazo ou recusou sem motivo. Recusar
+         * informando a indisponibilidade afasta a infração (Anexo XII).
+         */
+        public boolean unjustifiedRefusal() {
+            return status == TenderEnums.InvitationStatus.EXPIRED
+                    || (status == TenderEnums.InvitationStatus.DECLINED
+                            && (declineReason == null || declineReason.isBlank()));
+        }
+    }
+
+    /**
+     * Política art. 13, § 4º: as {@code refusals} respostas mais recentes do credenciado no
+     * rodízio são todas recusas injustificadas, e nenhuma já foi contada num deslocamento
+     * anterior ({@code lastDisplacedAt}).
+     */
+    public static boolean shouldDisplace(List<Response> responses, int refusals, Instant lastDisplacedAt) {
+        List<Response> latest = responses.stream()
+                .sorted(Comparator.comparing(Response::invitedAt).reversed())
+                .limit(refusals)
+                .toList();
+        return latest.size() == refusals
+                && latest.stream().allMatch(Response::unjustifiedRefusal)
+                && (lastDisplacedAt == null || latest.getLast().invitedAt().isAfter(lastDisplacedAt));
+    }
+
     /** Ordem completa da fila (para exibir à Comissão). */
     public static List<Candidate> queue(Collection<Candidate> eligible, Set<Long> alreadyInvited) {
         return eligible.stream()

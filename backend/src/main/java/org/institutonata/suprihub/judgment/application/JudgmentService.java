@@ -49,6 +49,8 @@ import org.institutonata.suprihub.shared.error.NotFoundException;
 import org.institutonata.suprihub.shared.storage.FileStorage;
 import org.institutonata.suprihub.shared.storage.FileStorage.StoredFile;
 import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
+import org.institutonata.suprihub.supplier.application.JudgmentAppealListener;
+import org.institutonata.suprihub.supplier.domain.Appeal;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.supplier.domain.SupplierEnums.Race;
 import org.institutonata.suprihub.supplier.domain.SupplierType;
@@ -71,7 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
  * (Faixa 3) homologa e a ata em PDF é congelada.
  */
 @Service
-public class JudgmentService implements TenderCancellationListener {
+public class JudgmentService implements TenderCancellationListener, JudgmentAppealListener {
 
     /** Tudo que a tela do julgamento precisa. {@code judgment} = o vivo, ou o último anulado. */
     public record Snapshot(Judgment judgment, List<JudgmentEntry> entries, List<CoverOffer> covers,
@@ -407,6 +409,9 @@ public class JudgmentService implements TenderCancellationListener {
         StoredFile stored = storage.store("ata-" + tender.getId(), "ata-" + tender.getNumber() + ".pdf",
                 new java.io.ByteArrayInputStream(pdf));
         j.homologate(userId, note, stored.storageKey(), stored.sha256(), now);
+        // Prazo de recurso dos proponentes contra o resultado (Anexo X; D-049).
+        j.openAppealWindow(calendar.calendar().addBusinessDays(calendar.today(),
+                parameters.integer(ParameterKey.APPEAL_FILING_BUSINESS_DAYS)));
         tender.award(now);
         judgments.flush();
         JudgmentEntry winner = entryOf(j, j.getWinnerProposalId());
@@ -446,6 +451,29 @@ public class JudgmentService implements TenderCancellationListener {
         judgments.flush();
         audit.record(JudgmentEvents.AGGREGATE, j.getId(), "ANNUL", Map.of("status", before),
                 Map.of("status", j.getStatus().name()), reason);
+    }
+
+    /**
+     * Recurso provido contra o resultado (D-049): anula o julgamento homologado, cancela a ordem
+     * ainda não executada e devolve a oportunidade a "Em julgamento" para a Comissão julgar de
+     * novo (corrigindo desclassificações, se for o caso).
+     */
+    @Override
+    public void onGranted(Appeal appeal, long deciderId, String reason) {
+        Judgment j = get(appeal.getJudgmentId());
+        if (j.getStatus() != Status.HOMOLOGATED) {
+            throw new BusinessException("JUDGMENT_NOT_HOMOLOGATED",
+                    "O julgamento recorrido não está mais homologado (já foi reaberto?).", HttpStatus.CONFLICT);
+        }
+        Tender tender = tender(j.getTenderId());
+        String why = "Recurso provido: " + reason;
+        awardListeners.forEach(l -> l.onAwardRevoked(tender, why));
+        Instant now = clock.instant();
+        j.reopenOnAppeal(deciderId, why, now);
+        tender.reopenForJudgment(now);
+        judgments.flush();
+        audit.record(JudgmentEvents.AGGREGATE, j.getId(), "REOPEN_ON_APPEAL", Map.of("status", "HOMOLOGATED"),
+                Map.of("status", j.getStatus().name(), "appealId", appeal.getId()), why);
     }
 
     /** Oportunidade cancelada durante o julgamento: o julgamento vivo é anulado junto. */

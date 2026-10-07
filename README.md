@@ -20,7 +20,9 @@ mulheres.
 > pagamento; o Banco de Preços é alimentado no recebimento e confere o teto do rodízio.
 > Controle: processo sancionador com defesa e recurso (suspensão tira o fornecedor das
 > oportunidades), dossiê do Anexo XIII com revisão por amostragem e indicadores do relatório
-> semestral.
+> semestral. Também há recurso contra o resultado do julgamento, convocação do próximo
+> classificado quando a ordem não é assinada, sinal pago como parcela separada, contratação de
+> urgência com ciência da Comissão e deslocamento ao final do rodízio por recusas injustificadas.
 
 ## Rodar tudo com Docker
 

@@ -19,12 +19,14 @@ import org.institutonata.suprihub.parameter.domain.ParameterKey;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.tender.domain.Band;
 import org.institutonata.suprihub.tender.domain.RotationPolicy;
+import org.institutonata.suprihub.tender.domain.RotationDisplacement;
 import org.institutonata.suprihub.tender.domain.RotationPolicy.Candidate;
 import org.institutonata.suprihub.tender.domain.Tender;
 import org.institutonata.suprihub.tender.domain.TenderEnums.InvitationStatus;
 import org.institutonata.suprihub.tender.domain.TenderEnums.Status;
 import org.institutonata.suprihub.tender.domain.TenderEvents;
 import org.institutonata.suprihub.tender.domain.TenderInvitation;
+import org.institutonata.suprihub.tender.infra.RotationDisplacementRepository;
 import org.institutonata.suprihub.tender.infra.TenderInvitationRepository;
 import org.institutonata.suprihub.tender.infra.TenderRepository;
 import org.slf4j.Logger;
@@ -43,6 +45,7 @@ public class RotationService {
 
     private final TenderRepository tenders;
     private final TenderInvitationRepository invitations;
+    private final RotationDisplacementRepository displacements;
     private final EligibleSuppliers eligibleSuppliers;
     private final ParameterService parameters;
     private final CalendarService calendar;
@@ -51,10 +54,12 @@ public class RotationService {
     private final Clock clock;
 
     public RotationService(TenderRepository tenders, TenderInvitationRepository invitations,
-            EligibleSuppliers eligibleSuppliers, ParameterService parameters, CalendarService calendar,
-            DomainEvents events, AuditService audit, Clock clock) {
+            RotationDisplacementRepository displacements, EligibleSuppliers eligibleSuppliers,
+            ParameterService parameters, CalendarService calendar, DomainEvents events, AuditService audit,
+            Clock clock) {
         this.tenders = tenders;
         this.invitations = invitations;
+        this.displacements = displacements;
         this.eligibleSuppliers = eligibleSuppliers;
         this.parameters = parameters;
         this.calendar = calendar;
@@ -80,9 +85,13 @@ public class RotationService {
                 .map(TenderInvitation::getApplicationId).collect(Collectors.toSet());
         Map<Long, Instant> lastSelected = new HashMap<>();
         if (!eligible.isEmpty()) {
-            for (Object[] row : invitations.lastSelection(InvitationStatus.CONFIRMED,
-                    eligible.stream().map(SupplierApplication::getId).toList())) {
+            List<Long> ids = eligible.stream().map(SupplierApplication::getId).toList();
+            for (Object[] row : invitations.lastSelection(InvitationStatus.CONFIRMED, ids)) {
                 lastSelected.put((Long) row[0], (Instant) row[1]);
+            }
+            // Deslocado ao final por recusas injustificadas: conta como seleção (art. 13, § 4º).
+            for (Object[] row : displacements.lastDisplacement(ids)) {
+                lastSelected.merge((Long) row[0], (Instant) row[1], (a, b) -> a.isAfter(b) ? a : b);
             }
         }
         List<Candidate> candidates = eligible.stream()
@@ -107,6 +116,41 @@ public class RotationService {
         return Optional.of(invitation);
     }
 
+    /**
+     * Depois de uma recusa ou de um convite sem resposta: com {@code rotation_unjustified_refusals}
+     * (2) recusas injustificadas seguidas, o credenciado vai para o final da fila (Política
+     * art. 13, § 4º). Na reincidência, a Comissão é avisada de que cabe advertência (Anexo XII).
+     */
+    @Transactional
+    public void registerRefusal(TenderInvitation last) {
+        if (!new RotationPolicy.Response(last.getInvitedAt(), last.getStatus(), last.getDeclineReason())
+                .unjustifiedRefusal()) {
+            return;
+        }
+        int refusals = parameters.integer(ParameterKey.ROTATION_UNJUSTIFIED_REFUSALS);
+        List<RotationPolicy.Response> responses = invitations.findByApplicationIdAndStatusIn(last.getApplicationId(),
+                        List.of(InvitationStatus.CONFIRMED, InvitationStatus.DECLINED, InvitationStatus.EXPIRED,
+                                InvitationStatus.PRICE_REJECTED)).stream()
+                .map(i -> new RotationPolicy.Response(i.getInvitedAt(), i.getStatus(), i.getDeclineReason()))
+                .toList();
+        Optional<RotationDisplacement> previous =
+                displacements.findFirstByApplicationIdOrderByDisplacedAtDesc(last.getApplicationId());
+        if (!RotationPolicy.shouldDisplace(responses, refusals, previous.map(RotationDisplacement::getDisplacedAt)
+                .orElse(null))) {
+            return;
+        }
+        Instant now = clock.instant();
+        RotationDisplacement d = displacements.save(new RotationDisplacement(last.getApplicationId(),
+                last.getTenderId(), now, refusals + " recusas injustificadas seguidas no rodízio (sem resposta no "
+                        + "prazo ou recusa sem motivo).", previous.isPresent()));
+        audit.record("rotation_displacement", d.getId(), "DISPLACE", null,
+                Map.of("applicationId", d.getApplicationId(), "tenderId", d.getTenderId(),
+                        "recidivism", d.isRecidivism()));
+        events.publish(DomainEvent.of(TenderEvents.ROTATION_DISPLACED, TenderEvents.AGGREGATE, d.getTenderId(),
+                Map.of("displacementId", d.getId(), "applicationId", d.getApplicationId(),
+                        "tenderId", d.getTenderId(), "recidivism", d.isRecidivism()), clock));
+    }
+
     /** Convites sem resposta no prazo expiram e o rodízio segue (job horário e testes). */
     @Transactional
     public int expireOverdue() {
@@ -118,6 +162,7 @@ public class RotationService {
             audit.record("tender_invitation", inv.getId(), "EXPIRE", Map.of("status", "INVITED"),
                     Map.of("status", inv.getStatus().name()));
             invitations.flush();
+            registerRefusal(inv);
             tenders.findById(inv.getTenderId()).ifPresent(this::inviteNext);
         }
         return overdue.size();

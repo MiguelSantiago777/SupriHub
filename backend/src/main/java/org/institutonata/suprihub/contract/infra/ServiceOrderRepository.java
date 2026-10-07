@@ -15,7 +15,13 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ServiceOrderRepository extends JpaRepository<ServiceOrder, Long> {
 
-    Optional<ServiceOrder> findByTenderId(Long tenderId);
+    /** A ordem viva da oportunidade (as anteriores, não assinadas, ficam canceladas). */
+    Optional<ServiceOrder> findFirstByTenderIdAndStatusNot(Long tenderId, Status status);
+
+    /** Todas as ordens da oportunidade, inclusive as canceladas (convocações anteriores). */
+    List<ServiceOrder> findByTenderIdOrderByCreatedAt(Long tenderId);
+
+    Optional<ServiceOrder> findFirstByTenderIdOrderByCreatedAtDesc(Long tenderId);
 
     Page<ServiceOrder> findByStatusIn(Collection<Status> statuses, Pageable pageable);
 

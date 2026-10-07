@@ -173,10 +173,15 @@ public class IndicatorService {
                 avgRating == null ? null : avgRating.compareTo(minRating) >= 0,
                 avgRating == null ? "Nenhum termo final no período." : ratings.size() + " avaliação(ões)."));
         BigDecimal maxUrgency = parameters.decimal(ParameterKey.GOAL_MAX_URGENCY_SHARE).multiply(HUNDRED);
+        long urgent = contracted.stream().map(o -> tenderById.get(o.getTenderId()))
+                .filter(t -> t != null && t.isUrgent()).count();
+        BigDecimal urgency = contracted.isEmpty() ? null
+                : BigDecimal.valueOf(urgent).multiply(HUNDRED)
+                        .divide(BigDecimal.valueOf(contracted.size()), 1, RoundingMode.HALF_UP);
         ind.add(new Indicator("URGENCY", "Contratações de urgência", "Nº de urgências ÷ nº total de contratações",
-                contracted.isEmpty() ? null : BigDecimal.ZERO.setScale(1), maxUrgency,
-                "≤ " + maxUrgency.stripTrailingZeros().toPlainString() + "%", contracted.isEmpty() ? null : true,
-                "A contratação de urgência (Manual 4.3) ainda não é registrada no sistema."));
+                urgency, maxUrgency, "≤ " + maxUrgency.stripTrailingZeros().toPlainString() + "%",
+                urgency == null ? null : urgency.compareTo(maxUrgency) <= 0,
+                urgent + " de " + contracted.size() + " contratação(ões) por urgência (Política art. 13, § 3º)."));
         ind.add(new Indicator("DOSSIERS", "Dossiês completos na revisão por amostragem",
                 "Dossiês sem pendência ÷ dossiês revisados", dossiers, HUNDRED, "100%",
                 dossiers == null ? null : dossiers.compareTo(HUNDRED) >= 0,

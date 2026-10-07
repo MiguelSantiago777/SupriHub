@@ -147,6 +147,19 @@ export interface MyJudgment {
     disqualified: boolean;
     disqualifiedReason: string | null;
     homologatedAt: string;
+    /** Recurso contra o resultado (Anexo X): 3 dias úteis da homologação. */
+    appealDeadline: string | null;
+    canAppeal: boolean;
+  } | null;
+  appeal: {
+    id: number;
+    status: 'FILED' | 'FORWARDED' | 'GRANTED' | 'DENIED';
+    statusLabel: string;
+    filedAt: string;
+    reconsiderationDue: string;
+    commissionReason: string | null;
+    boardDue: string | null;
+    boardReason: string | null;
   } | null;
 }
 
@@ -231,6 +244,25 @@ export class JudgmentApi {
     return this.http.post<MyJudgment>(`/api/supplier/opportunities/${tenderId}/judgment/cover`, {
       value,
     });
+  }
+
+  /** Recurso contra o resultado homologado (Anexo X). */
+  appeal(
+    tenderId: number,
+    reasons: string,
+    request: string,
+    file: File | null,
+  ): Observable<MyJudgment> {
+    const body = new FormData();
+    body.append('reasons', reasons);
+    body.append('request', request);
+    if (file) {
+      body.append('file', file);
+    }
+    return this.http.post<MyJudgment>(
+      `/api/supplier/opportunities/${tenderId}/judgment/appeal`,
+      body,
+    );
   }
 
   declineCover(tenderId: number): Observable<MyJudgment> {

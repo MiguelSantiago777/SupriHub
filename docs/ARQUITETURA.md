@@ -125,6 +125,7 @@ Migrações Flyway em `backend/src/main/resources/db/migration`:
 | V22 | Fase 3A — ordem de fornecimento/serviço, itens, termos de recebimento, arquivos, banco de preços |
 | V23 | Fase 3B — bloqueio do cadastro, processo sancionador e arquivos, dossiê (itens manuais) e revisões |
 | V24 | Fase 1 — validade das certidões, inativação temporária, reconferência semestral e renovação (numerada depois da V23 porque o Flyway não aplica versões fora de ordem) |
+| V25 | Lacunas do fluxo — recurso contra o julgamento, várias ordens por oportunidade (próximo classificado), sinal, contratação de urgência e deslocamento no rodízio |
 
 ## Testes
 

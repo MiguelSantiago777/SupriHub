@@ -39,9 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Recurso contra a inabilitação (Edital 5.2): o fornecedor recorre em 3 d.u. da
- * comunicação; a Comissão reconsidera em 3 d.u. ou encaminha, motivadamente, à
- * Diretoria, que decide em 5 d.u. Recurso provido habilita o fornecedor.
+ * Recursos do Anexo X. Contra a inabilitação (Edital 5.2) ou contra o resultado do julgamento
+ * (D-049): o fornecedor recorre em 3 d.u. da comunicação; a Comissão reconsidera em 3 d.u. ou
+ * encaminha, motivadamente, à Diretoria, que decide em 5 d.u. Recurso provido habilita o
+ * fornecedor ou, no julgamento, reabre o julgamento ({@link JudgmentAppealListener}).
  */
 @Service
 public class AppealService {
@@ -69,11 +70,13 @@ public class AppealService {
     private final DomainEvents events;
     private final AuditService audit;
     private final Clock clock;
+    private final List<JudgmentAppealListener> judgmentListeners;
 
     public AppealService(AppealRepository appeals, SupplierApplicationRepository applications,
             ApplicationEventRepository history, FileStorage storage, FileScanner scanner,
             ParameterService parameters, CalendarService calendar, DomainEvents events, AuditService audit,
-            Clock clock) {
+            Clock clock, List<JudgmentAppealListener> judgmentListeners) {
+        this.judgmentListeners = judgmentListeners;
         this.appeals = appeals;
         this.applications = applications;
         this.history = history;
@@ -119,9 +122,38 @@ public class AppealService {
         return appeal;
     }
 
+    /**
+     * Recurso contra o resultado do julgamento. Quem pode recorrer e o prazo são conferidos
+     * pelo módulo de julgamento antes de chamar aqui.
+     */
+    @Transactional
+    public Appeal fileAgainstJudgment(long userId, SupplierApplication app, long judgmentId, long tenderId,
+            String subject, String reasons, String request, MultipartFile file) {
+        appeals.findFirstByJudgmentIdAndApplicationIdOrderByFiledAtDesc(judgmentId, app.getId()).ifPresent(a -> {
+            throw new BusinessException("APPEAL_ALREADY_FILED", "Você já recorreu deste resultado.",
+                    HttpStatus.CONFLICT);
+        });
+        Appeal.Attachment attachment = file == null || file.isEmpty() ? null : store(app.getId(), file);
+        Instant now = clock.instant();
+        LocalDate due = calendar.calendar().addBusinessDays(calendar.today(),
+                parameters.integer(ParameterKey.APPEAL_RECONSIDERATION_BUSINESS_DAYS));
+        Appeal appeal = appeals.save(Appeal.againstJudgment(app.getId(), userId, judgmentId, tenderId, subject,
+                reasons, request, attachment, due, now));
+        audit.record(SupplierEvents.APPEAL_AGGREGATE, appeal.getId(), "FILE", null,
+                Map.of("applicationId", app.getId(), "judgmentId", judgmentId, "kind", "JUDGMENT",
+                        "reconsiderationDue", due.toString()));
+        publish(SupplierEvents.APPEAL_FILED, appeal, app);
+        return appeal;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Appeal> forJudgment(long judgmentId, long applicationId) {
+        return appeals.findFirstByJudgmentIdAndApplicationIdOrderByFiledAtDesc(judgmentId, applicationId);
+    }
+
     @Transactional(readOnly = true)
     public Optional<Appeal> latestFor(long applicationId) {
-        return appeals.findFirstByApplicationIdOrderByFiledAtDesc(applicationId);
+        return appeals.findFirstByApplicationIdAndKindOrderByFiledAtDesc(applicationId, Appeal.Kind.HABILITATION);
     }
 
     @Transactional(readOnly = true)
@@ -178,8 +210,10 @@ public class AppealService {
         LocalDate due = calendar.calendar().addBusinessDays(calendar.today(),
                 parameters.integer(ParameterKey.BOARD_APPEAL_DECISION_BUSINESS_DAYS));
         appeal.forward(memberId, reason, due, now);
-        history.save(new ApplicationEvent(appeal.getApplicationId(), ApplicationStatus.REJECTED,
-                "Recurso encaminhado à Diretoria: " + appeal.getCommissionReason(), memberId, now));
+        if (appeal.getKind() == Appeal.Kind.HABILITATION) {
+            history.save(new ApplicationEvent(appeal.getApplicationId(), ApplicationStatus.REJECTED,
+                    "Recurso encaminhado à Diretoria: " + appeal.getCommissionReason(), memberId, now));
+        }
         audit.record(SupplierEvents.APPEAL_AGGREGATE, id, "FORWARD", Map.of("status", "FILED"),
                 Map.of("status", appeal.getStatus().name(), "boardDue", due.toString()));
         publish(SupplierEvents.APPEAL_FORWARDED, appeal, applicationOf(appeal));
@@ -195,8 +229,10 @@ public class AppealService {
             grant(appeal, boardMemberId, "Recurso provido pela Diretoria: " + reason.trim(), now);
         } else {
             SupplierApplication app = applicationOf(appeal);
-            history.save(new ApplicationEvent(app.getId(), ApplicationStatus.REJECTED,
-                    "Recurso não provido pela Diretoria: " + appeal.getBoardReason(), boardMemberId, now));
+            if (appeal.getKind() == Appeal.Kind.HABILITATION) {
+                history.save(new ApplicationEvent(app.getId(), ApplicationStatus.REJECTED,
+                        "Recurso não provido pela Diretoria: " + appeal.getBoardReason(), boardMemberId, now));
+            }
             publish(SupplierEvents.APPEAL_DENIED, appeal, app);
         }
         audit.record(SupplierEvents.APPEAL_AGGREGATE, id, granted ? "BOARD_GRANT" : "BOARD_DENY",
@@ -213,6 +249,12 @@ public class AppealService {
 
     private void grant(Appeal appeal, long deciderId, String message, Instant now) {
         SupplierApplication app = applicationOf(appeal);
+        if (appeal.getKind() == Appeal.Kind.JUDGMENT) {
+            // Provido contra o julgamento: o julgamento é reaberto para a Comissão julgar de novo.
+            judgmentListeners.forEach(l -> l.onGranted(appeal, deciderId, message));
+            publish(SupplierEvents.APPEAL_GRANTED, appeal, app);
+            return;
+        }
         LocalDate validUntil = calendar.today()
                 .plusMonths(parameters.integer(ParameterKey.ACCREDITATION_VALIDITY_MONTHS));
         app.approveOnAppeal(deciderId, message, validUntil, now);

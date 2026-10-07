@@ -2,6 +2,7 @@ package org.institutonata.suprihub.judgment.model;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -79,6 +80,12 @@ public class Judgment {
     private Long annulledBy;
     @Column(name = "annulled_at")
     private Instant annulledAt;
+    /** Prazo para recorrer do resultado (3 d.u. da homologação — D-049). */
+    @Column(name = "appeal_deadline")
+    private LocalDate appealDeadline;
+    /** Recurso provido depois da homologação: o julgamento foi reaberto. */
+    @Column(name = "reopened_at")
+    private Instant reopenedAt;
     @Column(name = "annul_reason")
     private String annulReason;
     @Column(name = "ata_key")
@@ -140,6 +147,38 @@ public class Judgment {
         this.annulledBy = userId;
         this.annulReason = reason.trim();
         this.annulledAt = now;
+    }
+
+    /** Abre o prazo de recurso contra o resultado (na homologação). */
+    public void openAppealWindow(LocalDate deadline) {
+        this.appealDeadline = deadline;
+    }
+
+    public boolean canAppeal(LocalDate today) {
+        return status == Status.HOMOLOGATED && appealDeadline != null && !today.isAfter(appealDeadline);
+    }
+
+    /**
+     * Recurso provido contra o resultado homologado: o julgamento é anulado e a Comissão julga
+     * de novo (D-043, D-049). O histórico e a ata ficam.
+     */
+    public void reopenOnAppeal(Long userId, String reason, Instant now) {
+        if (status != Status.HOMOLOGATED) {
+            throw new IllegalStateException("Só julgamento homologado é reaberto por recurso");
+        }
+        this.status = Status.ANNULLED;
+        this.annulledBy = userId;
+        this.annulReason = reason.trim();
+        this.annulledAt = now;
+        this.reopenedAt = now;
+    }
+
+    public LocalDate getAppealDeadline() {
+        return appealDeadline;
+    }
+
+    public Instant getReopenedAt() {
+        return reopenedAt;
     }
 
     public Rules rules() {

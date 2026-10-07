@@ -16,6 +16,9 @@ public interface TenderRepository extends JpaRepository<Tender, Long> {
 
     Page<Tender> findByStatusIn(Collection<Status> statuses, Pageable pageable);
 
+    /** Contratações de urgência sem ciência da Comissão (mais antigas primeiro). */
+    java.util.List<Tender> findByUrgentTrueAndUrgencyAcknowledgedAtIsNullOrderByUrgencyAckDueAsc();
+
     /** Abertas nas linhas informadas, exceto a faixa indicada (rodízio vai por convite). */
     @Query("""
             SELECT t FROM Tender t

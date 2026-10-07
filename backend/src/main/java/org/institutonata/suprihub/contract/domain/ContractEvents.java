@@ -17,6 +17,8 @@ public final class ContractEvents {
     public static final String INVOICED = "contract.order.invoiced";
     /** Pagamento registrado — avisa o fornecedor. */
     public static final String PAID = "contract.order.paid";
+    /** Sinal pago (Edital 10.4) — avisa o fornecedor. */
+    public static final String UPFRONT_PAID = "contract.order.upfront-paid";
     /** Edital 9.5: avaliações insuficientes — a Comissão avalia abrir processo de suspensão. */
     public static final String LOW_RATING_ALERT = "contract.supplier.low-rating";
 

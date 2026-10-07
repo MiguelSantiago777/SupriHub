@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -26,6 +28,7 @@ import org.institutonata.suprihub.supplier.domain.ApplicationStatus;
 import org.institutonata.suprihub.supplier.domain.SupplierApplication;
 import org.institutonata.suprihub.tender.domain.Band;
 import org.institutonata.suprihub.tender.domain.Tender;
+import org.institutonata.suprihub.tender.domain.TenderEnums.Audience;
 
 public final class OrderDtos {
 
@@ -106,12 +109,50 @@ public final class OrderDtos {
         }
     }
 
+    /** Oportunidade da ordem; na urgência, traz a justificativa e a ciência da Comissão. */
     public record TenderRef(Long id, String number, String title, Band band, String bandLabel, String lineCode,
-            String lineName) {
+            String lineName, boolean urgent, String urgencyJustification, LocalDate urgencyAckDue,
+            Instant urgencyAcknowledgedAt, String urgencyAckNote) {
         static TenderRef of(Tender t) {
             return new TenderRef(t.getId(), t.getNumber(), t.getTitle(), t.getBand(), t.getBand().label(),
-                    t.getSupplyLine().getCode(), t.getSupplyLine().getShortName());
+                    t.getSupplyLine().getCode(), t.getSupplyLine().getShortName(), t.isUrgent(),
+                    t.getUrgencyJustification(), t.getUrgencyAckDue(), t.getUrgencyAcknowledgedAt(),
+                    t.getUrgencyAckNote());
         }
+    }
+
+    /** Contratação de urgência (Política art. 13, § 3º): DFD + credenciado escolhido + justificativa. */
+    public record UrgentRequest(
+            @NotBlank(message = "Dê um título.") @Size(max = 200) String title,
+            @NotBlank(message = "Descreva o que precisa.") @Size(max = 5000) String description,
+            @NotBlank(message = "Escolha a linha de fornecimento.") String lineCode,
+            Integer executionMunicipalityId,
+            @Size(max = 300) String location,
+            @Size(max = 300) String schedule,
+            @NotNull(message = "Informe o valor.") @DecimalMin(value = "0.01", message = "Informe um valor positivo.")
+            BigDecimal value,
+            @NotNull(message = "Escolha o credenciado.") Long applicationId,
+            @NotBlank(message = "Justifique a urgência.") @Size(max = 3000) String justification,
+            @NotNull @Size(min = 1, max = 50, message = "Inclua pelo menos um item.") List<@Valid UrgentItem> items) {
+
+        Tender.Data toData() {
+            return new Tender.Data(title, description, location, schedule, null, null, null, Audience.ALL, value,
+                    null, Set.of(), items.stream().map(i -> new Tender.Item(i.description(), i.unit(), i.quantity()))
+                            .toList());
+        }
+    }
+
+    public record UrgentItem(@NotBlank(message = "Descreva o item.") @Size(max = 500) String description,
+            @NotBlank(message = "Informe a unidade.") @Size(max = 30) String unit,
+            @NotNull @DecimalMin(value = "0.01", message = "Quantidade inválida.") BigDecimal quantity) {
+    }
+
+    public record AcknowledgeRequest(@Size(max = 3000) String note) {
+    }
+
+    /** Urgência aguardando a ciência da Comissão. */
+    public record UrgencySummary(Long tenderId, String number, String title, String lineCode, BigDecimal value,
+            String justification, LocalDate ackDue, boolean overdue, Long orderId) {
     }
 
     public record SupplierRef(Long applicationId, String name, String typeLabel, boolean regular) {
@@ -138,7 +179,9 @@ public final class OrderDtos {
             LocalDate paymentDueDate, BigDecimal rating, String invoiceNumber, LocalDate invoiceDate,
             BigDecimal invoiceValue, Instant invoicedAt, LocalDate paidOn, BigDecimal paidValue,
             PaymentMethod paymentMethod, String paymentMethodLabel, String cancelReason, List<ReceiptDto> receipts,
-            List<FileDto> files, boolean canSign, long version) {
+            List<FileDto> files, boolean canSign, LocalDate upfrontPaidOn, BigDecimal upfrontPaidValue,
+            String upfrontPaymentMethodLabel, boolean canPayUpfront, BigDecimal remainingValue,
+            Long replacesOrderId, long version) {
 
         static OrderDetail of(View v, LocalDate today) {
             ServiceOrder o = v.order();
@@ -152,7 +195,9 @@ public final class OrderDtos {
                     o.getPaidValue(), o.getPaymentMethod(),
                     o.getPaymentMethod() == null ? null : o.getPaymentMethod().label(), o.getCancelReason(),
                     v.receipts().stream().map(ReceiptDto::of).toList(), v.files().stream().map(FileDto::of).toList(),
-                    o.canSign(today), o.getVersion());
+                    o.canSign(today), o.getUpfrontPaidOn(), o.getUpfrontPaidValue(),
+                    o.getUpfrontPaymentMethod() == null ? null : o.getUpfrontPaymentMethod().label(),
+                    o.canPayUpfront(), o.remainingValue(), o.getReplacesOrderId(), o.getVersion());
         }
     }
 

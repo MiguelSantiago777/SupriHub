@@ -8,7 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import {
   ContractApi,
@@ -22,7 +22,7 @@ import {
   SCORE_CRITERIA,
 } from '../../core/api/contract.api';
 import { AuthService } from '../../core/auth/auth.service';
-import { formatDate, formatMoney } from '../../core/format';
+import { formatDate, formatDateTime, formatMoney } from '../../core/format';
 import { problemMessage, toProblem } from '../../core/http/problem';
 import { AreaTabs } from '../shared/area-tabs';
 import { DossierPanel } from './dossier-panel';
@@ -89,6 +89,49 @@ function today(): string {
             até a regularização (Edital 4.4, 9.1 e 10.3).
           </p>
         }
+        @if (d.tender.urgent) {
+          <section class="card urgency" aria-labelledby="c-urg">
+            <h2 id="c-urg">
+              <mat-icon aria-hidden="true">priority_high</mat-icon> Contratação de urgência
+            </h2>
+            <p class="muted small">
+              Contratação direta de credenciado da linha (Política, art. 13, § 3º). A Comissão toma
+              ciência em até 2 dias úteis.
+            </p>
+            <blockquote>{{ d.tender.urgencyJustification }}</blockquote>
+            @if (d.tender.urgencyAcknowledgedAt) {
+              <p class="ok-text">
+                <mat-icon aria-hidden="true">verified</mat-icon> Ciência da Comissão em
+                {{ dateTime(d.tender.urgencyAcknowledgedAt) }}
+                @if (d.tender.urgencyAckNote) {
+                  — {{ d.tender.urgencyAckNote }}
+                }
+              </p>
+            } @else {
+              <p>
+                Ciência da Comissão até <strong>{{ date(d.tender.urgencyAckDue) }}</strong
+                >.
+              </p>
+              @if (canSanction()) {
+                <div class="ack">
+                  <mat-form-field>
+                    <mat-label>Observação da Comissão (opcional)</mat-label>
+                    <input matInput [(ngModel)]="ackNote" maxlength="3000" />
+                  </mat-form-field>
+                  <button mat-flat-button type="button" [disabled]="busy()" (click)="acknowledge()">
+                    <mat-icon aria-hidden="true">done_all</mat-icon> Dar ciência
+                  </button>
+                </div>
+              }
+            }
+          </section>
+        }
+        @if (d.replacesOrderId) {
+          <p class="alert alert-info">
+            Convocação do próximo classificado: substitui a
+            <a [routerLink]="['/contratos', d.replacesOrderId]">ordem não assinada</a> (Edital 9.1).
+          </p>
+        }
         @if (error()) {
           <div class="alert alert-error" role="alert">
             <p>
@@ -113,10 +156,24 @@ function today(): string {
                   <mat-icon aria-hidden="true">edit_document</mat-icon> Preparar a ordem
                 </h2>
                 @if (d.status === 'EXPIRED') {
-                  <p class="alert alert-warning">
-                    O fornecedor não assinou até {{ date(d.signatureDueDate) }}. Reemita com novo
-                    prazo ou cancele e convoque o próximo (Edital 9.1).
-                  </p>
+                  <div class="alert alert-warning">
+                    <p>
+                      O fornecedor não assinou até {{ date(d.signatureDueDate) }}. Reemita com novo
+                      prazo ou convoque o próximo classificado (Edital 9.1). A recusa em assinar
+                      pode ser apurada em processo sancionador.
+                    </p>
+                    @if (d.tender.band !== 'FAIXA_1' && !d.tender.urgent) {
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        [disabled]="busy()"
+                        (click)="callNext()"
+                      >
+                        <mat-icon aria-hidden="true">skip_next</mat-icon> Convocar o próximo
+                        classificado
+                      </button>
+                    }
+                  </div>
                 }
                 @if (d.acceptanceBased) {
                   <p class="muted small">
@@ -331,6 +388,61 @@ function today(): string {
               </section>
             }
 
+            <!-- Sinal (Edital 10.4) -------------------------------------------- -->
+            @if (d.canPayUpfront && canFinance()) {
+              <section class="card" aria-labelledby="c-up">
+                <h2 id="c-up"><mat-icon aria-hidden="true">savings</mat-icon> Sinal</h2>
+                <p class="muted small">
+                  A ordem prevê sinal de <strong>{{ money(d.upfrontValue) }}</strong
+                  >, pago antes do recebimento (Edital 10.4). O saldo é pago depois da nota fiscal.
+                  Anexe o comprovante do sinal antes de registrar.
+                </p>
+                <div class="three">
+                  <mat-form-field>
+                    <mat-label>Pago em</mat-label>
+                    <input matInput type="date" [(ngModel)]="upfrontPaidOn" [max]="todayIso" />
+                  </mat-form-field>
+                  <mat-form-field>
+                    <mat-label>Valor do sinal (R$)</mat-label>
+                    <input matInput type="number" step="0.01" [(ngModel)]="upfrontPaid" />
+                  </mat-form-field>
+                  <mat-form-field>
+                    <mat-label>Forma</mat-label>
+                    <mat-select [(ngModel)]="upfrontMethod">
+                      <mat-option value="PIX">Pix</mat-option>
+                      <mat-option value="TRANSFER">Transferência</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="btns">
+                  <label class="file-btn">
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      (change)="upload($event, 'UPFRONT_PROOF')"
+                    />
+                    <span mat-stroked-button>Anexar comprovante do sinal</span>
+                  </label>
+                  <button
+                    mat-flat-button
+                    type="button"
+                    class="ok"
+                    [disabled]="busy()"
+                    (click)="payUpfront()"
+                  >
+                    Registrar o sinal
+                  </button>
+                </div>
+              </section>
+            }
+            @if (d.upfrontPaidOn) {
+              <p class="alert alert-info">
+                Sinal de <strong>{{ money(d.upfrontPaidValue) }}</strong> pago em
+                {{ date(d.upfrontPaidOn) }} ({{ d.upfrontPaymentMethodLabel }}). Saldo:
+                {{ money(d.remainingValue) }}.
+              </p>
+            }
+
             <!-- Pagamento ------------------------------------------------------- -->
             @if (d.status === 'INVOICED' && canFinance()) {
               <section class="card" aria-labelledby="c-pay">
@@ -338,6 +450,9 @@ function today(): string {
                 <p class="muted small">
                   Pix ou transferência para a conta do fornecedor, até
                   {{ date(d.paymentDueDate) }}. Anexe o comprovante antes de registrar.
+                  @if (d.upfrontPaidValue) {
+                    Já foi pago {{ money(d.upfrontPaidValue) }} de sinal: pague só o saldo.
+                  }
                 </p>
                 <div class="three">
                   <mat-form-field>
@@ -582,12 +697,40 @@ function today(): string {
     .ok {
       --mat-button-filled-container-color: var(--sh-green);
     }
+    .urgency {
+      border-left: 4px solid var(--sh-amber);
+      margin-bottom: 1.25rem;
+    }
+    .urgency blockquote {
+      margin: 0.5rem 0;
+      padding: 0.6rem 0.85rem;
+      border-left: 4px solid var(--sh-border-strong);
+      background: var(--sh-bg);
+      white-space: pre-line;
+    }
+    .ok-text {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--sh-green);
+      font-weight: 700;
+    }
+    .ack {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .ack mat-form-field {
+      flex: 1 1 280px;
+    }
   `,
 })
 export class ContractPage {
   private readonly api = inject(ContractApi);
   private readonly auth = inject(AuthService);
   private readonly snack = inject(MatSnackBar);
+  private readonly router = inject(Router);
 
   /** Parâmetro de rota `:id`. */
   readonly id = input.required<string>();
@@ -596,6 +739,7 @@ export class ContractPage {
   protected readonly criteria = SCORE_CRITERIA;
   protected readonly money = formatMoney;
   protected readonly date = formatDate;
+  protected readonly dateTime = formatDateTime;
   protected readonly todayIso = today();
 
   protected readonly o = signal<OrderDetail | null>(null);
@@ -654,6 +798,12 @@ export class ContractPage {
   protected paidValue: number | null = null;
   protected method: PaymentMethod = 'PIX';
 
+  // Sinal e urgência
+  protected upfrontPaidOn = today();
+  protected upfrontPaid: number | null = null;
+  protected upfrontMethod: PaymentMethod = 'PIX';
+  protected ackNote = '';
+
   constructor() {
     effect(() => {
       const id = Number(this.id());
@@ -683,7 +833,8 @@ export class ContractPage {
     this.penaltyPct = o.penaltyPct;
     this.notes = o.notes ?? '';
     this.invoiceValue = o.totalValue;
-    this.paidValue = o.invoiceValue ?? o.totalValue;
+    this.paidValue = o.upfrontPaidValue ? o.remainingValue : (o.invoiceValue ?? o.totalValue);
+    this.upfrontPaid = o.upfrontValue;
   }
 
   private run(call: Observable<OrderDetail>, ok: string): void {
@@ -816,6 +967,55 @@ export class ContractPage {
       this.run(
         this.api.pay(o.id, this.paidOn, this.paidValue, this.method, o.version),
         'Pagamento registrado. O fornecedor foi avisado.',
+      );
+    }
+  }
+
+  protected payUpfront(): void {
+    const o = this.o();
+    if (o && this.upfrontPaid) {
+      this.run(
+        this.api.payUpfront(
+          o.id,
+          this.upfrontPaidOn,
+          this.upfrontPaid,
+          this.upfrontMethod,
+          o.version,
+        ),
+        'Sinal registrado. O fornecedor foi avisado.',
+      );
+    }
+  }
+
+  /** Edital 9.1: a nova ordem vai para o próximo classificado; abre a nova ordem. */
+  protected callNext(): void {
+    const o = this.o();
+    if (!o) {
+      return;
+    }
+    this.busy.set(true);
+    this.error.set('');
+    this.api.callNext(o.id, o.version).subscribe({
+      next: (created) => {
+        this.busy.set(false);
+        this.snack.open('Próximo classificado convocado: confira e emita a nova ordem.', 'OK', {
+          duration: 6000,
+        });
+        void this.router.navigate(['/contratos', created.id]);
+      },
+      error: (e: unknown) => {
+        this.busy.set(false);
+        this.error.set(problemMessage(e));
+      },
+    });
+  }
+
+  protected acknowledge(): void {
+    const o = this.o();
+    if (o) {
+      this.run(
+        this.api.acknowledgeUrgency(o.tender.id, this.ackNote.trim()),
+        'Ciência registrada.',
       );
     }
   }
