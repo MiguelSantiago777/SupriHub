@@ -6,7 +6,9 @@ COPY .mvn .mvn
 RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
 COPY src src
 RUN ./mvnw -B -q package -DskipTests && \
-    java -Djarmode=tools -jar target/suprihub-backend-*.jar extract --layers --launcher --destination target/extracted
+    java -Djarmode=tools -jar target/suprihub-backend-*.jar extract --layers --launcher --destination target/extracted && \
+    mkdir -p target/extracted/dependencies target/extracted/spring-boot-loader \
+             target/extracted/snapshot-dependencies target/extracted/application
 
 # ---- runtime ----
 FROM eclipse-temurin:21-jre
