@@ -18,7 +18,8 @@ class ProductionSafetyCheckTest {
                 null, null, null, null,
                 new SupriHubProperties.Bootstrap("admin@exemplo.org", adminPassword, demoUsers, "Senha@123"),
                 new SupriHubProperties.Captcha("site", "secret"),
-                new SupriHubProperties.Antivirus("clamav", 3310, Duration.ofSeconds(30)));
+                new SupriHubProperties.Antivirus("clamav", 3310, Duration.ofSeconds(30)),
+                new SupriHubProperties.TwoFactor(true));
     }
 
     @Test

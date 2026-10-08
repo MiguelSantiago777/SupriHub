@@ -101,9 +101,47 @@ public final class AuthDtos {
         }
     }
 
-    public record MeResponse(Long id, String fullName, String email, Set<AppRole> roles, boolean emailVerified) {
+    public record LoginCodeRequest(
+            @NotBlank String challenge,
+            @NotBlank(message = "Informe o código.") @Pattern(regexp = "^\\s*\\d{6}\\s*$",
+                    message = "O código tem 6 números.") String code) {
+
+        @Override
+        public String toString() {
+            return "LoginCodeRequest[***]";
+        }
+    }
+
+    public record ChallengeRequest(@NotBlank String challenge) {
+        @Override
+        public String toString() {
+            return "ChallengeRequest[***]";
+        }
+    }
+
+    /** Senha conferiu e falta o código: o frontend mostra a segunda etapa. */
+    public record CodeRequiredResponse(boolean codeRequired, String challenge, String sentTo) {
+    }
+
+    public record TwoFactorRequest(
+            boolean enabled,
+            @NotBlank(message = "Informe sua senha atual.") String currentPassword) {
+
+        @Override
+        public String toString() {
+            return "TwoFactorRequest[***]";
+        }
+    }
+
+    /**
+     * {@code twoFactor}: se o login pede código por e-mail; {@code twoFactorMandatory}: se a pessoa
+     * não pode desligar (equipe interna).
+     */
+    public record MeResponse(Long id, String fullName, String email, Set<AppRole> roles, boolean emailVerified,
+            boolean twoFactor, boolean twoFactorMandatory) {
         public static MeResponse of(AppUser u) {
-            return new MeResponse(u.getId(), u.getFullName(), u.getEmail(), u.roleCodes(), u.isEmailVerified());
+            return new MeResponse(u.getId(), u.getFullName(), u.getEmail(), u.roleCodes(), u.isEmailVerified(),
+                    u.requiresTwoFactor(), u.isInternal());
         }
     }
 

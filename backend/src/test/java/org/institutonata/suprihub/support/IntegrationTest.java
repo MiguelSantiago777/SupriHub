@@ -30,6 +30,8 @@ import org.testcontainers.containers.RabbitMQContainer;
 @SpringBootTest(properties = {
         "suprihub.scheduling.enabled=false",
         "suprihub.rate-limit.enabled=false",
+        // Verificação em duas etapas desligada; o TwoFactorIT liga pelo TwoFactorSwitch.
+        "suprihub.two-factor.enabled=false",
         "suprihub.jwt.secret=test-secret-0123456789abcdef0123456789abcdef",
         "suprihub.jwt.secure-cookie=false",
         "suprihub.bootstrap.admin-email=admin@teste.local",

@@ -11,6 +11,7 @@ import org.institutonata.suprihub.auth.api.AuthDtos.MeResponse;
 import org.institutonata.suprihub.auth.api.AuthDtos.MessageResponse;
 import org.institutonata.suprihub.auth.api.AuthDtos.RenameRequest;
 import org.institutonata.suprihub.auth.api.AuthDtos.SessionResponse;
+import org.institutonata.suprihub.auth.api.AuthDtos.TwoFactorRequest;
 import org.institutonata.suprihub.auth.application.AuthService;
 import org.institutonata.suprihub.shared.security.CurrentUser;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,12 @@ public class AccountController {
             HttpServletResponse response) {
         return cookies.write(auth.changePassword(CurrentUser.requireId(), req.currentPassword(), req.newPassword()),
                 response);
+    }
+
+    @PutMapping("/two-factor")
+    @Operation(summary = "Liga ou desliga o código por e-mail ao entrar (obrigatório para a equipe interna)")
+    public MeResponse twoFactor(@Valid @RequestBody TwoFactorRequest req) {
+        return MeResponse.of(auth.setTwoFactor(CurrentUser.requireId(), req.enabled(), req.currentPassword()));
     }
 
     @PostMapping("/email")

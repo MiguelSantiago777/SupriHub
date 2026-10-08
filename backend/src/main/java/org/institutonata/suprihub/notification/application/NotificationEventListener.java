@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import org.institutonata.suprihub.auth.application.LoginCodeService;
 import org.institutonata.suprihub.auth.application.VerificationTokenService;
 import org.institutonata.suprihub.auth.domain.AppRole;
 import org.institutonata.suprihub.auth.domain.AppUser;
@@ -72,6 +73,7 @@ public class NotificationEventListener {
     private final NotificationService notifications;
     private final AppUserRepository users;
     private final VerificationTokenService tokens;
+    private final LoginCodeService loginCodes;
     private final SupplierApplicationRepository applications;
     private final AppealRepository appeals;
     private final TenderRepository tenders;
@@ -88,7 +90,8 @@ public class NotificationEventListener {
     private final String frontendUrl;
 
     public NotificationEventListener(IdempotentConsumer idempotency, NotificationService notifications,
-            AppUserRepository users, VerificationTokenService tokens, SupplierApplicationRepository applications,
+            AppUserRepository users, VerificationTokenService tokens, LoginCodeService loginCodes,
+            SupplierApplicationRepository applications,
             AppealRepository appeals, TenderRepository tenders, TenderInvitationRepository invitations,
             ProposalRepository proposals, EligibleSuppliers eligibleSuppliers, JudgmentRepository judgments,
             JudgmentEntryRepository judgmentEntries, CoverOfferRepository coverOffers, JudgmentService judgmentService,
@@ -104,6 +107,7 @@ public class NotificationEventListener {
         this.notifications = notifications;
         this.users = users;
         this.tokens = tokens;
+        this.loginCodes = loginCodes;
         this.applications = applications;
         this.appeals = appeals;
         this.tenders = tenders;
@@ -144,6 +148,10 @@ public class NotificationEventListener {
                 email(user, "user-invited", "Seu acesso ao SupriHub", event,
                         Map.of("link", frontendUrl + "/nova-senha?token=" + token));
             });
+            case AuthEvents.LOGIN_CODE_REQUESTED -> withUser(event, user ->
+                    loginCodes.issue(event.payloadLong("challengeId")).ifPresent(code ->
+                            email(user, "login-code", "Seu código de acesso ao SupriHub", event,
+                                    Map.of("code", code))));
             case AuthEvents.EMAIL_CHANGE_REQUESTED -> withUser(event, user -> {
                 String newEmail = user.getPendingEmail();
                 if (newEmail == null) {

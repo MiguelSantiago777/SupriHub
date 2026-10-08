@@ -18,6 +18,17 @@ export interface Me {
   email: string;
   roles: AppRole[];
   emailVerified: boolean;
+  /** Login pede código de 6 dígitos por e-mail. */
+  twoFactor: boolean;
+  /** Equipe interna: o código é obrigatório e não pode ser desligado. */
+  twoFactorMandatory: boolean;
+}
+
+/** Senha conferiu; falta o código enviado por e-mail (segunda etapa do login). */
+export interface CodeRequiredResponse {
+  codeRequired: true;
+  challenge: string;
+  sentTo: string;
 }
 
 export interface SessionResponse {

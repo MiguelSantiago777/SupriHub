@@ -1,5 +1,6 @@
 package org.institutonata.suprihub.auth.application;
 
+import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
@@ -10,9 +11,11 @@ import org.institutonata.suprihub.audit.application.AuditService;
 import org.institutonata.suprihub.auth.domain.AppRole;
 import org.institutonata.suprihub.auth.domain.AppUser;
 import org.institutonata.suprihub.auth.domain.AuthEvents;
+import org.institutonata.suprihub.auth.domain.LoginChallenge;
 import org.institutonata.suprihub.auth.domain.RefreshToken;
 import org.institutonata.suprihub.auth.domain.VerificationToken;
 import org.institutonata.suprihub.auth.infra.AppUserRepository;
+import org.institutonata.suprihub.auth.infra.LoginChallengeRepository;
 import org.institutonata.suprihub.auth.infra.RefreshTokenRepository;
 import org.institutonata.suprihub.auth.infra.RoleRepository;
 import org.institutonata.suprihub.auth.infra.VerificationTokenRepository;
@@ -50,7 +53,9 @@ public class AuthService {
     private final CaptchaVerifier captcha;
     private final LoginThrottle throttle;
     private final SessionRevocations revocations;
+    private final LoginChallengeRepository challenges;
     private final SupriHubProperties.Jwt jwtConfig;
+    private final TwoFactorSwitch twoFactor;
     private final Clock clock;
     /** Hash válido usado para igualar o tempo de resposta quando o e-mail não existe. */
     private final String dummyHash;
@@ -58,7 +63,8 @@ public class AuthService {
     public AuthService(AppUserRepository users, RoleRepository roles, RefreshTokenRepository refreshTokens,
             VerificationTokenRepository verificationTokens, PasswordEncoder passwordEncoder, JwtService jwtService,
             DomainEvents events, AuditService audit, CaptchaVerifier captcha, LoginThrottle throttle,
-            SessionRevocations revocations, SupriHubProperties props, Clock clock) {
+            SessionRevocations revocations, LoginChallengeRepository challenges, TwoFactorSwitch twoFactor,
+            SupriHubProperties props, Clock clock) {
         this.users = users;
         this.roles = roles;
         this.refreshTokens = refreshTokens;
@@ -70,12 +76,23 @@ public class AuthService {
         this.captcha = captcha;
         this.throttle = throttle;
         this.revocations = revocations;
+        this.challenges = challenges;
         this.jwtConfig = props.jwt();
+        this.twoFactor = twoFactor;
         this.clock = clock;
         this.dummyHash = passwordEncoder.encode(TokenHasher.newToken());
     }
 
-    public record Session(AppUser user, JwtService.AccessToken accessToken, String refreshToken) {
+    /** Resultado do login: sessão aberta ou, com verificação em duas etapas, código pendente. */
+    public sealed interface LoginResult permits Session, CodeRequired {
+    }
+
+    public record Session(AppUser user, JwtService.AccessToken accessToken, String refreshToken)
+            implements LoginResult {
+    }
+
+    /** Senha conferiu; falta o código enviado a {@code sentTo} (e-mail mascarado). */
+    public record CodeRequired(String challenge, String sentTo) implements LoginResult {
     }
 
     /**
@@ -119,7 +136,7 @@ public class AuthService {
     }
 
     @Transactional(noRollbackFor = {BadCredentialsException.class, BusinessException.class})
-    public Session login(String email, String password, String captchaToken, String remoteIp) {
+    public LoginResult login(String email, String password, String captchaToken, String remoteIp) {
         checkCaptcha(captchaToken, remoteIp);
         Instant now = clock.instant();
         // Bloqueio por IP + e-mail: mesma resposta exista a conta ou não.
@@ -149,8 +166,75 @@ public class AuthService {
             throw new BusinessException("EMAIL_NOT_VERIFIED",
                     "Confirme seu e-mail pelo link que enviamos antes de entrar.", HttpStatus.FORBIDDEN);
         }
+        if (twoFactor.isEnabled() && user.requiresTwoFactor()) {
+            String raw = TokenHasher.newToken();
+            LoginChallenge challenge = challenges.save(new LoginChallenge(user.getId(), TokenHasher.sha256(raw), now));
+            publishLoginCode(challenge);
+            return new CodeRequired(raw, maskEmail(user.getEmail()));
+        }
         user.registerSuccessfulLogin(now);
         return newSession(user, now).session();
+    }
+
+    /** Segunda etapa: confere o código de 6 dígitos e abre a sessão. */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public Session verifyLoginCode(String rawChallenge, String code) {
+        Instant now = clock.instant();
+        LoginChallenge challenge = usableChallenge(rawChallenge, now);
+        if (challenge.getCodeHash() == null || !MessageDigest.isEqual(challenge.getCodeHash().getBytes(),
+                LoginCodeService.hash(challenge.getId(), code.trim()).getBytes())) {
+            challenge.registerFailedAttempt();
+            int left = challenge.remainingAttempts();
+            if (left == 0) {
+                throw codeExpired();
+            }
+            throw new BusinessException("WRONG_CODE", left == 1
+                    ? "Código incorreto. Você tem mais 1 tentativa."
+                    : "Código incorreto. Você tem mais " + left + " tentativas.", HttpStatus.BAD_REQUEST);
+        }
+        challenge.markUsed(now);
+        AppUser user = activeUser(challenge.getUserId(), now);
+        user.registerSuccessfulLogin(now);
+        return newSession(user, now).session();
+    }
+
+    /** Reenvia o código (no máximo um a cada 30 segundos); o anterior deixa de valer. */
+    @Transactional
+    public void resendLoginCode(String rawChallenge) {
+        Instant now = clock.instant();
+        LoginChallenge challenge = usableChallenge(rawChallenge, now);
+        if (!challenge.canResend(now)) {
+            throw new BusinessException("RESEND_TOO_SOON",
+                    "Aguarde alguns segundos antes de pedir outro código.", HttpStatus.TOO_MANY_REQUESTS);
+        }
+        publishLoginCode(challenge);
+    }
+
+    private LoginChallenge usableChallenge(String rawChallenge, Instant now) {
+        if (rawChallenge == null || rawChallenge.isBlank()) {
+            throw codeExpired();
+        }
+        return challenges.findByChallengeHashForUpdate(TokenHasher.sha256(rawChallenge))
+                .filter(c -> c.isUsable(now))
+                .orElseThrow(this::codeExpired);
+    }
+
+    private void publishLoginCode(LoginChallenge challenge) {
+        events.publish(DomainEvent.of(AuthEvents.LOGIN_CODE_REQUESTED, AuthEvents.AGGREGATE, challenge.getUserId(),
+                Map.of("userId", challenge.getUserId(), "challengeId", challenge.getId()), clock));
+    }
+
+    /** "maria.silva@gmail.com" → "ma***@gmail.com": a pessoa reconhece o endereço sem expô-lo. */
+    static String maskEmail(String email) {
+        int at = email.indexOf('@');
+        String local = email.substring(0, at);
+        return local.substring(0, Math.min(2, local.length())) + "***" + email.substring(at);
+    }
+
+    private BusinessException codeExpired() {
+        return new BusinessException("CODE_EXPIRED",
+                "O código expirou ou teve tentativas demais. Entre novamente para receber outro.",
+                HttpStatus.BAD_REQUEST);
     }
 
     @Transactional(noRollbackFor = BusinessException.class)
@@ -279,6 +363,21 @@ public class AuthService {
         audit.record("app_user", user.getId(), "EMAIL_CHANGED", Map.of("email", user.getPreviousEmail()),
                 Map.of("email", user.getEmail()));
         events.publish(event(AuthEvents.EMAIL_CHANGED, user.getId()));
+    }
+
+    /** Liga ou desliga o código por e-mail ao entrar (a equipe interna não pode desligar). */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public AppUser setTwoFactor(long userId, boolean enabled, String currentPassword) {
+        Instant now = clock.instant();
+        AppUser user = activeUser(userId, now);
+        requireCurrentPassword(user, currentPassword, now);
+        if (!enabled && user.isInternal()) {
+            throw new BusinessException("TWO_FACTOR_REQUIRED",
+                    "A verificação em duas etapas é obrigatória para a equipe interna.", HttpStatus.BAD_REQUEST);
+        }
+        user.setTwoFactorEnabled(enabled, now);
+        audit.record("app_user", user.getId(), enabled ? "TWO_FACTOR_ON" : "TWO_FACTOR_OFF", null, null);
+        return user;
     }
 
     /** Senha atual errada conta como tentativa de login falha (bloqueia a conta no limite). */

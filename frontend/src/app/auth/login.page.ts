@@ -8,6 +8,7 @@ import { AuthLayout } from './auth-layout';
 import { AuthService } from '../core/auth/auth.service';
 import { toProblem } from '../core/http/problem';
 import { PasswordField } from './password-field';
+import { CodeRequiredResponse } from '../core/models';
 import { CaptchaWidget } from './captcha-widget';
 
 @Component({
@@ -24,6 +25,47 @@ import { CaptchaWidget } from './captcha-widget';
   ],
   template: `
     <app-auth-layout variant="login">
+      @if (challenge(); as ch) {
+        <h1>Código de acesso</h1>
+        <p>
+          Enviamos um código de 6 números para <strong>{{ ch.sentTo }}</strong>. Ele vale por 10
+          minutos.
+        </p>
+        @if (codeInfo()) {
+          <p class="alert alert-info" role="status">{{ codeInfo() }}</p>
+        }
+        @if (error()) {
+          <p class="alert alert-error" role="alert">{{ error() }}</p>
+        }
+        <form [formGroup]="codeForm" (ngSubmit)="submitCode()" novalidate class="stack">
+          <mat-form-field>
+            <mat-label>Código</mat-label>
+            <input
+              matInput
+              formControlName="code"
+              autocomplete="one-time-code"
+              inputmode="numeric"
+              maxlength="6"
+              class="code-input"
+            />
+            @if (codeForm.controls.code.hasError('required')) {
+              <mat-error>Informe o código.</mat-error>
+            } @else if (codeForm.controls.code.hasError('pattern')) {
+              <mat-error>O código tem 6 números.</mat-error>
+            }
+          </mat-form-field>
+          <div class="form-actions">
+            <button mat-flat-button type="submit" [disabled]="loading()">
+              {{ loading() ? 'Conferindo…' : 'Confirmar' }}
+            </button>
+          </div>
+        </form>
+        <p class="links-after">
+          Não chegou? Confira o spam ou
+          <button type="button" class="link-button" (click)="resend()">envie outro código</button>.
+        </p>
+        <p><button type="button" class="link-button" (click)="restart()">Voltar e entrar de novo</button></p>
+      } @else {
       <h1>Entrar</h1>
       <p class="muted">Use o e-mail e a senha da sua conta no SupriHub.</p>
       @if (expirada()) {
@@ -65,7 +107,25 @@ import { CaptchaWidget } from './captcha-widget';
       </form>
       <p class="links-after"><a routerLink="/esqueci-senha">Esqueci minha senha</a></p>
       <p>Ainda não tem conta? <a routerLink="/criar-conta">Quero me credenciar</a></p>
+      }
     </app-auth-layout>
+  `,
+  styles: `
+    .code-input {
+      font-size: 1.6rem;
+      letter-spacing: 0.5rem;
+      font-family: 'Courier New', monospace;
+    }
+    .link-button {
+      background: none;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      color: var(--sh-primary);
+      text-underline-offset: 3px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
   `,
 })
 export class LoginPage {
@@ -82,6 +142,11 @@ export class LoginPage {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly notVerified = signal(false);
+  protected readonly challenge = signal<CodeRequiredResponse | null>(null);
+  protected readonly codeInfo = signal('');
+  protected readonly codeForm = inject(FormBuilder).nonNullable.group({
+    code: ['', [Validators.required, Validators.pattern(/^\s*\d{6}\s*$/)]],
+  });
   private readonly captcha = viewChild.required(CaptchaWidget);
 
   protected submit(): void {
@@ -97,14 +162,13 @@ export class LoginPage {
     this.error.set('');
     const { email, password } = this.form.getRawValue();
     this.auth.login(email, password, this.captcha().token()).subscribe({
-      next: () => {
-        const target = this.voltar();
-        const url = target && target.startsWith('/') ? target : this.auth.homeRoute();
-        // Se a navegação não concluir (guard, rota inválida), libera o botão em vez de travar.
-        this.router
-          .navigateByUrl(url)
-          .then((ok) => ok || this.loading.set(false))
-          .catch(() => this.loading.set(false));
+      next: (r) => {
+        if ('codeRequired' in r) {
+          this.challenge.set(r);
+          this.loading.set(false);
+          return;
+        }
+        this.goHome();
       },
       error: (e: unknown) => {
         const problem = toProblem(e);
@@ -114,5 +178,64 @@ export class LoginPage {
         this.captcha().reset();
       },
     });
+  }
+
+  protected submitCode(): void {
+    const ch = this.challenge();
+    if (!ch) return;
+    if (this.codeForm.invalid) {
+      this.codeForm.markAllAsTouched();
+      return;
+    }
+    this.loading.set(true);
+    this.error.set('');
+    this.codeInfo.set('');
+    this.auth.verifyLoginCode(ch.challenge, this.codeForm.getRawValue().code).subscribe({
+      next: () => this.goHome(),
+      error: (e: unknown) => {
+        const problem = toProblem(e);
+        this.loading.set(false);
+        if (problem.code === 'CODE_EXPIRED') {
+          // Código vencido ou tentativas esgotadas: volta para a senha.
+          this.restart();
+        }
+        this.error.set(problem.detail ?? 'Não foi possível conferir o código.');
+        this.codeForm.reset();
+      },
+    });
+  }
+
+  protected resend(): void {
+    const ch = this.challenge();
+    if (!ch) return;
+    this.error.set('');
+    this.auth.resendLoginCode(ch.challenge).subscribe({
+      next: (r) => this.codeInfo.set(r.message),
+      error: (e: unknown) => {
+        const problem = toProblem(e);
+        if (problem.code === 'CODE_EXPIRED') {
+          this.restart();
+        }
+        this.error.set(problem.detail ?? 'Não foi possível enviar outro código.');
+      },
+    });
+  }
+
+  protected restart(): void {
+    this.challenge.set(null);
+    this.codeInfo.set('');
+    this.codeForm.reset();
+    this.form.controls.password.reset();
+    this.error.set('');
+  }
+
+  private goHome(): void {
+    const target = this.voltar();
+    const url = target && target.startsWith('/') ? target : this.auth.homeRoute();
+    // Se a navegação não concluir (guard, rota inválida), libera o botão em vez de travar.
+    this.router
+      .navigateByUrl(url)
+      .then((ok) => ok || this.loading.set(false))
+      .catch(() => this.loading.set(false));
   }
 }

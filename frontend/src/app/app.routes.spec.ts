@@ -31,7 +31,7 @@ describe('Rotas da aplicação', { timeout: 15_000 }, () => {
       .flush({
         accessToken: 't',
         expiresAt: new Date().toISOString(),
-        user: { id: 1, fullName: 'Admin', email: 'a@b.com', roles, emailVerified: true },
+        user: { id: 1, fullName: 'Admin', email: 'a@b.com', roles, emailVerified: true, twoFactor: true, twoFactorMandatory: true },
       });
   }
 

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom, Observable, of, shareReplay, tap, finalize, map, catchError } from 'rxjs';
-import { AppRole, Me, MessageResponse, SessionResponse } from '../models';
+import { AppRole, CodeRequiredResponse, Me, MessageResponse, SessionResponse } from '../models';
 
 /** Rota inicial de cada perfil (ordem = prioridade quando o usuário tem vários). */
 export const ROLE_HOME: [AppRole, string][] = [
@@ -69,17 +69,40 @@ export class AuthService {
     return firstValueFrom(this.refresh().pipe(map(() => undefined)));
   }
 
-  login(email: string, password: string, captchaToken?: string): Observable<Me> {
+  /**
+   * Primeira etapa: e-mail e senha. Devolve o usuário (sessão aberta) ou, com verificação em
+   * duas etapas, o pedido de código enviado por e-mail.
+   */
+  login(email: string, password: string, captchaToken?: string): Observable<Me | CodeRequiredResponse> {
     return this.http
-      .post<SessionResponse>(
+      .post<SessionResponse | CodeRequiredResponse>(
         '/api/auth/login',
         { email, password, captchaToken },
         { withCredentials: true },
       )
       .pipe(
+        map((r) => {
+          if ('codeRequired' in r) {
+            return r;
+          }
+          this.setSession(r);
+          return r.user;
+        }),
+      );
+  }
+
+  /** Segunda etapa: código de 6 dígitos recebido por e-mail. */
+  verifyLoginCode(challenge: string, code: string): Observable<Me> {
+    return this.http
+      .post<SessionResponse>('/api/auth/login/code', { challenge, code }, { withCredentials: true })
+      .pipe(
         tap((s) => this.setSession(s)),
         map((s) => s.user),
       );
+  }
+
+  resendLoginCode(challenge: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>('/api/auth/login/resend-code', { challenge });
   }
 
   register(
@@ -130,6 +153,12 @@ export class AuthService {
         tap((s) => this.setSession(s)),
         map(() => undefined),
       );
+  }
+
+  setTwoFactor(enabled: boolean, currentPassword: string): Observable<Me> {
+    return this.http
+      .put<Me>('/api/me/two-factor', { enabled, currentPassword })
+      .pipe(tap((me) => this.me.set(me)));
   }
 
   requestEmailChange(newEmail: string, currentPassword: string): Observable<MessageResponse> {

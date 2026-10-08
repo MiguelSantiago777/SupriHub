@@ -26,6 +26,8 @@ const session = (
     email: 'maria@exemplo.com',
     roles,
     emailVerified: true,
+    twoFactor: false,
+    twoFactorMandatory: false,
   },
 });
 
@@ -51,6 +53,23 @@ describe('Autenticação no frontend', () => {
     auth.login('maria@exemplo.com', 'Lanche2026').subscribe();
     http.expectOne('/api/auth/login').flush(session(token, roles));
   }
+
+  it('com verificação em duas etapas, só abre a sessão depois do código', () => {
+    let first: unknown;
+    auth.login('maria@exemplo.com', 'Lanche2026').subscribe((r) => (first = r));
+    http
+      .expectOne('/api/auth/login')
+      .flush({ codeRequired: true, challenge: 'ch-1', sentTo: 'ma***@exemplo.com' });
+    expect(first).toMatchObject({ codeRequired: true });
+    expect(auth.isAuthenticated()).toBe(false);
+
+    auth.verifyLoginCode('ch-1', '123456').subscribe();
+    const req = http.expectOne('/api/auth/login/code');
+    expect(req.request.body).toEqual({ challenge: 'ch-1', code: '123456' });
+    req.flush(session('tok-2', ['COMMISSION']));
+    expect(auth.isAuthenticated()).toBe(true);
+    expect(auth.accessToken()).toBe('tok-2');
+  });
 
   it('anexa o Bearer token às chamadas da API', () => {
     login();

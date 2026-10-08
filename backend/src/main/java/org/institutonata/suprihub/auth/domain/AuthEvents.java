@@ -20,6 +20,8 @@ public final class AuthEvents {
     public static final String EMAIL_CHANGE_REQUESTED = "auth.email-change.requested";
     /** E-mail trocado — o endereço antigo recebe um aviso. */
     public static final String EMAIL_CHANGED = "auth.user.email-changed";
+    /** Login aguardando a segunda etapa — o titular recebe o código de 6 dígitos. */
+    public static final String LOGIN_CODE_REQUESTED = "auth.login-code.requested";
     /** Senha trocada em "Minha conta" — o titular recebe um aviso. */
     public static final String PASSWORD_CHANGED = "auth.user.password-changed";
 

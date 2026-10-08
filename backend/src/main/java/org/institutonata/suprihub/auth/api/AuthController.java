@@ -6,7 +6,10 @@ import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.institutonata.suprihub.auth.api.AuthDtos.ChallengeRequest;
+import org.institutonata.suprihub.auth.api.AuthDtos.CodeRequiredResponse;
 import org.institutonata.suprihub.auth.api.AuthDtos.EmailRequest;
+import org.institutonata.suprihub.auth.api.AuthDtos.LoginCodeRequest;
 import org.institutonata.suprihub.auth.api.AuthDtos.LoginRequest;
 import org.institutonata.suprihub.auth.api.AuthDtos.MessageResponse;
 import org.institutonata.suprihub.auth.api.AuthDtos.RegisterRequest;
@@ -63,9 +66,25 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Entra com e-mail e senha")
-    public SessionResponse login(@Valid @RequestBody LoginRequest req, HttpServletRequest http,
+    public Object login(@Valid @RequestBody LoginRequest req, HttpServletRequest http,
             HttpServletResponse response) {
-        return toResponse(auth.login(req.email(), req.password(), req.captchaToken(), http.getRemoteAddr()), response);
+        return switch (auth.login(req.email(), req.password(), req.captchaToken(), http.getRemoteAddr())) {
+            case AuthService.Session session -> toResponse(session, response);
+            case AuthService.CodeRequired code -> new CodeRequiredResponse(true, code.challenge(), code.sentTo());
+        };
+    }
+
+    @PostMapping("/login/code")
+    @Operation(summary = "Segunda etapa do login: confere o código de 6 dígitos enviado por e-mail")
+    public SessionResponse loginCode(@Valid @RequestBody LoginCodeRequest req, HttpServletResponse response) {
+        return toResponse(auth.verifyLoginCode(req.challenge(), req.code()), response);
+    }
+
+    @PostMapping("/login/resend-code")
+    @Operation(summary = "Reenvia o código de 6 dígitos")
+    public MessageResponse resendLoginCode(@Valid @RequestBody ChallengeRequest req) {
+        auth.resendLoginCode(req.challenge());
+        return new MessageResponse("Enviamos um novo código. O anterior não vale mais.");
     }
 
     @PostMapping("/refresh")

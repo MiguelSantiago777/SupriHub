@@ -102,6 +102,43 @@ const samePassword: ValidatorFn = (group: AbstractControl): ValidationErrors | n
         </form>
       </section>
 
+      <section class="card" aria-labelledby="dois-fatores-title">
+        <h2 id="dois-fatores-title">Verificação em duas etapas</h2>
+        @if (auth.user()?.twoFactorMandatory) {
+          <p class="alert alert-success" role="status">
+            Ativa. Para a equipe interna ela é obrigatória: ao entrar, depois da senha, você recebe
+            um código de 6 números no seu e-mail.
+          </p>
+        } @else {
+          <p class="muted">
+            Com ela ativa, ao entrar, depois da senha, você recebe um código de 6 números no seu
+            e-mail. Assim, mesmo quem descobrir sua senha não consegue entrar sem acesso ao seu
+            e-mail.
+          </p>
+          <p>
+            Situação: <strong>{{ auth.user()?.twoFactor ? 'ativa' : 'desativada' }}</strong>
+          </p>
+          @if (twoFactorMsg()) {
+            <p class="alert alert-success" role="status">{{ twoFactorMsg() }}</p>
+          }
+          @if (twoFactorError()) {
+            <p class="alert alert-error" role="alert">{{ twoFactorError() }}</p>
+          }
+          <form [formGroup]="twoFactorForm" (ngSubmit)="toggleTwoFactor()" novalidate class="stack">
+            <app-password-field
+              [control]="twoFactorForm.controls.currentPassword"
+              label="Senha atual"
+              autocomplete="current-password"
+            />
+            <div class="form-actions">
+              <button mat-flat-button type="submit" [disabled]="savingTwoFactor()">
+                {{ auth.user()?.twoFactor ? 'Desativar' : 'Ativar' }} verificação em duas etapas
+              </button>
+            </div>
+          </form>
+        }
+      </section>
+
       <section class="card" aria-labelledby="senha-title">
         <h2 id="senha-title">Senha</h2>
         <p class="muted">Ao trocar a senha, as sessões abertas em outros aparelhos são encerradas.</p>
@@ -170,6 +207,13 @@ export class AccountPage {
     { validators: samePassword },
   );
 
+  protected readonly twoFactorForm = this.fb.group({
+    currentPassword: ['', Validators.required],
+  });
+
+  protected readonly savingTwoFactor = signal(false);
+  protected readonly twoFactorMsg = signal('');
+  protected readonly twoFactorError = signal('');
   protected readonly savingName = signal(false);
   protected readonly nameMsg = signal('');
   protected readonly nameError = signal('');
@@ -219,6 +263,32 @@ export class AccountPage {
       error: (e: unknown) => {
         this.emailError.set(applyServerErrors(this.emailForm, e));
         this.savingEmail.set(false);
+      },
+    });
+  }
+
+  protected toggleTwoFactor(): void {
+    if (this.twoFactorForm.invalid) {
+      this.twoFactorForm.markAllAsTouched();
+      return;
+    }
+    this.savingTwoFactor.set(true);
+    this.twoFactorMsg.set('');
+    this.twoFactorError.set('');
+    const enable = !this.auth.user()?.twoFactor;
+    this.auth.setTwoFactor(enable, this.twoFactorForm.getRawValue().currentPassword).subscribe({
+      next: () => {
+        this.twoFactorMsg.set(
+          enable
+            ? 'Verificação em duas etapas ativada. No próximo acesso, enviaremos um código para o seu e-mail.'
+            : 'Verificação em duas etapas desativada.',
+        );
+        this.twoFactorForm.reset();
+        this.savingTwoFactor.set(false);
+      },
+      error: (e: unknown) => {
+        this.twoFactorError.set(applyServerErrors(this.twoFactorForm, e));
+        this.savingTwoFactor.set(false);
       },
     });
   }

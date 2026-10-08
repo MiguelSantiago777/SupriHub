@@ -58,6 +58,9 @@ public class AppUser {
     @Column(name = "sessions_revoked_at")
     private Instant sessionsRevokedAt;
 
+    @Column(name = "two_factor_enabled", nullable = false)
+    private boolean twoFactorEnabled;
+
     /** E-mail pedido em "Minha conta", aguardando confirmação pelo link. */
     @Column(name = "pending_email", length = 254)
     private String pendingEmail;
@@ -130,6 +133,25 @@ public class AppUser {
 
     public void confirmEmail(Instant now) {
         emailVerified = true;
+        updatedAt = now;
+    }
+
+    /** Equipe interna: qualquer perfil além de fornecedor. */
+    public boolean isInternal() {
+        return roleCodes().stream().anyMatch(r -> r != AppRole.SUPPLIER);
+    }
+
+    /** Código por e-mail ao entrar: obrigatório para a equipe interna, opcional para o fornecedor. */
+    public boolean requiresTwoFactor() {
+        return twoFactorEnabled || isInternal();
+    }
+
+    public boolean isTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean enabled, Instant now) {
+        twoFactorEnabled = enabled;
         updatedAt = now;
     }
 

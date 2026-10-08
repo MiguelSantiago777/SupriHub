@@ -24,7 +24,8 @@ public record SupriHubProperties(
         Mail mail,
         Bootstrap bootstrap,
         Captcha captcha,
-        Antivirus antivirus) {
+        Antivirus antivirus,
+        @DefaultValue TwoFactor twoFactor) {
 
     public record Jwt(
             @NotBlank String secret,
@@ -46,6 +47,10 @@ public record SupriHubProperties(
             @DefaultValue("10") int maxAttempts,
             @DefaultValue("30d") Duration publishedRetention,
             @DefaultValue("suprihub.events") String exchange) {
+    }
+
+    /** Verificação em duas etapas por código no e-mail (desligável só para testes). */
+    public record TwoFactor(@DefaultValue("true") boolean enabled) {
     }
 
     public record RateLimit(

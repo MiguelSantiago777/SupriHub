@@ -113,6 +113,9 @@ frontend (o cookie de sessão é `Secure`). O Swagger fica desligado (`SWAGGER_E
   uso (reuso fora da janela de 30 s encerra todas as sessões).
 - Desativar o usuário, trocar seus perfis ou redefinir a senha invalida na hora os access
   tokens já emitidos.
+- Verificação em duas etapas: depois da senha, um código de 6 dígitos chega por e-mail (vale
+  10 minutos, 5 tentativas). Obrigatória para a equipe interna; o fornecedor liga em
+  **Minha conta**. No ambiente local o código aparece no MailHog (http://localhost:8025).
 - Senha errada: 5 tentativas por IP + e-mail bloqueiam aquele IP por 15 min (sem travar o dono
   da conta em outro IP); 20 tentativas de vários IPs bloqueiam a conta. As respostas não
   revelam se o e-mail existe.
