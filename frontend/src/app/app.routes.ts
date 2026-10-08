@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { guestGuard, roleGuard } from './core/auth/guards';
+import { authGuard, guestGuard, roleGuard } from './core/auth/guards';
 
 /** URLs em português; cada área é carregada sob demanda (lazy loading). */
 export const routes: Routes = [
@@ -41,6 +41,18 @@ export const routes: Routes = [
     path: 'nova-senha',
     title: 'Criar nova senha',
     loadComponent: () => import('./auth/reset-password.page').then((m) => m.ResetPasswordPage),
+  },
+  {
+    path: 'confirmar-novo-email',
+    title: 'Confirmar novo e-mail',
+    loadComponent: () =>
+      import('./auth/confirm-email-change.page').then((m) => m.ConfirmEmailChangePage),
+  },
+  {
+    path: 'minha-conta',
+    title: 'Minha conta',
+    canMatch: [authGuard],
+    loadComponent: () => import('./account/account.page').then((m) => m.AccountPage),
   },
   {
     path: 'fornecedor',

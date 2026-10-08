@@ -74,6 +74,33 @@ public final class AuthDtos {
         }
     }
 
+    public record RenameRequest(
+            @NotBlank(message = "Informe seu nome.") @Size(min = 3, max = 200, message = "Nome muito curto ou longo.")
+            String fullName) {
+    }
+
+    public record ChangePasswordRequest(
+            @NotBlank(message = "Informe sua senha atual.") String currentPassword,
+            @NotBlank(message = "Crie uma senha.") @Pattern(regexp = PASSWORD_REGEX, message = PASSWORD_MESSAGE)
+            String newPassword) {
+
+        @Override
+        public String toString() {
+            return "ChangePasswordRequest[***]";
+        }
+    }
+
+    public record ChangeEmailRequest(
+            @NotBlank(message = "Informe o novo e-mail.") @Email(message = "E-mail inválido.") @Size(max = 254)
+            String newEmail,
+            @NotBlank(message = "Informe sua senha atual.") String currentPassword) {
+
+        @Override
+        public String toString() {
+            return "ChangeEmailRequest[***]";
+        }
+    }
+
     public record MeResponse(Long id, String fullName, String email, Set<AppRole> roles, boolean emailVerified) {
         public static MeResponse of(AppUser u) {
             return new MeResponse(u.getId(), u.getFullName(), u.getEmail(), u.roleCodes(), u.isEmailVerified());

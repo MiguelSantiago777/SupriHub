@@ -58,6 +58,14 @@ public class AppUser {
     @Column(name = "sessions_revoked_at")
     private Instant sessionsRevokedAt;
 
+    /** E-mail pedido em "Minha conta", aguardando confirmação pelo link. */
+    @Column(name = "pending_email", length = 254)
+    private String pendingEmail;
+
+    /** E-mail de acesso anterior à última troca (recebe o aviso da troca). */
+    @Column(name = "previous_email", length = 254)
+    private String previousEmail;
+
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
@@ -123,6 +131,27 @@ public class AppUser {
     public void confirmEmail(Instant now) {
         emailVerified = true;
         updatedAt = now;
+    }
+
+    public void requestEmailChange(String newEmail, Instant now) {
+        pendingEmail = newEmail.trim().toLowerCase();
+        updatedAt = now;
+    }
+
+    public void changeEmail(String newEmail, Instant now) {
+        previousEmail = email;
+        email = newEmail.trim().toLowerCase();
+        pendingEmail = null;
+        emailVerified = true;
+        updatedAt = now;
+    }
+
+    public String getPendingEmail() {
+        return pendingEmail;
+    }
+
+    public String getPreviousEmail() {
+        return previousEmail;
     }
 
     public void changePassword(String newHash, Instant now) {

@@ -144,6 +144,21 @@ public class NotificationEventListener {
                 email(user, "user-invited", "Seu acesso ao SupriHub", event,
                         Map.of("link", frontendUrl + "/nova-senha?token=" + token));
             });
+            case AuthEvents.EMAIL_CHANGE_REQUESTED -> withUser(event, user -> {
+                String newEmail = user.getPendingEmail();
+                if (newEmail == null) {
+                    return;
+                }
+                String token = tokens.issueEmailChange(user.getId(), newEmail);
+                email(user, newEmail, "email-change", "Confirme seu novo e-mail — SupriHub", event,
+                        Map.of("link", frontendUrl + "/confirmar-novo-email?token=" + token));
+            });
+            case AuthEvents.EMAIL_CHANGED -> withUser(event, user ->
+                    email(user, user.getPreviousEmail(), "email-changed", "Seu e-mail de acesso foi trocado",
+                            event, Map.of()));
+            case AuthEvents.PASSWORD_CHANGED -> withUser(event, user ->
+                    email(user, "password-changed", "Sua senha foi trocada", event,
+                            Map.of("resetLink", frontendUrl + "/esqueci-senha")));
             case SupplierEvents.APPLICATION_SUBMITTED -> withApplication(event, (user, app) -> {
                 email(user, "application-submitted", "Recebemos seu requerimento " + app.getProtocol(), event,
                         Map.of("protocol", app.getProtocol(), "dueDate", date(app.getAnalysisDueDate()),
@@ -597,9 +612,15 @@ public class NotificationEventListener {
 
     private void email(AppUser user, String template, String subject, EventEnvelope event,
             Map<String, Object> vars) {
+        email(user, user.getEmail(), template, subject, event, vars);
+    }
+
+    /** Para outro endereço do mesmo usuário (troca de e-mail: o novo e o antigo). */
+    private void email(AppUser user, String address, String template, String subject, EventEnvelope event,
+            Map<String, Object> vars) {
         Map<String, Object> all = new HashMap<>(vars);
         all.put("name", user.getFullName());
-        notifications.send(ChannelType.EMAIL, new Recipient(user.getId(), user.getEmail()), template, subject, all,
+        notifications.send(ChannelType.EMAIL, new Recipient(user.getId(), address), template, subject, all,
                 event.id());
     }
 }

@@ -217,6 +217,78 @@ public class AuthService {
         audit.record("app_user", user.getId(), "PASSWORD_RESET", null, null);
     }
 
+    // ---- Minha conta ----
+
+    @Transactional
+    public AppUser rename(long userId, String fullName) {
+        Instant now = clock.instant();
+        AppUser user = activeUser(userId, now);
+        user.rename(fullName, now);
+        audit.record("app_user", user.getId(), "RENAME", null, Map.of("fullName", user.getFullName()));
+        return user;
+    }
+
+    /**
+     * Troca a senha conferindo a atual. Encerra as sessões em outros aparelhos e devolve uma
+     * nova para quem trocou continuar logado.
+     */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public Session changePassword(long userId, String currentPassword, String newPassword) {
+        Instant now = clock.instant();
+        AppUser user = activeUser(userId, now);
+        requireCurrentPassword(user, currentPassword, now);
+        user.changePassword(passwordEncoder.encode(newPassword), now);
+        endAllSessions(user.getId(), now);
+        audit.record("app_user", user.getId(), "PASSWORD_CHANGED", null, null);
+        events.publish(event(AuthEvents.PASSWORD_CHANGED, user.getId()));
+        return newSession(user, now).session();
+    }
+
+    /**
+     * Pede a troca de e-mail: o link vai para o novo endereço e só ao ser aberto ele passa a
+     * valer. Se o endereço já for de outra conta, nada é enviado, mas a resposta é a mesma.
+     */
+    @Transactional(noRollbackFor = BusinessException.class)
+    public void requestEmailChange(long userId, String newEmail, String currentPassword) {
+        Instant now = clock.instant();
+        AppUser user = activeUser(userId, now);
+        requireCurrentPassword(user, currentPassword, now);
+        String normalized = newEmail.trim().toLowerCase();
+        if (normalized.equals(user.getEmail())) {
+            throw new BusinessException("SAME_EMAIL", "Este já é o seu e-mail de acesso.", HttpStatus.BAD_REQUEST);
+        }
+        if (users.findByEmail(normalized).isPresent()) {
+            return;
+        }
+        user.requestEmailChange(normalized, now);
+        events.publish(event(AuthEvents.EMAIL_CHANGE_REQUESTED, user.getId()));
+    }
+
+    @Transactional
+    public void confirmEmailChange(String rawToken) {
+        VerificationToken token = usableToken(rawToken, VerificationToken.Purpose.EMAIL_CHANGE);
+        Instant now = clock.instant();
+        AppUser user = users.findById(token.getUserId()).filter(AppUser::isEnabled).orElseThrow(this::invalidLink);
+        token.markUsed(now);
+        if (users.findByEmail(token.getNewEmail()).isPresent()) {
+            throw new BusinessException("EMAIL_TAKEN",
+                    "Este e-mail passou a ser usado por outra conta. Escolha outro em \"Minha conta\".",
+                    HttpStatus.CONFLICT);
+        }
+        user.changeEmail(token.getNewEmail(), now);
+        audit.record("app_user", user.getId(), "EMAIL_CHANGED", Map.of("email", user.getPreviousEmail()),
+                Map.of("email", user.getEmail()));
+        events.publish(event(AuthEvents.EMAIL_CHANGED, user.getId()));
+    }
+
+    /** Senha atual errada conta como tentativa de login falha (bloqueia a conta no limite). */
+    private void requireCurrentPassword(AppUser user, String currentPassword, Instant now) {
+        if (user.isLocked(now) || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            user.registerFailedLogin(now);
+            throw new BusinessException("WRONG_PASSWORD", "A senha atual não confere.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     private AppUser activeUser(Long userId, Instant now) {
         AppUser user = users.findById(userId).orElseThrow(this::sessionExpired);
         if (!user.isEnabled()) {

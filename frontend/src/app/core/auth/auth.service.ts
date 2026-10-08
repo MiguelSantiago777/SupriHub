@@ -112,6 +112,41 @@ export class AuthService {
     return this.http.post<MessageResponse>('/api/auth/check-reset-link', { token });
   }
 
+  // ---- Minha conta ----
+
+  rename(fullName: string): Observable<Me> {
+    return this.http.put<Me>('/api/me/name', { fullName }).pipe(tap((me) => this.me.set(me)));
+  }
+
+  /** Troca a senha; o backend encerra as outras sessões e devolve uma nova para esta aba. */
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http
+      .post<SessionResponse>(
+        '/api/me/password',
+        { currentPassword, newPassword },
+        { withCredentials: true },
+      )
+      .pipe(
+        tap((s) => this.setSession(s)),
+        map(() => undefined),
+      );
+  }
+
+  requestEmailChange(newEmail: string, currentPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>('/api/me/email', { newEmail, currentPassword });
+  }
+
+  confirmEmailChange(token: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>('/api/auth/confirm-email-change', { token });
+  }
+
+  /** Recarrega os dados do usuário logado (ex.: depois de trocar o e-mail). */
+  reloadUser(): void {
+    if (this.me()) {
+      this.http.get<Me>('/api/me').subscribe({ next: (me) => this.me.set(me), error: () => undefined });
+    }
+  }
+
   resetPassword(token: string, newPassword: string): Observable<MessageResponse> {
     return this.http.post<MessageResponse>('/api/auth/reset-password', { token, newPassword });
   }

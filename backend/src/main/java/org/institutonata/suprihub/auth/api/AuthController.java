@@ -1,7 +1,5 @@
 package org.institutonata.suprihub.auth.api;
 
-import java.time.Duration;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -10,17 +8,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.institutonata.suprihub.auth.api.AuthDtos.EmailRequest;
 import org.institutonata.suprihub.auth.api.AuthDtos.LoginRequest;
-import org.institutonata.suprihub.auth.api.AuthDtos.MeResponse;
 import org.institutonata.suprihub.auth.api.AuthDtos.MessageResponse;
 import org.institutonata.suprihub.auth.api.AuthDtos.RegisterRequest;
 import org.institutonata.suprihub.auth.api.AuthDtos.ResetPasswordRequest;
 import org.institutonata.suprihub.auth.api.AuthDtos.SessionResponse;
 import org.institutonata.suprihub.auth.api.AuthDtos.TokenRequest;
 import org.institutonata.suprihub.auth.application.AuthService;
-import org.institutonata.suprihub.shared.config.SupriHubProperties;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,20 +27,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Autenticação")
 public class AuthController {
 
-    static final String REFRESH_COOKIE = "suprihub_rt";
-    /**
-     * Cookie sem segredo, legível pelo JavaScript, que só indica "há sessão": evita que o
-     * frontend chame /refresh (e receba 401) em toda visita anônima.
-     */
-    static final String SESSION_HINT_COOKIE = "suprihub_session";
-    private static final String COOKIE_PATH = "/api/auth";
+    static final String REFRESH_COOKIE = SessionCookies.REFRESH_COOKIE;
 
     private final AuthService auth;
-    private final SupriHubProperties.Jwt jwtConfig;
+    private final SessionCookies cookies;
 
-    public AuthController(AuthService auth, SupriHubProperties props) {
+    public AuthController(AuthService auth, SessionCookies cookies) {
         this.auth = auth;
-        this.jwtConfig = props.jwt();
+        this.cookies = cookies;
     }
 
     @PostMapping("/register")
@@ -116,6 +104,13 @@ public class AuthController {
         return new MessageResponse("Link válido.");
     }
 
+    @PostMapping("/confirm-email-change")
+    @Operation(summary = "Confirma a troca de e-mail com o token enviado ao novo endereço")
+    public MessageResponse confirmEmailChange(@Valid @RequestBody TokenRequest req) {
+        auth.confirmEmailChange(req.token());
+        return new MessageResponse("E-mail alterado! Use o novo endereço para entrar.");
+    }
+
     @PostMapping("/reset-password")
     @Operation(summary = "Define nova senha com o token recebido")
     public MessageResponse reset(@Valid @RequestBody ResetPasswordRequest req) {
@@ -124,24 +119,10 @@ public class AuthController {
     }
 
     private SessionResponse toResponse(AuthService.Session session, HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_COOKIE, session.refreshToken())
-                .httpOnly(true).secure(jwtConfig.secureCookie()).sameSite("Strict")
-                .path(COOKIE_PATH).maxAge(jwtConfig.refreshTtl()).build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(SESSION_HINT_COOKIE, "1")
-                .httpOnly(false).secure(jwtConfig.secureCookie()).sameSite("Strict")
-                .path("/").maxAge(jwtConfig.refreshTtl()).build().toString());
-        return new SessionResponse(session.accessToken().value(), session.accessToken().expiresAt(),
-                MeResponse.of(session.user()));
+        return cookies.write(session, response);
     }
 
     private void clearCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_COOKIE, "")
-                .httpOnly(true).secure(jwtConfig.secureCookie()).sameSite("Strict")
-                .path(COOKIE_PATH).maxAge(Duration.ZERO).build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(SESSION_HINT_COOKIE, "")
-                .httpOnly(false).secure(jwtConfig.secureCookie()).sameSite("Strict")
-                .path("/").maxAge(Duration.ZERO).build().toString());
+        cookies.clear(response);
     }
 }

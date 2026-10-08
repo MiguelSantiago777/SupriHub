@@ -19,6 +19,7 @@ public class VerificationTokenService {
     public static final Duration EMAIL_CONFIRMATION_TTL = Duration.ofHours(48);
     public static final Duration PASSWORD_RESET_TTL = Duration.ofHours(2);
     public static final Duration INVITATION_TTL = Duration.ofDays(7);
+    public static final Duration EMAIL_CHANGE_TTL = Duration.ofHours(24);
 
     private final VerificationTokenRepository repository;
     private final Clock clock;
@@ -35,6 +36,17 @@ public class VerificationTokenService {
         repository.invalidateOpen(userId, purpose, now);
         String raw = TokenHasher.newToken();
         repository.save(new VerificationToken(userId, TokenHasher.sha256(raw), purpose, now.plus(ttl), now));
+        return raw;
+    }
+
+    /** Link de troca de e-mail: o novo endereço fica guardado no próprio token. */
+    @Transactional
+    public String issueEmailChange(long userId, String newEmail) {
+        Instant now = clock.instant();
+        repository.invalidateOpen(userId, VerificationToken.Purpose.EMAIL_CHANGE, now);
+        String raw = TokenHasher.newToken();
+        repository.save(new VerificationToken(userId, TokenHasher.sha256(raw), newEmail,
+                now.plus(EMAIL_CHANGE_TTL), now));
         return raw;
     }
 }

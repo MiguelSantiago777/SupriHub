@@ -16,6 +16,12 @@ public final class AuthEvents {
     public static final String PASSWORD_RESET_REQUESTED = "auth.password-reset.requested";
     /** Usuário interno criado pelo ADMIN — recebe link para definir a senha. */
     public static final String USER_INVITED = "auth.user.invited";
+    /** Pedido de troca de e-mail em "Minha conta" — link vai para o novo endereço. */
+    public static final String EMAIL_CHANGE_REQUESTED = "auth.email-change.requested";
+    /** E-mail trocado — o endereço antigo recebe um aviso. */
+    public static final String EMAIL_CHANGED = "auth.user.email-changed";
+    /** Senha trocada em "Minha conta" — o titular recebe um aviso. */
+    public static final String PASSWORD_CHANGED = "auth.user.password-changed";
 
     private AuthEvents() {
     }

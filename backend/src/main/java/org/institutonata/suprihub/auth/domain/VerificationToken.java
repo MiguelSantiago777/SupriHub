@@ -11,12 +11,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** Token de uso único enviado por e-mail (confirmação de e-mail, definição de senha). */
+/** Token de uso único enviado por e-mail (confirmação de e-mail, definição de senha, troca de e-mail). */
 @Entity
 @Table(name = "email_verification_token")
 public class VerificationToken {
 
-    public enum Purpose { EMAIL_CONFIRMATION, PASSWORD_RESET }
+    public enum Purpose { EMAIL_CONFIRMATION, PASSWORD_RESET, EMAIL_CHANGE }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +35,10 @@ public class VerificationToken {
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
+    /** Só em EMAIL_CHANGE: o endereço que passa a valer quando o link for aberto. */
+    @Column(name = "new_email", length = 254)
+    private String newEmail;
+
     @Column(name = "used_at")
     private Instant usedAt;
 
@@ -52,6 +56,11 @@ public class VerificationToken {
         this.createdAt = now;
     }
 
+    public VerificationToken(Long userId, String tokenHash, String newEmail, Instant expiresAt, Instant now) {
+        this(userId, tokenHash, Purpose.EMAIL_CHANGE, expiresAt, now);
+        this.newEmail = newEmail;
+    }
+
     public boolean isUsable(Instant now) {
         return usedAt == null && expiresAt.isAfter(now);
     }
@@ -66,5 +75,9 @@ public class VerificationToken {
 
     public Purpose getPurpose() {
         return purpose;
+    }
+
+    public String getNewEmail() {
+        return newEmail;
     }
 }
