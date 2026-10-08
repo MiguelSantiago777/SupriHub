@@ -197,6 +197,12 @@ public class AuthService {
                 .ifPresent(u -> events.publish(event(AuthEvents.PASSWORD_RESET_REQUESTED, u.getId())));
     }
 
+    /** Só confere o link (não o consome): a tela de nova senha avisa logo se ele não vale mais. */
+    @Transactional(readOnly = true)
+    public void checkPasswordResetLink(String rawToken) {
+        usableToken(rawToken, VerificationToken.Purpose.PASSWORD_RESET);
+    }
+
     @Transactional
     public void resetPassword(String rawToken, String newPassword) {
         VerificationToken token = usableToken(rawToken, VerificationToken.Purpose.PASSWORD_RESET);

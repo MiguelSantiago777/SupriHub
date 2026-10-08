@@ -1,4 +1,5 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
@@ -16,11 +17,13 @@ import { PASSWORD_PATTERN, PasswordField } from './password-field';
       @if (done()) {
         <p class="alert alert-success" role="status">{{ done() }}</p>
         <a mat-flat-button routerLink="/entrar">Entrar</a>
-      } @else if (!token()) {
+      } @else if (linkState() === 'checking') {
+        <p role="status">Conferindo o link…</p>
+      } @else if (linkState() === 'invalid') {
         <p class="alert alert-error" role="alert">
-          Link inválido. Peça um novo em "Esqueci minha senha".
+          Este link é inválido, expirou ou já foi usado. Peça um novo em "Esqueci minha senha".
         </p>
-        <p><a routerLink="/esqueci-senha">Esqueci minha senha</a></p>
+        <p><a mat-flat-button routerLink="/esqueci-senha">Pedir novo link</a></p>
       } @else {
         @if (error()) {
           <p class="alert alert-error" role="alert">{{ error() }}</p>
@@ -40,7 +43,7 @@ import { PASSWORD_PATTERN, PasswordField } from './password-field';
     </app-auth-layout>
   `,
 })
-export class ResetPasswordPage {
+export class ResetPasswordPage implements OnInit {
   private readonly auth = inject(AuthService);
   readonly token = input<string>();
 
@@ -50,6 +53,25 @@ export class ResetPasswordPage {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
   protected readonly done = signal('');
+  protected readonly linkState = signal<'checking' | 'valid' | 'invalid'>('checking');
+
+  ngOnInit(): void {
+    const token = this.token();
+    if (!token) {
+      this.linkState.set('invalid');
+      return;
+    }
+    // Quem abre um link de nova senha não deve continuar com outra conta aberta.
+    if (this.auth.isAuthenticated()) {
+      this.auth.endSession().subscribe();
+    }
+    this.auth.checkResetLink(token).subscribe({
+      next: () => this.linkState.set('valid'),
+      // Só 400 diz que o link não vale; em falha de rede deixa tentar (o envio confere de novo).
+      error: (e: unknown) =>
+        this.linkState.set(e instanceof HttpErrorResponse && e.status === 400 ? 'invalid' : 'valid'),
+    });
+  }
 
   protected submit(): void {
     if (this.form.invalid) {

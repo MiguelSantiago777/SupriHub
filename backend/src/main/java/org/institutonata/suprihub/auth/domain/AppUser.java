@@ -81,7 +81,7 @@ public class AppUser {
     public AppUser(String email, String passwordHash, String fullName, Instant now) {
         this.email = email.trim().toLowerCase();
         this.passwordHash = passwordHash;
-        this.fullName = fullName.trim();
+        this.fullName = PersonName.normalize(fullName);
         this.createdAt = now;
         this.updatedAt = now;
     }
@@ -144,7 +144,7 @@ public class AppUser {
     }
 
     public void rename(String fullName, Instant now) {
-        this.fullName = fullName.trim();
+        this.fullName = PersonName.normalize(fullName);
         this.updatedAt = now;
     }
 

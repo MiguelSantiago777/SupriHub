@@ -209,9 +209,15 @@ class AuthFlowIT extends IntegrationTest {
                         .content("{\"email\":\"admin@teste.local\"}"))
                 .andExpect(status().isAccepted());
         String token = Mails.token(awaitMail("admin@teste.local"));
+        String tokenJson = "{\"token\":\"" + token + "\"}";
+        mvc.perform(post("/api/auth/check-reset-link").contentType(MediaType.APPLICATION_JSON).content(tokenJson))
+                .andExpect(status().isOk());
         mvc.perform(post("/api/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"token\":\"" + token + "\",\"newPassword\":\"Admin@12345\"}"))
                 .andExpect(status().isOk());
+        // Link já usado: a tela de nova senha avisa antes de a pessoa digitar.
+        mvc.perform(post("/api/auth/check-reset-link").contentType(MediaType.APPLICATION_JSON).content(tokenJson))
+                .andExpect(status().isBadRequest());
     }
 
     private MimeMessage awaitMail(String to) {

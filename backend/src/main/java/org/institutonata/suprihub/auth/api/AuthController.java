@@ -109,6 +109,13 @@ public class AuthController {
         return new MessageResponse("Se houver uma conta com este e-mail, enviaremos um link para criar nova senha.");
     }
 
+    @PostMapping("/check-reset-link")
+    @Operation(summary = "Confere se o link de nova senha ainda vale, antes de a pessoa digitar a senha")
+    public MessageResponse checkResetLink(@Valid @RequestBody TokenRequest req) {
+        auth.checkPasswordResetLink(req.token());
+        return new MessageResponse("Link válido.");
+    }
+
     @PostMapping("/reset-password")
     @Operation(summary = "Define nova senha com o token recebido")
     public MessageResponse reset(@Valid @RequestBody ResetPasswordRequest req) {

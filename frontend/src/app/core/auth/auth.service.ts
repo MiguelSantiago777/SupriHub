@@ -27,10 +27,22 @@ export class AuthService {
   private readonly token = signal<string | null>(null);
   private readonly me = signal<Me | null>(null);
   private refreshInFlight: Observable<string | null> | null = null;
+  /** Avisa as outras abas quando a pessoa sai, para todas encerrarem a sessão juntas. */
+  private readonly channel =
+    typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel('suprihub-auth');
 
   readonly user = this.me.asReadonly();
   readonly isAuthenticated = computed(() => this.me() !== null);
   readonly roles = computed(() => new Set(this.me()?.roles ?? []));
+
+  constructor() {
+    this.channel?.addEventListener('message', (e: MessageEvent) => {
+      if (e.data === 'logout' && this.me()) {
+        this.clear();
+        void this.router.navigateByUrl('/');
+      }
+    });
+  }
 
   accessToken(): string | null {
     return this.token();
@@ -96,6 +108,10 @@ export class AuthService {
     return this.http.post<MessageResponse>('/api/auth/forgot-password', { email, captchaToken });
   }
 
+  checkResetLink(token: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>('/api/auth/check-reset-link', { token });
+  }
+
   resetPassword(token: string, newPassword: string): Observable<MessageResponse> {
     return this.http.post<MessageResponse>('/api/auth/reset-password', { token, newPassword });
   }
@@ -120,13 +136,19 @@ export class AuthService {
   }
 
   logout(): void {
-    this.http
-      .post('/api/auth/logout', {}, { withCredentials: true })
-      .pipe(catchError(() => of(null)))
-      .subscribe(() => {
+    this.endSession().subscribe(() => void this.router.navigateByUrl('/'));
+  }
+
+  /** Encerra a sessão no servidor, aqui e nas outras abas, sem sair da página atual. */
+  endSession(): Observable<void> {
+    return this.http.post('/api/auth/logout', {}, { withCredentials: true }).pipe(
+      catchError(() => of(null)),
+      tap(() => {
         this.clear();
-        void this.router.navigateByUrl('/');
-      });
+        this.channel?.postMessage('logout');
+      }),
+      map(() => undefined),
+    );
   }
 
   /** Sessão perdida (ex.: refresh falhou durante o uso). */
