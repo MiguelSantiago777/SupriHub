@@ -1,11 +1,10 @@
 # ---- build ----
-FROM eclipse-temurin:21-jdk AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
-COPY mvnw pom.xml ./
-COPY .mvn .mvn
-RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
+COPY pom.xml ./
+RUN mvn -B -q dependency:go-offline
 COPY src src
-RUN ./mvnw -B -q package -DskipTests && \
+RUN mvn -B -q package -DskipTests && \
     cp target/suprihub-backend-*.jar target/app.jar
 
 # ---- runtime ----
